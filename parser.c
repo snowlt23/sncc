@@ -9,8 +9,10 @@ typedef enum {
 typedef struct _ast {
   astkind kind;
   union {
-    struct _ast* left;
-    struct _ast* right;
+    struct {
+      struct _ast* left;
+      struct _ast* right;
+    };
     int intval;
   };
 } astree;

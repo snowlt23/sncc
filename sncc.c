@@ -1,22 +1,19 @@
 
 #include <stdio.h>
-
-void emit_global(char* name) {
-  printf("  .global %s\n", name);
-}
-void emit_label(char* label) {
-  printf("%s:\n", label);
-}
-void emit_returncode(int ret) {
-  printf("  mov $%d, %%eax\n", ret);
-  printf("  ret\n");
-}
+#include "vector.c"
+#include "lexer.c"
+#include "parser.c"
+#include "codegen.c"
 
 int main() {
-  int returncode;
-  scanf("%d", &returncode);
+  vector* tokenss = lexer();
+  tokenstream* ts = new_tokenstream(tokenss);
+  astree* ast = parser_top(ts);
+
   emit_global("main");
   emit_label("main");
-  emit_returncode(returncode);
+  codegen(ast);
+  emit_pop("%rax");
+  emit_return();
   return 0;
 }

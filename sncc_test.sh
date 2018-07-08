@@ -11,5 +11,8 @@ rettest() {
   fi
 }
 
-rettest "retcode2" "2" 2
-rettest "retcode9" "9" 9
+rettest "retcode: 2" "2" 2
+rettest "retcode: 9" "9" 9
+rettest "retcode: 1 + 2" "1 + 2" 3
+rettest "retcode: 2 - 1" "2 - 1" 1
+rettest "retcode: 1 + 10 - 2" "1 + 10 - 2" 9
