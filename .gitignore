@@ -1,6 +1,7 @@
 
 *.exe
 *.out
+sncc
 /*.s
 *.log
 .vagrant/

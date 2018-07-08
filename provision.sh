@@ -1,3 +1,3 @@
 
 apt update
-apt install -y gcc
+apt install -y gcc make
