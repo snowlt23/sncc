@@ -2,5 +2,9 @@
 build:
 	gcc -osncc sncc.c
 
-test:
-	./test.sh
+compiler-test:
+	./compiler_test.sh
+sncc-test:
+	./sncc_test.sh
+
+test: compiler-test sncc-test

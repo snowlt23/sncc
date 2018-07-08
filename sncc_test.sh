@@ -11,4 +11,5 @@ rettest() {
   fi
 }
 
-rettest "retcode" "2" 2
+rettest "retcode2" "2" 2
+rettest "retcode9" "9" 9
