@@ -1,0 +1,6 @@
+
+*.exe
+*.out
+/*.s
+*.log
+.vagrant/
