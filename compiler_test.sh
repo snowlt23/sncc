@@ -9,8 +9,19 @@ unittest() {
   fi
 }
 
-lexertest () {
+lexertest() {
   gcc -otest.out test/lexer_test.c
+  OUT=`echo "$2" | ./test.out`
+  OUT=`echo $OUT`
+  if [ "$OUT" = "$3" ]; then
+    echo "[OK] $1"
+  else
+    echo "[ERROR] $1, expected $3, but got $OUT"
+  fi
+}
+
+parsertest() {
+  gcc -otest.out test/parser_test.c
   OUT=`echo "$2" | ./test.out`
   OUT=`echo $OUT`
   if [ "$OUT" = "$3" ]; then
@@ -29,3 +40,7 @@ lexertest "lexer: -" "-" "TOKEN_SUB:-"
 lexertest "lexer: 1 + 2" "1 + 2" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2"
 lexertest "lexer: 3 - 4" "3 - 4" "TOKEN_INTLIT:3 TOKEN_SUB:- TOKEN_INTLIT:4"
 lexertest "lexer: 1 + 2 - 3" "1 + 2 - 3" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2 TOKEN_SUB:- TOKEN_INTLIT:3"
+
+parsertest "parser: 1" "1" "AST_INTLIT"
+parsertest "parser: 1 + 2" "1 + 2" "AST_ADD"
+parsertest "parser: 1 - 2" "1 - 2" "AST_SUB"

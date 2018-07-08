@@ -1,3 +1,5 @@
+
+#include "../vector.c"
 #include "../lexer.c"
 
 int main() {

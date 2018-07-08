@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "vector.c"
 
 typedef enum {
   TOKEN_ADD,
@@ -56,8 +55,6 @@ char* token_to_str(token* token) {
     assert(0);
   }
 }
-
-
 
 vector* lexer() {
   vector* tokenss = new_vector();
