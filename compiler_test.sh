@@ -23,6 +23,7 @@ lexertest () {
 unittest "vector" "test/vector_test.c" "12345"
 
 lexertest "lexer: 9" "9" "TOKEN_INTLIT:9"
+lexertest "lexer: 12345" "12345" "TOKEN_INTLIT:12345"
 lexertest "lexer: +" "+" "TOKEN_ADD:+"
 lexertest "lexer: -" "-" "TOKEN_SUB:-"
 lexertest "lexer: 1 + 2" "1 + 2" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2"
