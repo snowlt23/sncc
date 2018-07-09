@@ -1,6 +1,6 @@
 
 build:
-	gcc -osncc sncc.c
+	gcc -osncc -Wall sncc.c
 
 compiler-test:
 	./compiler_test.sh

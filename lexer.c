@@ -79,7 +79,6 @@ char* token_to_str(token* token) {
 vector* lexer() {
   vector* tokenss = new_vector();
 
-  int bufferpos = 0;
   for (;;) {
     char c = getc(stdin);
     if (c == EOF) {

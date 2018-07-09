@@ -31,8 +31,8 @@ parsertest() {
 
 unittest "vector" "test/vector_test.c" "12345"
 
-gcc -olexer.out test/lexer_test.c
-gcc -oparser.out test/parser_test.c
+gcc -olexer.out -Wall test/lexer_test.c
+gcc -oparser.out -Wall test/parser_test.c
 
 lexertest "lexer: 9" "9" "TOKEN_INTLIT:9"
 lexertest "lexer: 12345" "12345" "TOKEN_INTLIT:12345"
