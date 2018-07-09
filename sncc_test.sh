@@ -1,7 +1,7 @@
 
 rettest() {
-  echo $2 | ./sncc > main.s
-  gcc -otest.out main.s
+  echo "$2" | ./sncc > test.s
+  gcc -otest.out -m32 test.s
   ./test.out
   RETCODE=$?
   if [ $RETCODE = $3 ]; then
@@ -16,3 +16,7 @@ rettest "retcode: 9" "9" 9
 rettest "retcode: 1 + 2" "1 + 2" 3
 rettest "retcode: 2 - 1" "2 - 1" 1
 rettest "retcode: 1 + 10 - 2" "1 + 10 - 2" 9
+rettest "retcode: 1 + 2 * 3" "1 + 2 * 3" 7
+rettest "retcode: 7 + 2 / 2" "7 + 2 / 2" 8
+rettest "retcode: (1 + 1) * 2" "(1 + 1) * 2" 4
+rettest "retcode: (1 + 1) / 2" "(1 + 1) / 2" 1

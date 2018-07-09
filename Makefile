@@ -7,4 +7,4 @@ compiler-test:
 sncc-test:
 	./sncc_test.sh
 
-test: compiler-test sncc-test
+test: build compiler-test sncc-test ;

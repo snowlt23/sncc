@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "utils.c"
 #include "vector.c"
 #include "lexer.c"
 #include "parser.c"
@@ -12,7 +13,7 @@ int main() {
   emit_global("main");
   emit_label("main");
   codegen(ast);
-  emit_pop("%rax");
+  emit_pop("%eax");
   emit_return();
   return 0;
 }
