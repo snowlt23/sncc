@@ -26,6 +26,7 @@ int map_get(map* m, char* name) {
       return mp->pos;
     }
   }
+  return -1;
 }
 void map_insert(map* m, char* name, int pos) {
   for (int i=0; i<m->vector->len; i++) {

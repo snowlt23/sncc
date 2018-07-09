@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include "sncc.h"
 
 char* string_copy(char* s) {

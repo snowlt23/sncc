@@ -31,6 +31,7 @@ typedef enum {
   TOKEN_LBRACKET,
   TOKEN_RBRACKET,
   TOKEN_COMMA,
+  TOKEN_SEMICOLON,
   TOKEN_IDENT
 } tokenkind;
 
@@ -81,9 +82,7 @@ typedef struct _astree {
       struct _astree* right;
     };
     int intval;
-    struct {
-      char* ident;
-    };
+    char* ident;
   };
 } astree;
 
@@ -93,7 +92,7 @@ typedef struct {
 } tokenstream;
 
 // utilities
-#define error(...) fprintf(stderr, __VA_ARGS__); exit(1)
+#define error(...) {fprintf(stderr, __VA_ARGS__); exit(1);}
 
 // string.c
 char* string_copy(char* s);

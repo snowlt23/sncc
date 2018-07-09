@@ -18,11 +18,12 @@ token* new_intlit(int x) {
 token* new_ident(char* s) {
   token* t = new_token(TOKEN_IDENT);
   t->ident = string_copy(s);
+  return t;
 }
 
 char* int_to_str(int x) {
   char* buf = (char*)malloc(6+1);
-  snprintf(buf, 6+1, "%d", x);
+  snprintf(buf, 6, "%d", x);
   return buf;
 }
 bool isident(char c) {
@@ -55,6 +56,8 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_RBRACKET";
   } else if (token->kind == TOKEN_COMMA) {
     return "TOKEN_COMMA";
+  } else if (token->kind == TOKEN_SEMICOLON) {
+    return "TOKEN_SEMICOLON";
   } else if (token->kind == TOKEN_IDENT) {
     return "TOKEN_IDENT";
   } else {
@@ -82,6 +85,8 @@ char* token_to_str(token* token) {
     return "}";
   } else if (token->kind == TOKEN_COMMA) {
     return ",";
+  } else if (token->kind == TOKEN_SEMICOLON) {
+    return ";";
   } else if (token->kind == TOKEN_INTLIT) {
     return int_to_str(token->intval);
   } else if (token->kind == TOKEN_IDENT) {
@@ -131,6 +136,8 @@ vector* lexer() {
       vector_push(tokenss, new_token(TOKEN_RBRACKET));
     } else if (c == ',') {
       vector_push(tokenss, new_token(TOKEN_COMMA));
+    } else if (c == ';') {
+      vector_push(tokenss, new_token(TOKEN_SEMICOLON));
     } else if (c == ' ') {
       continue;
     } else if (c == '\n') {

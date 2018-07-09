@@ -1,29 +1,29 @@
-
 CC = gcc
 CFLAGS = -Wall
 
 SNCC_LIBS = string.o vector.o map.o lexer.o parser.o codegen.o
 
-build: build-sncc ;
+build: sncc ;
 
-%o: %c
-	$(CC) -c $(CFLAGS) %<
+%.o: %.c sncc.h
+	$(CC) -c $(CFLAGS) $<
 
-build-lexer-test: $(SNCC_LIBS)
+lexer.out: $(SNCC_LIBS) sncc.h
 	$(CC) $(CFLAGS) -olexer.out $(SNCC_LIBS) test/lexer_test.c
-build-parser-test: $(SNCC_LIBS)
+parser.out: $(SNCC_LIBS) sncc.h
 	$(CC) $(CFLAGS) -oparser.out $(SNCC_LIBS) test/parser_test.c
-build-funcdecl-test: $(SNCC_LIBS)
+funcdecl.out: $(SNCC_LIBS) sncc.h
 	$(CC) $(CFLAGS) -ofuncdecl.out $(SNCC_LIBS) test/funcdecl_test.c
-build-sncc: $(SNCC_LIBS)
+sncc: $(SNCC_LIBS)
 	$(CC) $(CFLAGS) -osncc $(SNCC_LIBS) sncc.c
 
-compiler-test:
+compiler-test: lexer.out parser.out funcdecl.out
 	./compiler_test.sh
 sncc-test:
 	./sncc_test.sh
 
-test: build-lexer-test build-parser-test build-funcdecl-test build-sncc compiler-test sncc-test ;
+test: sncc compiler-test sncc-test ;
 
+.PHONY: clean
 clean:
 	@rm -rf *.o *.s *.out sncc

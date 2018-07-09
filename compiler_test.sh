@@ -1,5 +1,5 @@
 unittest() {
-  gcc -otest.out $2
+  gcc -otest.out -Wall $2
   OUT=`./test.out`
   OUT=`echo $OUT`
   if [ "$OUT" = "$3" ]; then
@@ -55,6 +55,7 @@ lexertest "lexer: )" ")" "TOKEN_RPAREN:)"
 lexertest "lexer: {" "{" "TOKEN_LBRACKET:{"
 lexertest "lexer: }" "}" "TOKEN_RBRACKET:}"
 lexertest "lexer: ," "," "TOKEN_COMMA:,"
+lexertest "lexer: ;" ";" "TOKEN_SEMICOLON:;"
 lexertest "lexer: 1 + 2" "1 + 2" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2"
 lexertest "lexer: 3 - 4" "3 - 4" "TOKEN_INTLIT:3 TOKEN_SUB:- TOKEN_INTLIT:4"
 lexertest "lexer: 1 + 2 - 3" "1 + 2 - 3" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2 TOKEN_SUB:- TOKEN_INTLIT:3"
