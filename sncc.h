@@ -21,6 +21,7 @@ typedef enum {
   TOKEN_RPAREN,
   TOKEN_LBRACKET,
   TOKEN_RBRACKET,
+  TOKEN_COMMA,
   TOKEN_IDENT
 } tokenkind;
 
@@ -37,17 +38,41 @@ typedef enum {
   AST_SUB,
   AST_MUL,
   AST_DIV,
-  AST_INTLIT
+  AST_INTLIT,
+  AST_FUNCDEF
 } astkind;
 
-typedef struct _ast {
+typedef struct {
+  char* name;
+} typenode;
+typedef struct {
+  char* name;
+} declnode;
+typedef struct {
+  typenode type;
+  declnode decl;
+} paramtype;
+typedef struct {
+  vector* vector;
+} paramtypelist;
+
+typedef struct {
+  typenode returntype;
+  declnode fdecl;
+  paramtypelist argdecls;
+} funcdecl;
+
+typedef struct _astree {
   astkind kind;
   union {
     struct {
-      struct _ast* left;
-      struct _ast* right;
+      struct _astree* left;
+      struct _astree* right;
     };
     int intval;
+    struct {
+      char* ident;
+    };
   };
 } astree;
 
@@ -77,6 +102,9 @@ char* token_to_str(token* token);
 // parser.c
 tokenstream* new_tokenstream(vector* tokens);
 astree* expression(tokenstream* ts);
+paramtype paramtypelist_get(paramtypelist ptlist, int index);
+int paramtypelist_len(paramtypelist ptlist);
+funcdecl parse_funcdecl(tokenstream* ts);
 char* ast_to_kindstr(astree* ast);
 
 // codegen.c

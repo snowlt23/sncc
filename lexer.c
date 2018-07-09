@@ -51,6 +51,8 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_LBRACKET";
   } else if (token->kind == TOKEN_RBRACKET) {
     return "TOKEN_RBRACKET";
+  } else if (token->kind == TOKEN_COMMA) {
+    return "TOKEN_COMMA";
   } else if (token->kind == TOKEN_IDENT) {
     return "TOKEN_IDENT";
   } else {
@@ -74,6 +76,8 @@ char* token_to_str(token* token) {
     return "{";
   } else if (token->kind == TOKEN_RBRACKET) {
     return "}";
+  } else if (token->kind == TOKEN_COMMA) {
+    return ",";
   } else if (token->kind == TOKEN_INTLIT) {
     return int_to_str(token->intval);
   } else if (token->kind == TOKEN_IDENT) {
@@ -119,6 +123,8 @@ vector* lexer() {
       vector_push(tokenss, new_token(TOKEN_LBRACKET));
     } else if (c == '}') {
       vector_push(tokenss, new_token(TOKEN_RBRACKET));
+    } else if (c == ',') {
+      vector_push(tokenss, new_token(TOKEN_COMMA));
     } else if (c == ' ') {
       continue;
     } else if (c == '\n') {

@@ -29,6 +29,16 @@ parsertest() {
   fi
 }
 
+funcdecltest() {
+  OUT=`echo "$2" | ./funcdecl.out`
+  OUT=`echo $OUT`
+  if [ "$OUT" = "$3" ]; then
+    echo "[OK] $1"
+  else
+    echo "[ERROR] $1, expected $3, but got $OUT"
+  fi
+}
+
 unittest "vector" "test/vector_test.c" "12345"
 
 lexertest "lexer: 9" "9" "TOKEN_INTLIT:9"
@@ -42,6 +52,7 @@ lexertest "lexer: (" "(" "TOKEN_LPAREN:("
 lexertest "lexer: )" ")" "TOKEN_RPAREN:)"
 lexertest "lexer: {" "{" "TOKEN_LBRACKET:{"
 lexertest "lexer: }" "}" "TOKEN_RBRACKET:}"
+lexertest "lexer: ," "," "TOKEN_COMMA:,"
 lexertest "lexer: 1 + 2" "1 + 2" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2"
 lexertest "lexer: 3 - 4" "3 - 4" "TOKEN_INTLIT:3 TOKEN_SUB:- TOKEN_INTLIT:4"
 lexertest "lexer: 1 + 2 - 3" "1 + 2 - 3" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2 TOKEN_SUB:- TOKEN_INTLIT:3"
@@ -61,3 +72,7 @@ parsertest "parser: (1 + 1) * 2" "(1 + 1) * 2" "AST_MUL"
 parsertest "parser: (1 + 1) / 2" "(1 + 1) / 2" "AST_DIV"
 parsertest "parser: 2 * (1 + 1)" "2 * (1 + 1)" "AST_MUL"
 parsertest "parser: 2 / (1 + 1)" "2 / (1 + 1)" "AST_DIV"
+
+funcdecltest "funcdecl: int main()" "int main()" "int main"
+funcdecltest "funcdecl: int main(int argc)" "int main(int argc)" "int main int argc"
+funcdecltest "funcdecl: int add(int a, int b)" "int add(int a, int b)" "int add int a int b"

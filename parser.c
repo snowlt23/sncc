@@ -117,3 +117,62 @@ astree* infix_addsub(tokenstream* ts) {
 astree* expression(tokenstream* ts) {
   return infix_addsub(ts);
 }
+
+typenode parse_typenode(tokenstream* ts) {
+  token* t = get_token(ts); next_token(ts);
+  if (t == NULL || t->kind != TOKEN_IDENT) error("expected type, but got %s.", token_to_str(t));
+  typenode tnode;
+  tnode.name = t->ident;
+  return tnode;
+}
+
+declnode parse_declnode(tokenstream* ts) {
+  token* t = get_token(ts); next_token(ts);
+  if (t == NULL || t->kind != TOKEN_IDENT) error("expected declaration, but got %s", token_to_str(t));
+  declnode dnode;
+  dnode.name = t->ident;
+  return dnode;
+}
+
+paramtype* parse_paramtype(tokenstream* ts) {
+  paramtype* pt = (paramtype*)malloc(sizeof(paramtype));
+  pt->type = parse_typenode(ts);
+  pt->decl = parse_declnode(ts);
+  return pt;
+}
+
+paramtypelist parse_paramtype_list(tokenstream* ts) {
+  vector* ptlist = new_vector();
+  for (;;) {
+    if (get_token(ts) != NULL && get_token(ts)->kind != TOKEN_IDENT) break;
+    paramtype* pt = parse_paramtype(ts);
+    vector_push(ptlist, (void*)pt);
+    token* t = get_token(ts);
+    if (t == NULL) error("require more token.");
+    if (t->kind != TOKEN_COMMA) break;
+    next_token(ts);
+  }
+  paramtypelist ptl;
+  ptl.vector = ptlist;
+  return ptl;
+}
+
+paramtype paramtypelist_get(paramtypelist ptlist, int index) {
+  return *(paramtype*)vector_get(ptlist.vector, index);
+}
+
+int paramtypelist_len(paramtypelist ptlist) {
+  return ptlist.vector->len;
+}
+
+funcdecl parse_funcdecl(tokenstream* ts) {
+  funcdecl fdecl;
+  fdecl.returntype = parse_typenode(ts);
+  fdecl.fdecl = parse_declnode(ts);
+  token* lparen = get_token(ts); next_token(ts);
+  if (lparen == NULL || lparen->kind != TOKEN_LPAREN) error("function decl expect \"(\", but got %s", token_to_str(lparen));
+  fdecl.argdecls = parse_paramtype_list(ts);
+  token* rparen = get_token(ts); next_token(ts);
+  if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("function decl expect \")\", but got %s", token_to_str(rparen));
+  return fdecl;
+}
