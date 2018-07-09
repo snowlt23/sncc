@@ -5,6 +5,8 @@
 typedef enum {
   TOKEN_ADD,
   TOKEN_SUB,
+  TOKEN_MUL,
+  TOKEN_DIV,
   TOKEN_INTLIT,
   TOKEN_LPAREN,
   TOKEN_RPAREN
@@ -40,6 +42,10 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_ADD";
   } else if (token->kind == TOKEN_SUB) {
     return "TOKEN_SUB";
+  } else if (token->kind == TOKEN_MUL) {
+    return "TOKEN_MUL";
+  } else if (token->kind == TOKEN_DIV) {
+    return "TOKEN_DIV";
   } else if (token->kind == TOKEN_INTLIT) {
     return "TOKEN_INTLIT";
   } else if (token->kind == TOKEN_LPAREN) {
@@ -55,6 +61,10 @@ char* token_to_str(token* token) {
     return "+";
   } else if (token->kind == TOKEN_SUB) {
     return "-";
+  } else if (token->kind == TOKEN_MUL) {
+    return "*";
+  } else if (token->kind == TOKEN_DIV) {
+    return "/";
   } else if (token->kind == TOKEN_LPAREN) {
     return "(";
   } else if (token->kind == TOKEN_RPAREN) {
@@ -90,6 +100,10 @@ vector* lexer() {
       vector_push(tokenss, new_token(TOKEN_ADD));
     } else if (c == '-') {
       vector_push(tokenss, new_token(TOKEN_SUB));
+    } else if (c == '*') {
+      vector_push(tokenss, new_token(TOKEN_MUL));
+    } else if (c == '/') {
+      vector_push(tokenss, new_token(TOKEN_DIV));
     } else if (c == '(') {
       vector_push(tokenss, new_token(TOKEN_LPAREN));
     } else if (c == ')') {
