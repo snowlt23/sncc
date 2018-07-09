@@ -11,6 +11,14 @@ typedef struct {
   int len;
 } vector;
 
+typedef struct {
+  char* name;
+  int pos;
+} mappair;
+typedef struct {
+  vector* vector;
+} map;
+
 typedef enum {
   TOKEN_ADD,
   TOKEN_SUB,
@@ -96,6 +104,13 @@ vector* new_vector();
 void* vector_get(vector* v, int index);
 void vector_set(vector* v, int index, void* elem);
 void vector_push(vector* v, void* elem);
+
+// map.c
+map* new_map_cap(int cap);
+map* new_map();
+mappair* new_mappair(char* name, int pos);
+int map_get(map* m, char* name);
+void map_insert(map* m, char* name, int pos);
 
 // lexer.c
 vector* lexer();

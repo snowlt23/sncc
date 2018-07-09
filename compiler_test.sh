@@ -40,6 +40,7 @@ funcdecltest() {
 }
 
 unittest "vector" "test/vector_test.c" "12345"
+unittest "map" "test/map_test.c" "1 2 3 4 9"
 
 lexertest "lexer: 9" "9" "TOKEN_INTLIT:9"
 lexertest "lexer: 12345" "12345" "TOKEN_INTLIT:12345"
