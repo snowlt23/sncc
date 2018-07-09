@@ -3,6 +3,8 @@
 typedef enum {
   AST_ADD,
   AST_SUB,
+  AST_MUL,
+  AST_DIV,
   AST_INTLIT
 } astkind;
 
@@ -46,6 +48,10 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_ADD";
   } else if (ast->kind == AST_SUB) {
     return "AST_SUB";
+  } else if (ast->kind == AST_MUL) {
+    return "AST_MUL";
+  } else if (ast->kind == AST_DIV) {
+    return "AST_DIV";
   } else if (ast->kind == AST_INTLIT) {
     return "AST_INTLIT";
   } else {
@@ -81,18 +87,38 @@ astree* factor(tokenstream* ts) {
   }
 }
 
-astree* infix_addsub(tokenstream* ts) {
+astree* infix_muldiv(tokenstream* ts) {
   astree* left = factor(ts);
+  for (;;) {
+    token* t = get_token(ts);
+    if (t == NULL) break;
+    if (t->kind == TOKEN_MUL) {
+      next_token(ts);
+      astree* right = factor(ts);
+      left = new_ast_infix(AST_MUL, left, right);
+    } else if (t->kind == TOKEN_DIV) {
+      next_token(ts);
+      astree* right = factor(ts);
+      left = new_ast_infix(AST_DIV, left, right);
+    } else {
+      break;
+    }
+  }
+  return left;
+}
+
+astree* infix_addsub(tokenstream* ts) {
+  astree* left = infix_muldiv(ts);
   for (;;) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_ADD) {
       next_token(ts);
-      astree* right = factor(ts);
+      astree* right = infix_muldiv(ts);
       left = new_ast_infix(AST_ADD, left, right);
     } else if (t->kind == TOKEN_SUB) {
       next_token(ts);
-      astree* right = factor(ts);
+      astree* right = infix_muldiv(ts);
       left = new_ast_infix(AST_SUB, left, right);
     } else {
       break;

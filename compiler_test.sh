@@ -49,3 +49,7 @@ lexertest "lexer: 1 + 2 - 3" "1 + 2 - 3" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLI
 parsertest "parser: 1" "1" "AST_INTLIT"
 parsertest "parser: 1 + 2" "1 + 2" "AST_ADD"
 parsertest "parser: 1 - 2" "1 - 2" "AST_SUB"
+parsertest "parser: 2 * 1" "2 * 1" "AST_MUL"
+parsertest "parser: 2 / 1" "2 / 1" "AST_DIV"
+parsertest "parser: 2 * 1 + 3" "2 * 1 + 3" "AST_ADD"
+parsertest "parser: 2 / 1 + 3" "2 / 1 + 3" "AST_ADD"
