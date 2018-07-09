@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include "vector.c"
 #include "lexer.c"

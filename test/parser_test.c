@@ -1,3 +1,4 @@
+#include "../utils.c"
 #include "../vector.c"
 #include "../lexer.c"
 #include "../parser.c"

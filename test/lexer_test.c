@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include "../utils.c"
 #include "../vector.c"
 #include "../lexer.c"
 

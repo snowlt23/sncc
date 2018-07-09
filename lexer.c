@@ -91,6 +91,7 @@ vector* lexer() {
         assert(i < 256);
         char nc = getc(stdin);
         if (!isdigit(nc)) {
+          ungetc(nc, stdin);
           vector_push(tokenss, new_intlit(atoi(digitbuf)));
           break;
         }

@@ -79,11 +79,20 @@ astree* parser_top(tokenstream* ts);
 
 astree* factor(tokenstream* ts) {
   token* t = get_token(ts);
-  if (t->kind == TOKEN_INTLIT) {
+  if (t == NULL) error("require more token");
+
+  if (t->kind == TOKEN_LPAREN) {
+    next_token(ts);
+    astree* ret = parser_top(ts);
+    token* t = get_token(ts);
+    if (t == NULL || t->kind != TOKEN_RPAREN) error("\"(\" should be ended by \")\".");
+    next_token(ts);
+    return ret;
+  } else if (t->kind == TOKEN_INTLIT) {
     next_token(ts);
     return new_ast_intlit(t->intval);
   } else {
-    parser_top(ts);
+    return parser_top(ts);
   }
 }
 
