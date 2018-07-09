@@ -1,25 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-
-typedef enum {
-  TOKEN_ADD,
-  TOKEN_SUB,
-  TOKEN_MUL,
-  TOKEN_DIV,
-  TOKEN_INTLIT,
-  TOKEN_LPAREN,
-  TOKEN_RPAREN,
-  TOKEN_LBRACKET,
-  TOKEN_RBRACKET
-} tokenkind;
-
-typedef struct {
-  tokenkind kind;
-  union {
-    int intval;
-  };
-} token;
+#include <assert.h>
+#include "sncc.h"
 
 token* new_token(tokenkind kind) {
   token* t = (token*)malloc(sizeof(token));
@@ -32,11 +15,21 @@ token* new_intlit(int x) {
   t->intval = x;
   return t;
 }
+token* new_ident(char* s) {
+  token* t = new_token(TOKEN_IDENT);
+  t->ident = string_copy(s);
+}
 
 char* int_to_str(int x) {
   char* buf = (char*)malloc(6+1);
   snprintf(buf, 6+1, "%d", x);
   return buf;
+}
+bool isident(char c) {
+  return isalpha(c) || c == '_';
+}
+bool isidenttail(char c) {
+  return isident(c) || isdigit(c);
 }
 
 char* token_to_kindstr(token* token) {
@@ -58,6 +51,8 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_LBRACKET";
   } else if (token->kind == TOKEN_RBRACKET) {
     return "TOKEN_RBRACKET";
+  } else if (token->kind == TOKEN_IDENT) {
+    return "TOKEN_IDENT";
   } else {
     assert(0);
   }
@@ -81,6 +76,8 @@ char* token_to_str(token* token) {
     return "}";
   } else if (token->kind == TOKEN_INTLIT) {
     return int_to_str(token->intval);
+  } else if (token->kind == TOKEN_IDENT) {
+    return token->ident;
   } else {
     assert(0);
   }
@@ -126,7 +123,20 @@ vector* lexer() {
       continue;
     } else if (c == '\n') {
       continue;
-    } else { // identifier
+    } else if (isident(c)) { // identifier
+      char identbuf[256] = {};
+      identbuf[0] = c;
+      for (int i=1; ; i++) {
+        if (i >= 256) error("long length (>256) identifer is unsupported in currently."); // FIXME: long length identifer support.
+        char nc = getc(stdin);
+        if (!isidenttail(nc)) {
+          ungetc(nc, stdin);
+          vector_push(tokenss, new_ident(identbuf));
+          break;
+        }
+        identbuf[i] = nc;
+      }
+    } else {
       error("unexpected token %c.", c);
     }
   }

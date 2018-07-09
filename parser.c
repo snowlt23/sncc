@@ -1,28 +1,6 @@
 #include <stdlib.h>
-
-typedef enum {
-  AST_ADD,
-  AST_SUB,
-  AST_MUL,
-  AST_DIV,
-  AST_INTLIT
-} astkind;
-
-typedef struct _ast {
-  astkind kind;
-  union {
-    struct {
-      struct _ast* left;
-      struct _ast* right;
-    };
-    int intval;
-  };
-} astree;
-
-typedef struct {
-  vector* tokens;
-  int pos;
-} tokenstream;
+#include <assert.h>
+#include "sncc.h"
 
 astree* new_ast(astkind kind) {
   astree* ast = (astree*)malloc(sizeof(ast));
@@ -83,7 +61,7 @@ astree* factor(tokenstream* ts) {
 
   if (t->kind == TOKEN_LPAREN) {
     next_token(ts);
-    astree* ret = parser_top(ts);
+    astree* ret = expression(ts);
     token* t = get_token(ts);
     if (t == NULL || t->kind != TOKEN_RPAREN) error("\"(\" should be ended by \")\".");
     next_token(ts);
@@ -92,7 +70,7 @@ astree* factor(tokenstream* ts) {
     next_token(ts);
     return new_ast_intlit(t->intval);
   } else {
-    return parser_top(ts);
+    return expression(ts);
   }
 }
 
@@ -136,6 +114,6 @@ astree* infix_addsub(tokenstream* ts) {
   return left;
 }
 
-astree* parser_top(tokenstream* ts) {
+astree* expression(tokenstream* ts) {
   return infix_addsub(ts);
 }

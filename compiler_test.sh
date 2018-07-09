@@ -31,11 +31,9 @@ parsertest() {
 
 unittest "vector" "test/vector_test.c" "12345"
 
-gcc -olexer.out -Wall test/lexer_test.c
-gcc -oparser.out -Wall test/parser_test.c
-
 lexertest "lexer: 9" "9" "TOKEN_INTLIT:9"
 lexertest "lexer: 12345" "12345" "TOKEN_INTLIT:12345"
+lexertest "lexer: ident" "yukari" "TOKEN_IDENT:yukari"
 lexertest "lexer: +" "+" "TOKEN_ADD:+"
 lexertest "lexer: -" "-" "TOKEN_SUB:-"
 lexertest "lexer: *" "*" "TOKEN_MUL:*"
@@ -48,6 +46,7 @@ lexertest "lexer: 1 + 2" "1 + 2" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2"
 lexertest "lexer: 3 - 4" "3 - 4" "TOKEN_INTLIT:3 TOKEN_SUB:- TOKEN_INTLIT:4"
 lexertest "lexer: 1 + 2 - 3" "1 + 2 - 3" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2 TOKEN_SUB:- TOKEN_INTLIT:3"
 lexertest "lexer: 1 + (2 + 3)" "1 + (2 + 3)" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_LPAREN:( TOKEN_INTLIT:2 TOKEN_ADD:+ TOKEN_INTLIT:3 TOKEN_RPAREN:)"
+lexertest "lexer: yukari + ia" "yukari + ia" "TOKEN_IDENT:yukari TOKEN_ADD:+ TOKEN_IDENT:ia"
 
 parsertest "parser: 1" "1" "AST_INTLIT"
 parsertest "parser: 1 + 2" "1 + 2" "AST_ADD"

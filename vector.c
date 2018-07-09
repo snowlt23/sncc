@@ -1,11 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
-
-typedef struct {
-  void** data;
-  int cap;
-  int len;
-} vector;
+#include "sncc.h"
 
 vector* new_vector_cap(int cap) {
   vector* v = (vector*)malloc(sizeof(vector));

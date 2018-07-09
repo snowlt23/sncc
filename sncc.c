@@ -1,14 +1,10 @@
 #include <stdio.h>
-#include "utils.c"
-#include "vector.c"
-#include "lexer.c"
-#include "parser.c"
-#include "codegen.c"
+#include "sncc.h"
 
 int main() {
   vector* tokenss = lexer();
   tokenstream* ts = new_tokenstream(tokenss);
-  astree* ast = parser_top(ts);
+  astree* ast = expression(ts);
 
   emit_global("main");
   emit_label("main");

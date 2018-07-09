@@ -1,11 +1,9 @@
-#include "../utils.c"
-#include "../vector.c"
-#include "../lexer.c"
-#include "../parser.c"
+#include <stdio.h>
+#include "../sncc.h"
 
 int main() {
   vector* tokenss = lexer();
   tokenstream* ts = new_tokenstream(tokenss);
-  astree* ast = parser_top(ts);
+  astree* ast = expression(ts);
   printf("%s", ast_to_kindstr(ast));
 }

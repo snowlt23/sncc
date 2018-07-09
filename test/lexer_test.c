@@ -1,6 +1,5 @@
-#include "../utils.c"
-#include "../vector.c"
-#include "../lexer.c"
+#include <stdio.h>
+#include "../sncc.h"
 
 int main() {
   vector* tokenss = lexer();

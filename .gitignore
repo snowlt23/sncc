@@ -3,5 +3,6 @@
 *.out
 sncc
 /*.s
+*.o
 *.log
 .vagrant/

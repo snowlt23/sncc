@@ -1,5 +1,7 @@
 
 #include <stdio.h>
+#include <assert.h>
+#include "sncc.h"
 
 void emit_global(char* name) {
   printf("  .global %s\n", name);
@@ -66,6 +68,6 @@ void codegen(astree* ast) {
     emit_div("%ecx");
     emit_push("%eax");
   } else {
-    assert(0);
+    assert(false);
   }
 }
