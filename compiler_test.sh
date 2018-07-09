@@ -10,8 +10,7 @@ unittest() {
 }
 
 lexertest() {
-  gcc -otest.out test/lexer_test.c
-  OUT=`echo "$2" | ./test.out`
+  OUT=`echo "$2" | ./lexer.out`
   OUT=`echo $OUT`
   if [ "$OUT" = "$3" ]; then
     echo "[OK] $1"
@@ -21,8 +20,7 @@ lexertest() {
 }
 
 parsertest() {
-  gcc -otest.out test/parser_test.c
-  OUT=`echo "$2" | ./test.out`
+  OUT=`echo "$2" | ./parser.out`
   OUT=`echo $OUT`
   if [ "$OUT" = "$3" ]; then
     echo "[OK] $1"
@@ -33,10 +31,15 @@ parsertest() {
 
 unittest "vector" "test/vector_test.c" "12345"
 
+gcc -olexer.out test/lexer_test.c
+gcc -oparser.out test/parser_test.c
+
 lexertest "lexer: 9" "9" "TOKEN_INTLIT:9"
 lexertest "lexer: 12345" "12345" "TOKEN_INTLIT:12345"
 lexertest "lexer: +" "+" "TOKEN_ADD:+"
 lexertest "lexer: -" "-" "TOKEN_SUB:-"
+lexertest "lexer: (" "(" "TOKEN_LPAREN:("
+lexertest "lexer: )" ")" "TOKEN_RPAREN:)"
 lexertest "lexer: 1 + 2" "1 + 2" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2"
 lexertest "lexer: 3 - 4" "3 - 4" "TOKEN_INTLIT:3 TOKEN_SUB:- TOKEN_INTLIT:4"
 lexertest "lexer: 1 + 2 - 3" "1 + 2 - 3" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2 TOKEN_SUB:- TOKEN_INTLIT:3"

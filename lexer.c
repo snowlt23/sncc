@@ -5,7 +5,9 @@
 typedef enum {
   TOKEN_ADD,
   TOKEN_SUB,
-  TOKEN_INTLIT
+  TOKEN_INTLIT,
+  TOKEN_LPAREN,
+  TOKEN_RPAREN
 } tokenkind;
 
 typedef struct {
@@ -40,6 +42,10 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_SUB";
   } else if (token->kind == TOKEN_INTLIT) {
     return "TOKEN_INTLIT";
+  } else if (token->kind == TOKEN_LPAREN) {
+    return "TOKEN_LPAREN";
+  } else if (token->kind == TOKEN_RPAREN) {
+    return "TOKEN_RPAREN";
   } else {
     assert(0);
   }
@@ -49,6 +55,10 @@ char* token_to_str(token* token) {
     return "+";
   } else if (token->kind == TOKEN_SUB) {
     return "-";
+  } else if (token->kind == TOKEN_LPAREN) {
+    return "(";
+  } else if (token->kind == TOKEN_RPAREN) {
+    return ")";
   } else if (token->kind == TOKEN_INTLIT) {
     return int_to_str(token->intval);
   } else {
@@ -80,6 +90,10 @@ vector* lexer() {
       vector_push(tokenss, new_token(TOKEN_ADD));
     } else if (c == '-') {
       vector_push(tokenss, new_token(TOKEN_SUB));
+    } else if (c == '(') {
+      vector_push(tokenss, new_token(TOKEN_LPAREN));
+    } else if (c == ')') {
+      vector_push(tokenss, new_token(TOKEN_RPAREN));
     } else {
       continue;
     }
