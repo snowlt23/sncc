@@ -9,7 +9,9 @@ typedef enum {
   TOKEN_DIV,
   TOKEN_INTLIT,
   TOKEN_LPAREN,
-  TOKEN_RPAREN
+  TOKEN_RPAREN,
+  TOKEN_LBRACKET,
+  TOKEN_RBRACKET
 } tokenkind;
 
 typedef struct {
@@ -52,6 +54,10 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_LPAREN";
   } else if (token->kind == TOKEN_RPAREN) {
     return "TOKEN_RPAREN";
+  } else if (token->kind == TOKEN_LBRACKET) {
+    return "TOKEN_LBRACKET";
+  } else if (token->kind == TOKEN_RBRACKET) {
+    return "TOKEN_RBRACKET";
   } else {
     assert(0);
   }
@@ -69,6 +75,10 @@ char* token_to_str(token* token) {
     return "(";
   } else if (token->kind == TOKEN_RPAREN) {
     return ")";
+  } else if (token->kind == TOKEN_LBRACKET) {
+    return "{";
+  } else if (token->kind == TOKEN_RBRACKET) {
+    return "}";
   } else if (token->kind == TOKEN_INTLIT) {
     return int_to_str(token->intval);
   } else {
@@ -83,7 +93,7 @@ vector* lexer() {
     char c = getc(stdin);
     if (c == EOF) {
       break;
-    } else if (isdigit(c)) {
+    } else if (isdigit(c)) { // int literal
       char digitbuf[256] = {};
       digitbuf[0] = c;
       for (int i=1; ; i++) {
@@ -108,8 +118,16 @@ vector* lexer() {
       vector_push(tokenss, new_token(TOKEN_LPAREN));
     } else if (c == ')') {
       vector_push(tokenss, new_token(TOKEN_RPAREN));
-    } else {
+    } else if (c == '{') {
+      vector_push(tokenss, new_token(TOKEN_LBRACKET));
+    } else if (c == '}') {
+      vector_push(tokenss, new_token(TOKEN_RBRACKET));
+    } else if (c == ' ') {
       continue;
+    } else if (c == '\n') {
+      continue;
+    } else { // identifier
+      error("unexpected token %c.", c);
     }
   }
   return tokenss;
