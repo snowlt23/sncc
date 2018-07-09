@@ -74,6 +74,8 @@ parsertest "parser: (1 + 1) * 2" "(1 + 1) * 2" "AST_MUL"
 parsertest "parser: (1 + 1) / 2" "(1 + 1) / 2" "AST_DIV"
 parsertest "parser: 2 * (1 + 1)" "2 * (1 + 1)" "AST_MUL"
 parsertest "parser: 2 / (1 + 1)" "2 / (1 + 1)" "AST_DIV"
+parsertest "parser: a = 1" "a = 1" "AST_ASSIGN"
+parsertest "parser: a = 1 + 2 * 3" "a = 1 + 2 * 3" "AST_ASSIGN"
 
 funcdecltest "funcdecl: int main()" "int main()" "int main"
 funcdecltest "funcdecl: int main(int argc)" "int main(int argc)" "int main int argc"

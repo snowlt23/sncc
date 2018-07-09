@@ -68,6 +68,6 @@ void codegen(astree* ast) {
     emit_div("%ecx");
     emit_push("%eax");
   } else {
-    assert(false);
+    error("unsupported %d kind in codegen", ast->kind);
   }
 }

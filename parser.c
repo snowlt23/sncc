@@ -21,6 +21,12 @@ astree* new_ast_intlit(int x) {
   return ast;
 }
 
+astree* new_ast_ident(char* id) {
+  astree* ast = new_ast(AST_IDENT);
+  ast->ident = id;
+  return ast;
+}
+
 char* ast_to_kindstr(astree* ast) {
   if (ast->kind == AST_ADD) {
     return "AST_ADD";
@@ -30,8 +36,12 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_MUL";
   } else if (ast->kind == AST_DIV) {
     return "AST_DIV";
+  } else if (ast->kind == AST_ASSIGN) {
+    return "AST_ASSIGN";
   } else if (ast->kind == AST_INTLIT) {
     return "AST_INTLIT";
+  } else if (ast->kind == AST_IDENT) {
+    return "AST_IDENT";
   } else {
     assert(0);
   }
@@ -69,6 +79,9 @@ astree* factor(tokenstream* ts) {
   } else if (t->kind == TOKEN_INTLIT) {
     next_token(ts);
     return new_ast_intlit(t->intval);
+  } else if (t->kind == TOKEN_IDENT) {
+    next_token(ts);
+    return new_ast_ident(t->ident);
   } else {
     return expression(ts);
   }
@@ -114,8 +127,24 @@ astree* infix_addsub(tokenstream* ts) {
   return left;
 }
 
+astree* infix_assign(tokenstream* ts) {
+  astree* left = infix_addsub(ts);
+  for (;;) {
+    token* t = get_token(ts);
+    if (t == NULL) break;
+    if (t->kind == TOKEN_ASSIGN) {
+      next_token(ts);
+      astree* right = infix_addsub(ts);
+      left = new_ast_infix(AST_ASSIGN, left, right);
+    } else {
+      break;
+    }
+  }
+  return left;
+}
+
 astree* expression(tokenstream* ts) {
-  return infix_addsub(ts);
+  return infix_assign(ts);
 }
 
 typenode parse_typenode(tokenstream* ts) {

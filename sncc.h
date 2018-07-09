@@ -39,7 +39,9 @@ typedef enum {
   AST_SUB,
   AST_MUL,
   AST_DIV,
+  AST_ASSIGN,
   AST_INTLIT,
+  AST_IDENT,
   AST_FUNCDEF
 } astkind;
 
@@ -83,7 +85,7 @@ typedef struct {
 } tokenstream;
 
 // utilities
-#define error(...) fprintf(stderr, __VA_ARGS__)
+#define error(...) fprintf(stderr, __VA_ARGS__); exit(1)
 
 // string.c
 char* string_copy(char* s);
