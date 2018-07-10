@@ -134,7 +134,7 @@ funcdecl parse_funcdecl(tokenstream* ts);
 char* ast_to_kindstr(astree* ast);
 
 // codegen.c
-void codegen(astree* ast);
+void codegen(map* varmap, astree* ast);
 // emit
 void emit_global(char* name);
 void emit_label(char* label);

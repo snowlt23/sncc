@@ -23,3 +23,6 @@ rettest "retcode: (1 + 1) / 2" "(1 + 1) / 2;" 1
 rettest "retcode-stmt: 1; 2; 5;" "1; 2; 5;" 5
 rettest "retcode-stmt: 1; 2; 3*3;" "1; 2; 3*3;" 9
 rettest "retcode-stmt: 1; 2; 1+3*3;" "1; 2; 1+3*3;" 10
+rettest "retcode-stmt: a = 9; a;" "a = 9; a;" 9
+rettest "retcode-stmt: a = 3; b = 4; a + b;" "a = 3; b = 4; a + b;" 7
+rettest "retcode-stmt: th=3; fo=4; th*fo;" "th=3; fo=4; th*fo;" 12
