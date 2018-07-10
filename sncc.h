@@ -140,5 +140,7 @@ void emit_global(char* name);
 void emit_label(char* label);
 void emit_pop(char* s);
 void emit_return();
+void emit_prologue(int localsize);
+void emit_epilogue();
 
 #endif

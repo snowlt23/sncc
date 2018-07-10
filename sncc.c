@@ -4,12 +4,16 @@
 int main() {
   vector* tokenss = lexer();
   tokenstream* ts = new_tokenstream(tokenss);
-  astree* ast = expression(ts);
+  statement stmt = parse_statement(ts);
 
   emit_global("main");
   emit_label("main");
-  codegen(ast);
+  emit_prologue(0); // FIXME: localsize of prologue
+  for (int i=0; i<statement_len(stmt); i++) {
+    codegen(statement_get(stmt, i));
+  }
   emit_pop("%eax");
+  emit_epilogue();
   emit_return();
   return 0;
 }

@@ -35,6 +35,16 @@ void emit_return() {
   printf("  ret\n");
 }
 
+void emit_prologue(int localsize) {
+  printf("  pushl %%ebp\n");
+  printf("  movl %%esp, %%ebp\n");
+  printf("  subl $%d, %%esp\n", localsize);
+}
+void emit_epilogue() {
+  printf("  movl %%ebp, %%esp\n");
+  printf("  popl %%ebp\n");
+}
+
 void codegen(astree* ast) {
   if (ast->kind == AST_INTLIT) {
     emit_push_int(ast->intval);
