@@ -10,14 +10,16 @@ build: sncc ;
 
 lexer.out: $(SNCC_LIBS) sncc.h
 	$(CC) $(CFLAGS) -olexer.out $(SNCC_LIBS) test/lexer_test.c
-parser.out: $(SNCC_LIBS) sncc.h
-	$(CC) $(CFLAGS) -oparser.out $(SNCC_LIBS) test/parser_test.c
+parser_expr.out: $(SNCC_LIBS) sncc.h
+	$(CC) $(CFLAGS) -oparser_expr.out $(SNCC_LIBS) test/parser_expr_test.c
+parser_stmt.out: $(SNCC_LIBS) sncc.h
+	$(CC) $(CFLAGS) -oparser_stmt.out $(SNCC_LIBS) test/parser_stmt_test.c
 funcdecl.out: $(SNCC_LIBS) sncc.h
 	$(CC) $(CFLAGS) -ofuncdecl.out $(SNCC_LIBS) test/funcdecl_test.c
 sncc: $(SNCC_LIBS)
 	$(CC) $(CFLAGS) -osncc $(SNCC_LIBS) sncc.c
 
-compiler-test: lexer.out parser.out funcdecl.out
+compiler-test: lexer.out parser_expr.out parser_stmt.out funcdecl.out
 	./compiler_test.sh
 sncc-test:
 	./sncc_test.sh

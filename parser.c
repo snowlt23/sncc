@@ -147,6 +147,27 @@ astree* expression(tokenstream* ts) {
   return infix_assign(ts);
 }
 
+statement parse_statement(tokenstream* ts) {
+  vector* v = new_vector();
+  for (;;) {
+    if (get_token(ts) == NULL) break;
+    vector_push(v, (void*)expression(ts));
+    token* semicolon = get_token(ts); next_token(ts);
+    if (semicolon == NULL || semicolon->kind != TOKEN_SEMICOLON) error("expect \";\" as a statement delimiter.");
+  }
+  statement st;
+  st.vector = v;
+  return st;
+}
+
+astree* statement_get(statement st, int index) {
+  return (astree*)vector_get(st.vector, index);
+}
+
+int statement_len(statement st) {
+  return st.vector->len;
+}
+
 typenode parse_typenode(tokenstream* ts) {
   token* t = get_token(ts); next_token(ts);
   if (t == NULL || t->kind != TOKEN_IDENT) error("expected type, but got %s.", token_to_str(t));

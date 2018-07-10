@@ -19,8 +19,17 @@ lexertest() {
   fi
 }
 
-parsertest() {
-  OUT=`echo "$2" | ./parser.out`
+exprtest() {
+  OUT=`echo "$2" | ./parser_expr.out`
+  OUT=`echo $OUT`
+  if [ "$OUT" = "$3" ]; then
+    echo "[OK] $1"
+  else
+    echo "[ERROR] $1, expected $3, but got $OUT"
+  fi
+}
+stmttest() {
+  OUT=`echo "$2" | ./parser_stmt.out`
   OUT=`echo $OUT`
   if [ "$OUT" = "$3" ]; then
     echo "[OK] $1"
@@ -63,21 +72,25 @@ lexertest "lexer: 1 + (2 + 3)" "1 + (2 + 3)" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_L
 lexertest "lexer: yukari + ia" "yukari + ia" "TOKEN_IDENT:yukari TOKEN_ADD:+ TOKEN_IDENT:ia"
 lexertest "lexer: a = 1" "a = 1" "TOKEN_IDENT:a TOKEN_ASSIGN:= TOKEN_INTLIT:1"
 
-parsertest "parser: 1" "1" "AST_INTLIT"
-parsertest "parser: 1 + 2" "1 + 2" "AST_ADD"
-parsertest "parser: 1 - 2" "1 - 2" "AST_SUB"
-parsertest "parser: 2 * 1" "2 * 1" "AST_MUL"
-parsertest "parser: 2 / 1" "2 / 1" "AST_DIV"
-parsertest "parser: 2 * 1 + 3" "2 * 1 + 3" "AST_ADD"
-parsertest "parser: 2 / 1 + 3" "2 / 1 + 3" "AST_ADD"
-parsertest "parser: 1 + 2 * 3" "1 + 2 * 3" "AST_ADD"
-parsertest "parser: 1 + 2 / 3" "1 + 2 / 3" "AST_ADD"
-parsertest "parser: (1 + 1) * 2" "(1 + 1) * 2" "AST_MUL"
-parsertest "parser: (1 + 1) / 2" "(1 + 1) / 2" "AST_DIV"
-parsertest "parser: 2 * (1 + 1)" "2 * (1 + 1)" "AST_MUL"
-parsertest "parser: 2 / (1 + 1)" "2 / (1 + 1)" "AST_DIV"
-parsertest "parser: a = 1" "a = 1" "AST_ASSIGN"
-parsertest "parser: a = 1 + 2 * 3" "a = 1 + 2 * 3" "AST_ASSIGN"
+exprtest "expr: 1" "1" "AST_INTLIT"
+exprtest "expr: 1 + 2" "1 + 2" "AST_ADD"
+exprtest "expr: 1 - 2" "1 - 2" "AST_SUB"
+exprtest "expr: 2 * 1" "2 * 1" "AST_MUL"
+exprtest "expr: 2 / 1" "2 / 1" "AST_DIV"
+exprtest "expr: 2 * 1 + 3" "2 * 1 + 3" "AST_ADD"
+exprtest "expr: 2 / 1 + 3" "2 / 1 + 3" "AST_ADD"
+exprtest "expr: 1 + 2 * 3" "1 + 2 * 3" "AST_ADD"
+exprtest "expr: 1 + 2 / 3" "1 + 2 / 3" "AST_ADD"
+exprtest "expr: (1 + 1) * 2" "(1 + 1) * 2" "AST_MUL"
+exprtest "expr: (1 + 1) / 2" "(1 + 1) / 2" "AST_DIV"
+exprtest "expr: 2 * (1 + 1)" "2 * (1 + 1)" "AST_MUL"
+exprtest "expr: 2 / (1 + 1)" "2 / (1 + 1)" "AST_DIV"
+exprtest "expr: a = 1" "a = 1" "AST_ASSIGN"
+exprtest "expr: a = 1 + 2 * 3" "a = 1 + 2 * 3" "AST_ASSIGN"
+
+stmttest "stmt: 1; 2; 3;" "1; 2; 3;" "3 AST_INTLIT AST_INTLIT AST_INTLIT"
+stmttest "stmt: 1 + 1; 2 - 2; 3 * 3;" "1 + 1; 2 - 2; 3 * 3;" "3 AST_ADD AST_SUB AST_MUL"
+stmttest "stmt: a = 1; a;" "a = 1; a;" "2 AST_ASSIGN AST_IDENT"
 
 funcdecltest "funcdecl: int main()" "int main()" "int main"
 funcdecltest "funcdecl: int main(int argc)" "int main(int argc)" "int main int argc"

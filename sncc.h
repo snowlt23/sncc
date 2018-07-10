@@ -55,6 +55,10 @@ typedef enum {
 } astkind;
 
 typedef struct {
+  vector* vector;
+} statement;
+
+typedef struct {
   char* name;
 } typenode;
 typedef struct {
@@ -119,6 +123,11 @@ char* token_to_str(token* token);
 // parser.c
 tokenstream* new_tokenstream(vector* tokens);
 astree* expression(tokenstream* ts);
+// statement
+statement parse_statement(tokenstream* ts);
+astree* statement_get(statement st, int index);
+int statement_len(statement st);
+// funcdecl
 paramtype paramtypelist_get(paramtypelist ptlist, int index);
 int paramtypelist_len(paramtypelist ptlist);
 funcdecl parse_funcdecl(tokenstream* ts);
