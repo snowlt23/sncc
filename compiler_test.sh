@@ -1,97 +1,103 @@
 unittest() {
-  gcc -otest.out -Wall $2
-  OUT=`./test.out`
-  OUT=`echo $OUT`
-  if [ "$OUT" = "$3" ]; then
-    echo "[OK] $1"
+  gcc -otest.out -Wall $1
+  ./test.out
+  RET=$?
+  if [ $RET = 0 ]; then
+    echo "[OK] unittest: $1"
   else
-    echo "[ERROR] $1, expected $3, but got $OUT"
+    echo "[ERROR] unittest: $1"
+    exit 1
   fi
 }
 
 lexertest() {
-  OUT=`echo "$2" | ./lexer.out`
+  OUT=`echo "$1" | ./lexer.out`
   OUT=`echo $OUT`
-  if [ "$OUT" = "$3" ]; then
-    echo "[OK] $1"
+  if [ "$OUT" = "$2" ]; then
+    echo "[OK] lexer: $1"
   else
-    echo "[ERROR] $1, expected $3, but got $OUT"
+    echo "[ERROR] lexer: $1, expected $2, but got $OUT"
+    exit 1
   fi
 }
 
 exprtest() {
-  OUT=`echo "$2" | ./parser_expr.out`
+  OUT=`echo "$1" | ./parser_expr.out`
   OUT=`echo $OUT`
-  if [ "$OUT" = "$3" ]; then
-    echo "[OK] $1"
+  if [ "$OUT" = "$2" ]; then
+    echo "[OK] expr: $1"
   else
-    echo "[ERROR] $1, expected $3, but got $OUT"
+    echo "[ERROR] expr: $1, expected $2, but got $OUT"
+    exit 1
   fi
 }
+
 stmttest() {
-  OUT=`echo "$2" | ./parser_stmt.out`
+  OUT=`echo "$1" | ./parser_stmt.out`
   OUT=`echo $OUT`
-  if [ "$OUT" = "$3" ]; then
-    echo "[OK] $1"
+  if [ "$OUT" = "$2" ]; then
+    echo "[OK] stmt:  $1"
   else
-    echo "[ERROR] $1, expected $3, but got $OUT"
+    echo "[ERROR] stmt: $1, expected $2, but got $OUT"
+    exit 1
   fi
 }
 
 funcdecltest() {
-  OUT=`echo "$2" | ./funcdecl.out`
+  OUT=`echo "$1" | ./funcdecl.out`
   OUT=`echo $OUT`
-  if [ "$OUT" = "$3" ]; then
-    echo "[OK] $1"
+  if [ "$OUT" = "$2" ]; then
+    echo "[OK] funcdecl: $1"
   else
-    echo "[ERROR] $1, expected $3, but got $OUT"
+    echo "[ERROR] funcdecl: $1, expected $2, but got $OUT"
+    exit 1
   fi
 }
 
-unittest "vector" "test/vector_test.c" "12345"
-unittest "map" "test/map_test.c" "1 2 3 4 9"
+unittest "test/vector_test.c"
+unittest "test/map_test.c"
 
-lexertest "lexer: 9" "9" "TOKEN_INTLIT:9"
-lexertest "lexer: 12345" "12345" "TOKEN_INTLIT:12345"
-lexertest "lexer: ident" "yukari" "TOKEN_IDENT:yukari"
-lexertest "lexer: +" "+" "TOKEN_ADD:+"
-lexertest "lexer: -" "-" "TOKEN_SUB:-"
-lexertest "lexer: *" "*" "TOKEN_MUL:*"
-lexertest "lexer: /" "/" "TOKEN_DIV:/"
-lexertest "lexer: =" "=" "TOKEN_ASSIGN:="
-lexertest "lexer: (" "(" "TOKEN_LPAREN:("
-lexertest "lexer: )" ")" "TOKEN_RPAREN:)"
-lexertest "lexer: {" "{" "TOKEN_LBRACKET:{"
-lexertest "lexer: }" "}" "TOKEN_RBRACKET:}"
-lexertest "lexer: ," "," "TOKEN_COMMA:,"
-lexertest "lexer: ;" ";" "TOKEN_SEMICOLON:;"
-lexertest "lexer: 1 + 2" "1 + 2" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2"
-lexertest "lexer: 3 - 4" "3 - 4" "TOKEN_INTLIT:3 TOKEN_SUB:- TOKEN_INTLIT:4"
-lexertest "lexer: 1 + 2 - 3" "1 + 2 - 3" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2 TOKEN_SUB:- TOKEN_INTLIT:3"
-lexertest "lexer: 1 + (2 + 3)" "1 + (2 + 3)" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_LPAREN:( TOKEN_INTLIT:2 TOKEN_ADD:+ TOKEN_INTLIT:3 TOKEN_RPAREN:)"
-lexertest "lexer: yukari + ia" "yukari + ia" "TOKEN_IDENT:yukari TOKEN_ADD:+ TOKEN_IDENT:ia"
-lexertest "lexer: a = 1" "a = 1" "TOKEN_IDENT:a TOKEN_ASSIGN:= TOKEN_INTLIT:1"
+lexertest "9" "TOKEN_INTLIT:9"
+lexertest "12345" "TOKEN_INTLIT:12345"
+lexertest "yukari" "TOKEN_IDENT:yukari"
+lexertest "+" "TOKEN_ADD:+"
+lexertest "-" "TOKEN_SUB:-"
+lexertest "*" "TOKEN_MUL:*"
+lexertest "/" "TOKEN_DIV:/"
+lexertest "=" "TOKEN_ASSIGN:="
+lexertest "(" "TOKEN_LPAREN:("
+lexertest ")" "TOKEN_RPAREN:)"
+lexertest "{" "TOKEN_LBRACKET:{"
+lexertest "}" "TOKEN_RBRACKET:}"
+lexertest "," "TOKEN_COMMA:,"
+lexertest ";" "TOKEN_SEMICOLON:;"
+lexertest "1 + 2" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2"
+lexertest "3 - 4" "TOKEN_INTLIT:3 TOKEN_SUB:- TOKEN_INTLIT:4"
+lexertest "1 + 2 - 3" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_INTLIT:2 TOKEN_SUB:- TOKEN_INTLIT:3"
+lexertest "1 + (2 + 3)" "TOKEN_INTLIT:1 TOKEN_ADD:+ TOKEN_LPAREN:( TOKEN_INTLIT:2 TOKEN_ADD:+ TOKEN_INTLIT:3 TOKEN_RPAREN:)"
+lexertest "yukari + ia" "TOKEN_IDENT:yukari TOKEN_ADD:+ TOKEN_IDENT:ia"
+lexertest  "a = 1" "TOKEN_IDENT:a TOKEN_ASSIGN:= TOKEN_INTLIT:1"
 
-exprtest "expr: 1" "1" "AST_INTLIT"
-exprtest "expr: 1 + 2" "1 + 2" "AST_ADD"
-exprtest "expr: 1 - 2" "1 - 2" "AST_SUB"
-exprtest "expr: 2 * 1" "2 * 1" "AST_MUL"
-exprtest "expr: 2 / 1" "2 / 1" "AST_DIV"
-exprtest "expr: 2 * 1 + 3" "2 * 1 + 3" "AST_ADD"
-exprtest "expr: 2 / 1 + 3" "2 / 1 + 3" "AST_ADD"
-exprtest "expr: 1 + 2 * 3" "1 + 2 * 3" "AST_ADD"
-exprtest "expr: 1 + 2 / 3" "1 + 2 / 3" "AST_ADD"
-exprtest "expr: (1 + 1) * 2" "(1 + 1) * 2" "AST_MUL"
-exprtest "expr: (1 + 1) / 2" "(1 + 1) / 2" "AST_DIV"
-exprtest "expr: 2 * (1 + 1)" "2 * (1 + 1)" "AST_MUL"
-exprtest "expr: 2 / (1 + 1)" "2 / (1 + 1)" "AST_DIV"
-exprtest "expr: a = 1" "a = 1" "AST_ASSIGN"
-exprtest "expr: a = 1 + 2 * 3" "a = 1 + 2 * 3" "AST_ASSIGN"
+exprtest "1" "AST_INTLIT"
+exprtest "1 + 2" "AST_ADD"
+exprtest "1 - 2" "AST_SUB"
+exprtest "2 * 1" "AST_MUL"
+exprtest "2 / 1" "AST_DIV"
+exprtest "2 * 1 + 3" "AST_ADD"
+exprtest "2 / 1 + 3" "AST_ADD"
+exprtest "1 + 2 * 3" "AST_ADD"
+exprtest "1 + 2 / 3" "AST_ADD"
+exprtest "(1 + 1) * 2" "AST_MUL"
+exprtest "(1 + 1) / 2" "AST_DIV"
+exprtest "2 * (1 + 1)" "AST_MUL"
+exprtest "2 / (1 + 1)" "AST_DIV"
+exprtest "a = 1" "AST_ASSIGN"
+exprtest "a = 1 + 2 * 3" "AST_ASSIGN"
 
-stmttest "stmt: 1; 2; 3;" "1; 2; 3;" "3 AST_INTLIT AST_INTLIT AST_INTLIT"
-stmttest "stmt: 1 + 1; 2 - 2; 3 * 3;" "1 + 1; 2 - 2; 3 * 3;" "3 AST_ADD AST_SUB AST_MUL"
-stmttest "stmt: a = 1; a;" "a = 1; a;" "2 AST_ASSIGN AST_IDENT"
+stmttest "1; 2; 3;" "3 AST_INTLIT AST_INTLIT AST_INTLIT"
+stmttest "1 + 1; 2 - 2; 3 * 3;" "3 AST_ADD AST_SUB AST_MUL"
+stmttest "a = 1; a;" "2 AST_ASSIGN AST_IDENT"
 
-funcdecltest "funcdecl: int main()" "int main()" "int main"
-funcdecltest "funcdecl: int main(int argc)" "int main(int argc)" "int main int argc"
-funcdecltest "funcdecl: int add(int a, int b)" "int add(int a, int b)" "int add int a int b"
+funcdecltest "int main()" "int main"
+funcdecltest "int main(int argc)" "int main int argc"
+funcdecltest "int add(int a, int b)" "int add int a int b"

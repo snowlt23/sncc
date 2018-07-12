@@ -1,28 +1,29 @@
 
 rettest() {
-  echo "$2" | ./sncc > test.s
+  echo "$1" | ./sncc > test.s
   gcc -otest.out -m32 test.s
   ./test.out
   RETCODE=$?
-  if [ $RETCODE = $3 ]; then
-    echo "[OK] $1"
+  if [ $RETCODE = $2 ]; then
+    echo "[OK] rettest: $1"
   else
-    echo "[ERROR] $1, expected $3, but got $RETCODE"
+    echo "[ERROR] rettest: $1, expected $2, but got $RETCODE"
+    exit 1
   fi
 }
 
-rettest "retcode: 2" "2;" 2
-rettest "retcode: 9" "9;" 9
-rettest "retcode: 1 + 2" "1 + 2;" 3
-rettest "retcode: 2 - 1" "2 - 1;" 1
-rettest "retcode: 1 + 10 - 2" "1 + 10 - 2;" 9
-rettest "retcode: 1 + 2 * 3" "1 + 2 * 3;" 7
-rettest "retcode: 7 + 2 / 2" "7 + 2 / 2;" 8
-rettest "retcode: (1 + 1) * 2" "(1 + 1) * 2;" 4
-rettest "retcode: (1 + 1) / 2" "(1 + 1) / 2;" 1
-rettest "retcode-stmt: 1; 2; 5;" "1; 2; 5;" 5
-rettest "retcode-stmt: 1; 2; 3*3;" "1; 2; 3*3;" 9
-rettest "retcode-stmt: 1; 2; 1+3*3;" "1; 2; 1+3*3;" 10
-rettest "retcode-stmt: a = 9; a;" "a = 9; a;" 9
-rettest "retcode-stmt: a = 3; b = 4; a + b;" "a = 3; b = 4; a + b;" 7
-rettest "retcode-stmt: th=3; fo=4; th*fo;" "th=3; fo=4; th*fo;" 12
+rettest "1;" 1
+rettest "9;" 9
+rettest "1 + 2;" 3
+rettest "2 - 1;" 1
+rettest "1 + 10 - 2;" 9
+rettest "1 + 2 * 3;" 7
+rettest "7 + 2 / 2;" 8
+rettest "(1 + 1) * 2;" 4
+rettest "(1 + 1) / 2;" 1
+rettest "1; 2; 5;" 5
+rettest "1; 2; 3*3;" 9
+rettest "1; 2; 1+3*3;" 10
+rettest "a = 9; a;" 9
+rettest "a = 3; b = 4; a + b;" 7
+rettest "th=3; fo=4; th*fo;" 12
