@@ -4,7 +4,7 @@
 void assign_variable_position(map* varmap, int* pos, astree* ast) {
   if (ast->kind == AST_ASSIGN) {
     if (ast->left->kind != AST_IDENT) error("current assign supports only variable.");
-    *pos += 4;
+    *pos += 8;
     map_insert(varmap, ast->left->ident, *pos);
   }
 }
@@ -26,7 +26,7 @@ int main() {
   for (int i=0; i<statement_len(stmt); i++) {
     codegen(varmap, statement_get(stmt, i));
   }
-  emit_pop("%eax");
+  emit_pop("%rax");
   emit_epilogue();
   emit_return();
   return 0;

@@ -10,47 +10,47 @@ void emit_label(char* label) {
 }
 
 void emit_push_int(int x) {
-  printf("  pushl $%d\n", x);
+  printf("  pushq $%d\n", x);
 }
 void emit_push(char* s) {
-  printf("  pushl %s\n", s);
+  printf("  pushq %s\n", s);
 }
 void emit_pop(char* s) {
-  printf("  popl %s\n", s);
+  printf("  popq %s\n", s);
 }
 void emit_add(char* left, char* right) {
-  printf("  addl %s, %s\n", left, right);
+  printf("  addq %s, %s\n", left, right);
 }
 void emit_sub(char* left, char* right) {
-  printf("  subl %s, %s\n", left, right);
+  printf("  subq %s, %s\n", left, right);
 }
 void emit_mul(char* left) {
-  printf("  imull %s\n", left);
+  printf("  imulq %s\n", left);
 }
 void emit_div(char* left) {
-  printf("  movl $0, %%edx\n");
-  printf("  idivl %s\n", left);
+  printf("  movq $0, %%rdx\n");
+  printf("  idivq %s\n", left);
 }
 void emit_return() {
   printf("  ret\n");
 }
 
 void emit_prologue(int localsize) {
-  printf("  pushl %%ebp\n");
-  printf("  movl %%esp, %%ebp\n");
-  printf("  subl $%d, %%esp\n", localsize);
+  printf("  pushq %%rbp\n");
+  printf("  movq %%rsp, %%rbp\n");
+  printf("  subq $%d, %%rsp\n", localsize);
 }
 void emit_epilogue() {
-  printf("  movl %%ebp, %%esp\n");
-  printf("  popl %%ebp\n");
+  printf("  movq %%rbp, %%rsp\n");
+  printf("  popq %%rbp\n");
 }
 
 void emit_localvarref(int pos) {
-  printf("  movl -%d(%%ebp), %%eax\n", pos);
-  printf("  pushl %%eax\n");
+  printf("  movq -%d(%%rbp), %%rax\n", pos);
+  printf("  pushq %%rax\n");
 }
 void emit_localvarset(int pos, char* value) {
-  printf("  movl %s, -%d(%%ebp)\n", value, pos);
+  printf("  movq %s, -%d(%%rbp)\n", value, pos);
 }
 
 void codegen(map* varmap, astree* ast) {
@@ -63,37 +63,37 @@ void codegen(map* varmap, astree* ast) {
   } else if (ast->kind == AST_ADD) {
     codegen(varmap, ast->left);
     codegen(varmap, ast->right);
-    emit_pop("%ecx");
-    emit_pop("%eax");
-    emit_add("%ecx", "%eax");
-    emit_push("%eax");
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    emit_add("%rcx", "%rax");
+    emit_push("%rax");
   } else if (ast->kind == AST_SUB) {
     codegen(varmap, ast->left);
     codegen(varmap, ast->right);
-    emit_pop("%ecx");
-    emit_pop("%eax");
-    emit_sub("%ecx", "%eax");
-    emit_push("%eax");
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    emit_sub("%rcx", "%rax");
+    emit_push("%rax");
   } else if (ast->kind == AST_MUL) {
     codegen(varmap, ast->left);
     codegen(varmap, ast->right);
-    emit_pop("%ecx");
-    emit_pop("%eax");
-    emit_mul("%ecx");
-    emit_push("%eax");
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    emit_mul("%rcx");
+    emit_push("%rax");
   } else if (ast->kind == AST_DIV) {
     codegen(varmap, ast->left);
     codegen(varmap, ast->right);
-    emit_pop("%ecx");
-    emit_pop("%eax");
-    emit_div("%ecx");
-    emit_push("%eax");
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    emit_div("%rcx");
+    emit_push("%rax");
   } else if (ast->kind == AST_ASSIGN) {
     int pos = map_get(varmap, ast->left->ident);
     if (pos == -1) error("undeclared %s variable.", ast->left->ident);
     codegen(varmap, ast->right);
-    emit_pop("%eax");
-    emit_localvarset(pos, "%eax");
+    emit_pop("%rax");
+    emit_localvarset(pos, "%rax");
   } else {
     error("unsupported %d kind in codegen", ast->kind);
   }

@@ -1,7 +1,7 @@
 
 rettest() {
   echo "$1" | ./sncc > test.s
-  gcc -otest.out -m32 test.s
+  gcc -otest.out test.s
   ./test.out
   RETCODE=$?
   if [ $RETCODE = $2 ]; then
