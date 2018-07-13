@@ -2,55 +2,60 @@
 #include <assert.h>
 #include "sncc.h"
 
-void emit_global(char* name) {
-  printf("  .global %s\n", name);
-}
+#define emit_asm(...) {printf("  "); printf(__VA_ARGS__); printf("\n");}
+
 void emit_label(char* label) {
   printf("%s:\n", label);
 }
+void emit_global(char* name) {
+  emit_asm(".global %s", name);
+}
 
 void emit_push_int(int x) {
-  printf("  pushq $%d\n", x);
+  emit_asm("pushq $%d", x);
 }
 void emit_push(char* s) {
-  printf("  pushq %s\n", s);
+  emit_asm("pushq %s", s);
 }
 void emit_pop(char* s) {
-  printf("  popq %s\n", s);
+  emit_asm("popq %s", s);
 }
 void emit_add(char* left, char* right) {
-  printf("  addq %s, %s\n", left, right);
+  emit_asm("addq %s, %s", left, right);
 }
 void emit_sub(char* left, char* right) {
-  printf("  subq %s, %s\n", left, right);
+  emit_asm("subq %s, %s", left, right);
 }
 void emit_mul(char* left) {
-  printf("  imulq %s\n", left);
+  emit_asm("imulq %s", left);
 }
 void emit_div(char* left) {
-  printf("  movq $0, %%rdx\n");
-  printf("  idivq %s\n", left);
+  emit_asm("movq $0, %%rdx");
+  emit_asm("idivq %s", left);
 }
 void emit_return() {
-  printf("  ret\n");
+  emit_asm("ret");
+}
+void emit_call(char* name) {
+  emit_asm("call %s", name);
 }
 
 void emit_prologue(int localsize) {
-  printf("  pushq %%rbp\n");
-  printf("  movq %%rsp, %%rbp\n");
-  printf("  subq $%d, %%rsp\n", localsize);
+  emit_asm("pushq %%rbp");
+  emit_asm("movq %%rsp, %%rbp");
+  emit_asm("subq $%d, %%rsp", localsize);
 }
 void emit_epilogue() {
-  printf("  movq %%rbp, %%rsp\n");
-  printf("  popq %%rbp\n");
+  emit_asm("movq %%rbp, %%rsp");
+  emit_asm("pop %%rbp");
 }
 
 void emit_localvarref(int pos) {
-  printf("  movq -%d(%%rbp), %%rax\n", pos);
-  printf("  pushq %%rax\n");
+  emit_asm("movq -%d(%%rbp), %%rax", pos);
+  emit_asm("pushq %%rax");
 }
 void emit_localvarset(int pos, char* value) {
-  printf("  movq %s, -%d(%%rbp)\n", value, pos);
+  emit_asm("movq %s, -%d(%%rbp)", value, pos);
 }
 
 void codegen(map* varmap, astree* ast) {
@@ -94,6 +99,9 @@ void codegen(map* varmap, astree* ast) {
     codegen(varmap, ast->right);
     emit_pop("%rax");
     emit_localvarset(pos, "%rax");
+  } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {
+    emit_call(ast->call->ident);
+    emit_push("%rax");
   } else {
     error("unsupported %d kind in codegen", ast->kind);
   }

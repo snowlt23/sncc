@@ -21,7 +21,7 @@ sncc: $(SNCC_LIBS) sncc.c
 
 compiler-test: lexer.out parser_expr.out parser_stmt.out funcdecl.out
 	./compiler_test.sh
-sncc-test:
+sncc-test: sncclib.o
 	./sncc_test.sh
 
 test: sncc compiler-test sncc-test ;

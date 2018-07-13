@@ -1,7 +1,9 @@
 
+gcc -c sncclib.c
+
 rettest() {
   echo "$1" | ./sncc > test.s
-  gcc -otest.out test.s
+  gcc -otest.out test.s sncclib.o
   ./test.out
   RETCODE=$?
   if [ $RETCODE = $2 ]; then
@@ -27,3 +29,5 @@ rettest "1; 2; 1+3*3;" 10
 rettest "a = 9; a;" 9
 rettest "a = 3; b = 4; a + b;" 7
 rettest "th=3; fo=4; th*fo;" 12
+rettest "num9();" 9
+rettest "num9() + num9();" 18
