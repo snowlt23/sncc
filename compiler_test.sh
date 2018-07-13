@@ -93,6 +93,7 @@ exprtest "2 * (1 + 1)" "AST_MUL"
 exprtest "2 / (1 + 1)" "AST_DIV"
 exprtest "a = 1" "AST_ASSIGN"
 exprtest "a = 1 + 2 * 3" "AST_ASSIGN"
+exprtest "fib()" "AST_CALL"
 
 stmttest "1; 2; 3;" "3 AST_INTLIT AST_INTLIT AST_INTLIT"
 stmttest "1 + 1; 2 - 2; 3 * 3;" "3 AST_ADD AST_SUB AST_MUL"

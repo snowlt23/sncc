@@ -38,6 +38,8 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_DIV";
   } else if (ast->kind == AST_ASSIGN) {
     return "AST_ASSIGN";
+  } else if (ast->kind == AST_CALL) {
+    return "AST_CALL";
   } else if (ast->kind == AST_INTLIT) {
     return "AST_INTLIT";
   } else if (ast->kind == AST_IDENT) {
@@ -87,18 +89,32 @@ astree* factor(tokenstream* ts) {
   }
 }
 
+astree* callexpr(tokenstream* ts) {
+  astree* call = factor(ts);
+  token* lparen = get_token(ts);
+  if (lparen == NULL) return call;
+  if (lparen->kind != TOKEN_LPAREN) return call;
+  next_token(ts);
+  token* rparen = get_token(ts); next_token(ts);
+  if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("function call expected )rparen.");
+
+  astree* ast = new_ast(AST_CALL);
+  ast->call = call;
+  return ast;
+}
+
 astree* infix_muldiv(tokenstream* ts) {
-  astree* left = factor(ts);
+  astree* left = callexpr(ts);
   for (;;) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_MUL) {
       next_token(ts);
-      astree* right = factor(ts);
+      astree* right = callexpr(ts);
       left = new_ast_infix(AST_MUL, left, right);
     } else if (t->kind == TOKEN_DIV) {
       next_token(ts);
-      astree* right = factor(ts);
+      astree* right = callexpr(ts);
       left = new_ast_infix(AST_DIV, left, right);
     } else {
       break;

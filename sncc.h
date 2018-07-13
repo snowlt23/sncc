@@ -51,6 +51,7 @@ typedef enum {
   AST_ASSIGN,
   AST_INTLIT,
   AST_IDENT,
+  AST_CALL,
   AST_FUNCDEF
 } astkind;
 
@@ -87,6 +88,10 @@ typedef struct _astree {
     };
     int intval;
     char* ident;
+    struct {
+      struct _astree* call;
+      vector* arguments;
+    };
   };
 } astree;
 
