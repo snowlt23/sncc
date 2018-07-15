@@ -8,6 +8,12 @@ astree* new_ast(astkind kind) {
   return ast;
 }
 
+astree* new_ast_prefix(astkind kind, astree* value) {
+  astree* ast = new_ast(kind);
+  ast->value = value;
+  return ast;
+}
+
 astree* new_ast_infix(astkind kind, astree* left, astree* right) {
   astree* ast = new_ast(kind);
   ast->left = left;
@@ -36,6 +42,8 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_MUL";
   } else if (ast->kind == AST_DIV) {
     return "AST_DIV";
+  } else if (ast->kind == AST_MINUS) {
+    return "AST_MINUS";
   } else if (ast->kind == AST_ASSIGN) {
     return "AST_ASSIGN";
   } else if (ast->kind == AST_CALL) {
@@ -143,14 +151,25 @@ astree* infix_addsub(tokenstream* ts) {
   return left;
 }
 
+astree* prefix_addsub(tokenstream* ts) {
+  token* t = get_token(ts);
+  if (t != NULL && t->kind == TOKEN_SUB) {
+    next_token(ts);
+    astree* value = infix_addsub(ts);
+    return new_ast_prefix(AST_MINUS, value);
+  } else {
+    return infix_addsub(ts);
+  }
+}
+
 astree* infix_assign(tokenstream* ts) {
-  astree* left = infix_addsub(ts);
+  astree* left = prefix_addsub(ts);
   for (;;) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_ASSIGN) {
       next_token(ts);
-      astree* right = infix_addsub(ts);
+      astree* right = prefix_addsub(ts);
       left = new_ast_infix(AST_ASSIGN, left, right);
     } else {
       break;

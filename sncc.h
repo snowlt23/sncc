@@ -48,6 +48,7 @@ typedef enum {
   AST_SUB,
   AST_MUL,
   AST_DIV,
+  AST_MINUS,
   AST_ASSIGN,
   AST_INTLIT,
   AST_IDENT,
@@ -86,6 +87,7 @@ typedef struct _astree {
       struct _astree* left;
       struct _astree* right;
     };
+    struct _astree* value;
     int intval;
     char* ident;
     struct {

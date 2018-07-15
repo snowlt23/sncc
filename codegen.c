@@ -93,6 +93,11 @@ void codegen(map* varmap, astree* ast) {
     emit_pop("%rax");
     emit_div("%rcx");
     emit_push("%rax");
+  } else if (ast->kind == AST_MINUS) {
+    codegen(varmap, ast->value);
+    emit_pop("%rax");
+    emit_asm("negq %%rax");
+    emit_push("%rax");
   } else if (ast->kind == AST_ASSIGN) {
     int pos = map_get(varmap, ast->left->ident);
     if (pos == -1) error("undeclared %s variable.", ast->left->ident);

@@ -6,3 +6,4 @@ sncc
 *.o
 *.log
 .vagrant/
+*.swp

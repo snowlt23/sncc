@@ -1,4 +1,3 @@
-
 gcc -c sncclib.c
 
 rettest() {
@@ -26,6 +25,9 @@ rettest "(1 + 1) / 2;" 1
 rettest "1; 2; 5;" 5
 rettest "1; 2; 3*3;" 9
 rettest "1; 2; 1+3*3;" 10
+rettest "-5;" 251
+rettest "5 + (-5);" 0
+rettest "9 + -5;" 4
 rettest "a = 9; a;" 9
 rettest "a = 3; b = 4; a + b;" 7
 rettest "th=3; fo=4; th*fo;" 12
