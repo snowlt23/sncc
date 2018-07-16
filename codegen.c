@@ -105,6 +105,26 @@ void codegen(map* varmap, astree* ast) {
     emit_pop("%rax");
     emit_localvarset(pos, "%rax");
   } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {
+    for (int i=0; i<ast->arguments->len; i++) {
+      astree* arg = vector_get(ast->arguments, i);
+      codegen(varmap, arg);
+      emit_pop("%rax");
+      if (i == 0) {
+        emit_asm("movq %%rax, %%rdi");
+      } else if (i == 1) {
+        emit_asm("movq %%rax, %%rsi");
+      } else if (i == 2) {
+        emit_asm("movq %%rax, %%rdx");
+      } else if (i == 3) {
+        emit_asm("movq %%rax, %%rcx");
+      } else if (i == 4) {
+        emit_asm("movq %%rax, %%r8");
+      } else if (i == 5) {
+        emit_asm("movq %%rax, %%r9");
+      } else {
+        emit_push("%%rax");
+      }
+    }
     emit_call(ast->call->ident);
     emit_push("%rax");
   } else {

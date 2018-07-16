@@ -103,11 +103,24 @@ astree* callexpr(tokenstream* ts) {
   if (lparen == NULL) return call;
   if (lparen->kind != TOKEN_LPAREN) return call;
   next_token(ts);
+
+  vector* args = new_vector();
+  if (get_token(ts)-> kind != TOKEN_RPAREN) {
+    vector_push(args, factor(ts));
+    for (;;) {
+      if (get_token(ts)->kind == TOKEN_RPAREN) break;
+      token* t = get_token(ts); next_token(ts);
+      if (t->kind != TOKEN_COMMA) error("expected comma by call");
+      vector_push(args, factor(ts));
+    }
+  }
+
   token* rparen = get_token(ts); next_token(ts);
   if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("function call expected )rparen.");
 
   astree* ast = new_ast(AST_CALL);
   ast->call = call;
+  ast->arguments = args;
   return ast;
 }
 

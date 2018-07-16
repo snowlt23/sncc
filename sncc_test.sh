@@ -33,3 +33,5 @@ rettest "a = 3; b = 4; a + b;" 7
 rettest "th=3; fo=4; th*fo;" 12
 rettest "num9();" 9
 rettest "num9() + num9();" 18
+rettest "add5(4);" 9
+rettest "div(10, 2);" 5
