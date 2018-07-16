@@ -35,3 +35,5 @@ rettest "num9();" 9
 rettest "num9() + num9();" 18
 rettest "add5(4);" 9
 rettest "div(10, 2);" 5
+rettest "multidiv6(100, 1, 2, 1, 2, 5);" 5
+rettest "multidiv6_2(200, 1, 2, 1, 2, 1, 10, 5);" 25

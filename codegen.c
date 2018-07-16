@@ -105,27 +105,49 @@ void codegen(map* varmap, astree* ast) {
     emit_pop("%rax");
     emit_localvarset(pos, "%rax");
   } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {
-    for (int i=0; i<ast->arguments->len; i++) {
-      astree* arg = vector_get(ast->arguments, i);
-      codegen(varmap, arg);
+    if (ast->arguments->len > 0) {
+      codegen(varmap, vector_get(ast->arguments, 0));
       emit_pop("%rax");
-      if (i == 0) {
-        emit_asm("movq %%rax, %%rdi");
-      } else if (i == 1) {
-        emit_asm("movq %%rax, %%rsi");
-      } else if (i == 2) {
-        emit_asm("movq %%rax, %%rdx");
-      } else if (i == 3) {
-        emit_asm("movq %%rax, %%rcx");
-      } else if (i == 4) {
-        emit_asm("movq %%rax, %%r8");
-      } else if (i == 5) {
-        emit_asm("movq %%rax, %%r9");
-      } else {
-        emit_push("%%rax");
-      }
+      emit_asm("movq %%rax, %%rdi");
+    }
+    if (ast->arguments->len > 1) {
+      codegen(varmap, vector_get(ast->arguments, 1));
+      emit_pop("%rax");
+      emit_asm("movq %%rax, %%rsi");
+    }
+    if (ast->arguments->len > 2) {
+      codegen(varmap, vector_get(ast->arguments, 2));
+      emit_pop("%rax");
+      emit_asm("movq %%rax, %%rdx");
+    }
+    if (ast->arguments->len > 3) {
+      codegen(varmap, vector_get(ast->arguments, 3));
+      emit_pop("%rax");
+      emit_asm("movq %%rax, %%rcx");
+    }
+    if (ast->arguments->len > 4) {
+      codegen(varmap, vector_get(ast->arguments, 4));
+      emit_pop("%rax");
+      emit_asm("movq %%rax, %%r8");
+    }
+    if (ast->arguments->len > 5) {
+      codegen(varmap, vector_get(ast->arguments, 5));
+      emit_pop("%rax");
+      emit_asm("movq %%rax, %%r9");
+    }
+
+    if (ast->arguments->len-6 >= 1) {
+      emit_asm("subq $%d, %%rsp", (ast->arguments->len-6)*8);
+    }
+    for (int i=6; i<ast->arguments->len; i++) {
+      codegen(varmap, vector_get(ast->arguments, i));
+      emit_pop("%rax");
+      emit_asm("movq %%rax, %d(%%rsp)", (i-6)*8);
     }
     emit_call(ast->call->ident);
+    if (ast->arguments->len-6 >= 1) {
+      emit_asm("addq $%d, %%rsp", (ast->arguments->len-6)*8);
+    }
     emit_push("%rax");
   } else {
     error("unsupported %d kind in codegen", ast->kind);
