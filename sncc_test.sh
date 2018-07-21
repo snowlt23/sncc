@@ -13,27 +13,27 @@ rettest() {
   fi
 }
 
-rettest "1;" 1
-rettest "9;" 9
-rettest "1 + 2;" 3
-rettest "2 - 1;" 1
-rettest "1 + 10 - 2;" 9
-rettest "1 + 2 * 3;" 7
-rettest "7 + 2 / 2;" 8
-rettest "(1 + 1) * 2;" 4
-rettest "(1 + 1) / 2;" 1
-rettest "1; 2; 5;" 5
-rettest "1; 2; 3*3;" 9
-rettest "1; 2; 1+3*3;" 10
-rettest "-5;" 251
-rettest "5 + (-5);" 0
-rettest "9 + -5;" 4
-rettest "a = 9; a;" 9
-rettest "a = 3; b = 4; a + b;" 7
-rettest "th=3; fo=4; th*fo;" 12
-rettest "num9();" 9
-rettest "num9() + num9();" 18
-rettest "add5(4);" 9
-rettest "div(10, 2);" 5
-rettest "multidiv6(100, 1, 2, 1, 2, 5);" 5
-rettest "multidiv6_2(200, 1, 2, 1, 2, 1, 10, 5);" 25
+rettest "main() {1;}" 1
+rettest "main() {9;}" 9
+rettest "main() {1 + 2;}" 3
+rettest "main() {2 - 1;}" 1
+rettest "main() {1 + 10 - 2;}" 9
+rettest "main() {1 + 2 * 3;}" 7
+rettest "main() {7 + 2 / 2;}" 8
+rettest "main() {(1 + 1) * 2;}" 4
+rettest "main() {(1 + 1) / 2;}" 1
+rettest "main() {1; 2; 5;}" 5
+rettest "main() {1; 2; 3*3;}" 9
+rettest "main() {1; 2; 1+3*3;}" 10
+rettest "main() {-5;}" 251
+rettest "main() {5 + (-5);}" 0
+rettest "main() {9 + -5;}" 4
+rettest "main() {a = 9; a;}" 9
+rettest "main() {a = 3; b = 4; a + b;}" 7
+rettest "main() {th=3; fo=4; th*fo;}" 12
+rettest "main() {num9();}" 9
+rettest "main() {num9() + num9();}" 18
+rettest "main() {add5(4);}" 9
+rettest "main() {div(10, 2);}" 5
+rettest "main() {multidiv6(100, 1, 2, 1, 2, 5);}" 5
+rettest "main() {multidiv6_2(200, 1, 2, 1, 2, 1, 10, 5);}" 25

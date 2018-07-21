@@ -153,3 +153,27 @@ void codegen(map* varmap, astree* ast) {
     error("unsupported %d kind in codegen", ast->kind);
   }
 }
+
+void assign_variable_position(map* varmap, int* pos, astree* ast) {
+  if (ast->kind == AST_ASSIGN) {
+    if (ast->left->kind != AST_IDENT) error("current assign supports only variable.");
+    *pos += 8;
+    map_insert(varmap, ast->left->ident, *pos);
+  }
+}
+
+void codegen_funcdecl(funcdecl fdecl) {
+  map* varmap = new_map();
+  int varpos = 0;
+  for (int i=0; i<statement_len(fdecl.body); i++) {
+    assign_variable_position(varmap, &varpos, statement_get(fdecl.body, i));
+  }
+  emit_label(fdecl.fdecl);
+  emit_prologue(varpos);
+  for (int i=0; i<statement_len(fdecl.body); i++) {
+    codegen(varmap, statement_get(fdecl.body, i));
+  }
+  emit_pop("%rax");
+  emit_epilogue(varpos);
+  emit_return();
+}

@@ -119,6 +119,8 @@ char* token_to_str(token* token);
 
 // parser.c
 tokenstream* new_tokenstream(vector* tokens);
+token* get_token(tokenstream* ts);
+void next_token(tokenstream* ts);
 astree* expression(tokenstream* ts);
 // statement
 statement parse_statement(tokenstream* ts);
@@ -132,6 +134,7 @@ char* ast_to_kindstr(astree* ast);
 
 // codegen.c
 void codegen(map* varmap, astree* ast);
+void codegen_funcdecl(funcdecl fdecl);
 // emit
 void emit_global(char* name);
 void emit_label(char* label);
