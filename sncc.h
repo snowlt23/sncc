@@ -61,23 +61,13 @@ typedef struct {
 } statement;
 
 typedef struct {
-  char* name;
-} typenode;
-typedef struct {
-  char* name;
-} declnode;
-typedef struct {
-  typenode type;
-  declnode decl;
-} paramtype;
-typedef struct {
   vector* vector;
 } paramtypelist;
 
 typedef struct {
-  typenode returntype;
-  declnode fdecl;
+  char* fdecl;
   paramtypelist argdecls;
+  statement body;
 } funcdecl;
 
 typedef struct _astree {
@@ -135,7 +125,7 @@ statement parse_statement(tokenstream* ts);
 astree* statement_get(statement st, int index);
 int statement_len(statement st);
 // funcdecl
-paramtype paramtypelist_get(paramtypelist ptlist, int index);
+char* paramtypelist_get(paramtypelist ptlist, int index);
 int paramtypelist_len(paramtypelist ptlist);
 funcdecl parse_funcdecl(tokenstream* ts);
 char* ast_to_kindstr(astree* ast);

@@ -7,9 +7,9 @@ int main() {
   tokenstream* ts = new_tokenstream(tokenss);
   funcdecl fdecl = parse_funcdecl(ts);
 
-  printf("%s %s", fdecl.returntype.name, fdecl.fdecl.name);
+  printf("%s ", fdecl.fdecl);
   for (int i=0; i<paramtypelist_len(fdecl.argdecls); i++) {
-    paramtype pt = paramtypelist_get(fdecl.argdecls, i);
-    printf(" %s %s", pt.type.name, pt.decl.name);
+    char* pt = paramtypelist_get(fdecl.argdecls, i);
+    printf(" %s", pt);
   }
 }

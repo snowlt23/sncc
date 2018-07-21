@@ -100,6 +100,5 @@ stmttest "1; 2; 3;" "3 AST_INTLIT AST_INTLIT AST_INTLIT"
 stmttest "1 + 1; 2 - 2; 3 * 3;" "3 AST_ADD AST_SUB AST_MUL"
 stmttest "a = 1; a;" "2 AST_ASSIGN AST_IDENT"
 
-funcdecltest "int main()" "int main"
-funcdecltest "int main(int argc)" "int main int argc"
-funcdecltest "int add(int a, int b)" "int add int a int b"
+funcdecltest "main() {}" "main"
+funcdecltest "fib(n) {n;}" "fib n"

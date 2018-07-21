@@ -198,7 +198,7 @@ astree* expression(tokenstream* ts) {
 statement parse_statement(tokenstream* ts) {
   vector* v = new_vector();
   for (;;) {
-    if (get_token(ts) == NULL) break;
+    if (get_token(ts) == NULL || get_token(ts)->kind == TOKEN_RBRACKET) break;
     vector_push(v, (void*)expression(ts));
     token* semicolon = get_token(ts); next_token(ts);
     if (semicolon == NULL || semicolon->kind != TOKEN_SEMICOLON) error("expect \";\" as a statement delimiter.");
@@ -216,34 +216,21 @@ int statement_len(statement st) {
   return st.vector->len;
 }
 
-typenode parse_typenode(tokenstream* ts) {
-  token* t = get_token(ts); next_token(ts);
-  if (t == NULL || t->kind != TOKEN_IDENT) error("expected type, but got %s.", token_to_str(t));
-  typenode tnode;
-  tnode.name = t->ident;
-  return tnode;
-}
+//
+// funcdecl
+//
 
-declnode parse_declnode(tokenstream* ts) {
+char* parse_param(tokenstream* ts) {
   token* t = get_token(ts); next_token(ts);
-  if (t == NULL || t->kind != TOKEN_IDENT) error("expected declaration, but got %s", token_to_str(t));
-  declnode dnode;
-  dnode.name = t->ident;
-  return dnode;
-}
-
-paramtype* parse_paramtype(tokenstream* ts) {
-  paramtype* pt = (paramtype*)malloc(sizeof(paramtype));
-  pt->type = parse_typenode(ts);
-  pt->decl = parse_declnode(ts);
-  return pt;
+  if (t->kind != TOKEN_IDENT) error("expected identifier in parameter.");
+  return t->ident;
 }
 
 paramtypelist parse_paramtype_list(tokenstream* ts) {
   vector* ptlist = new_vector();
   for (;;) {
     if (get_token(ts) != NULL && get_token(ts)->kind != TOKEN_IDENT) break;
-    paramtype* pt = parse_paramtype(ts);
+    char* pt = parse_param(ts);
     vector_push(ptlist, (void*)pt);
     token* t = get_token(ts);
     if (t == NULL) error("require more token.");
@@ -255,8 +242,8 @@ paramtypelist parse_paramtype_list(tokenstream* ts) {
   return ptl;
 }
 
-paramtype paramtypelist_get(paramtypelist ptlist, int index) {
-  return *(paramtype*)vector_get(ptlist.vector, index);
+char* paramtypelist_get(paramtypelist ptlist, int index) {
+  return (char*)vector_get(ptlist.vector, index);
 }
 
 int paramtypelist_len(paramtypelist ptlist) {
@@ -265,12 +252,18 @@ int paramtypelist_len(paramtypelist ptlist) {
 
 funcdecl parse_funcdecl(tokenstream* ts) {
   funcdecl fdecl;
-  fdecl.returntype = parse_typenode(ts);
-  fdecl.fdecl = parse_declnode(ts);
+  fdecl.fdecl = parse_param(ts);
   token* lparen = get_token(ts); next_token(ts);
   if (lparen == NULL || lparen->kind != TOKEN_LPAREN) error("function decl expect \"(\", but got %s", token_to_str(lparen));
   fdecl.argdecls = parse_paramtype_list(ts);
   token* rparen = get_token(ts); next_token(ts);
   if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("function decl expect \")\", but got %s", token_to_str(rparen));
+
+  token* lbracket = get_token(ts); next_token(ts);
+  if (lbracket == NULL || lbracket->kind != TOKEN_LBRACKET) error("function decl expect \"{\", but got %s", token_to_str(lbracket));
+  fdecl.body = parse_statement(ts);
+  token* rbracket = get_token(ts); next_token(ts);
+  if (rbracket == NULL || rbracket->kind != TOKEN_RBRACKET) error("function decl expect \"}\", but got %s", token_to_str(rbracket));
+
   return fdecl;
 }
