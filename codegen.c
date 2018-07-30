@@ -4,8 +4,18 @@
 
 #define emit_asm(...) {printf("  "); printf(__VA_ARGS__); printf("\n");}
 
+int labelcnt = 0;
+
+int gen_labeln() {
+  labelcnt++;
+  return labelcnt;
+}
+
 void emit_label(char* label) {
   printf("%s:\n", label);
+}
+void emit_labeln(int n) {
+  printf(".L%d:\n", n);
 }
 void emit_global(char* name) {
   emit_asm(".global %s", name);
@@ -19,8 +29,7 @@ void emit_push(char* s) {
 }
 void emit_pop(char* s) {
   emit_asm("popq %s", s);
-}
-void emit_add(char* left, char* right) {
+} void emit_add(char* left, char* right) {
   emit_asm("addq %s, %s", left, right);
 }
 void emit_sub(char* left, char* right) {
@@ -149,6 +158,14 @@ void codegen(map* varmap, astree* ast) {
       emit_asm("addq $%d, %%rsp", (ast->arguments->len-6)*8);
     }
     emit_push("%rax");
+  } else if (ast->kind == AST_IF) {
+    codegen(varmap, ast->ifcond);
+    int labeln = gen_labeln();
+    emit_asm("pop %%rax");
+    emit_asm("cmpq $0, %%rax");
+    emit_asm("je .L%d", labeln);
+    codegen(varmap, ast->ifbody);
+    emit_labeln(labeln);
   } else {
     error("unsupported %d kind in codegen", ast->kind);
   }
