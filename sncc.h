@@ -53,7 +53,8 @@ typedef enum {
   AST_INTLIT,
   AST_IDENT,
   AST_CALL,
-  AST_FUNCDEF
+  AST_FUNCDEF,
+  AST_IF
 } astkind;
 
 typedef struct {
@@ -84,6 +85,11 @@ typedef struct _astree {
       struct _astree* call;
       vector* arguments;
     };
+    struct {
+      struct _astree* ifcond;
+      struct _astree* ifbody;
+    };
+    statement stmt;
   };
 } astree;
 

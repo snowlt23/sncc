@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include "sncc.h"
 
@@ -52,6 +53,8 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_INTLIT";
   } else if (ast->kind == AST_IDENT) {
     return "AST_IDENT";
+  } else if (ast->kind == AST_IF) {
+    return "AST_IF";
   } else {
     assert(0);
   }
@@ -195,11 +198,32 @@ astree* expression(tokenstream* ts) {
   return infix_assign(ts);
 }
 
+astree* parse_if(tokenstream* ts) {
+  if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_IDENT || strcmp(get_token(ts)->ident, "if") != 0) return NULL;
+  next_token(ts);
+
+  astree* ast = new_ast(AST_IF);
+
+  token* lparen = get_token(ts); next_token(ts);
+  if (lparen == NULL || lparen->kind != TOKEN_LPAREN) error("if expected (lparen.");
+  ast->ifcond = expression(ts);
+  token* rparen = get_token(ts); next_token(ts);
+  if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("if expected )rparen.");
+  ast->ifbody = expression(ts);
+
+  return ast;
+}
+
 statement parse_statement(tokenstream* ts) {
   vector* v = new_vector();
   for (;;) {
     if (get_token(ts) == NULL || get_token(ts)->kind == TOKEN_RBRACKET) break;
-    vector_push(v, (void*)expression(ts));
+    astree* ifast = parse_if(ts);
+    if (ifast != NULL) {
+      vector_push(v, (void*)ifast);
+    } else {
+      vector_push(v, (void*)expression(ts));
+    }
     token* semicolon = get_token(ts); next_token(ts);
     if (semicolon == NULL || semicolon->kind != TOKEN_SEMICOLON) error("expect \";\" as a statement delimiter.");
   }
