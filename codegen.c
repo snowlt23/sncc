@@ -165,11 +165,38 @@ void assign_variable_position(map* varmap, int* pos, astree* ast) {
 void codegen_funcdecl(funcdecl fdecl) {
   map* varmap = new_map();
   int varpos = 0;
+  for (int i=0; i<paramtypelist_len(fdecl.argdecls); i++) {
+    char* argname = paramtypelist_get(fdecl.argdecls, i);
+    varpos += 8;
+    map_insert(varmap, argname, varpos);
+  }
   for (int i=0; i<statement_len(fdecl.body); i++) {
     assign_variable_position(varmap, &varpos, statement_get(fdecl.body, i));
   }
   emit_label(fdecl.fdecl);
   emit_prologue(varpos);
+  int argpos = 0;
+  for (int i=0; i<paramtypelist_len(fdecl.argdecls); i++) {
+    char* argname = paramtypelist_get(fdecl.argdecls, i);
+    int pos = map_get(varmap, argname);
+    if (i == 0) {
+      emit_localvarset(pos, "%rdi");
+    } else if (i == 1) {
+      emit_localvarset(pos, "%rsi");
+    } else if (i == 2) {
+      emit_localvarset(pos, "%rdx");
+    } else if (i == 3) {
+      emit_localvarset(pos, "%rcx");
+    } else if (i == 4) {
+      emit_localvarset(pos, "%r8");
+    } else if (i == 5) {
+      emit_localvarset(pos, "%r9");
+    } else {
+      argpos += 8;
+      emit_asm("mov -%d(%%rbp), %%rax", argpos);
+      emit_localvarset(pos, "%rax");
+    }
+  }
   for (int i=0; i<statement_len(fdecl.body); i++) {
     codegen(varmap, statement_get(fdecl.body, i));
   }

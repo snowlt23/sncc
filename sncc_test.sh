@@ -37,3 +37,5 @@ rettest "main() {add5(4);}" 9
 rettest "main() {div(10, 2);}" 5
 rettest "main() {multidiv6(100, 1, 2, 1, 2, 5);}" 5
 rettest "main() {multidiv6_2(200, 1, 2, 1, 2, 1, 10, 5);}" 25
+rettest "add(a, b) {a + b;} main() {add(4, 5);}" 9
+rettest "add8(a1, a2, a3, a4, a5, a6, a7, a8) {a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8;} main() {add8(1, 1, 1, 1, 1, 1, 1, 1);}" 8
