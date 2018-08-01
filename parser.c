@@ -211,6 +211,12 @@ astree* parse_if(tokenstream* ts) {
   if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("if expected )rparen.");
   ast->ifbody = expression(ts);
 
+  ast->elsebody = NULL;
+  if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_IDENT && strcmp(get_token(ts)->ident, "else") == 0) {
+    next_token(ts);
+    ast->elsebody = expression(ts);
+  }
+
   return ast;
 }
 

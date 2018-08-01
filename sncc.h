@@ -88,6 +88,7 @@ typedef struct _astree {
     struct {
       struct _astree* ifcond;
       struct _astree* ifbody;
+      struct _astree* elsebody;
     };
     statement stmt;
   };
