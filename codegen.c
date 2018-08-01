@@ -102,6 +102,24 @@ void codegen(map* varmap, astree* ast) {
     emit_pop("%rax");
     emit_div("%rcx");
     emit_push("%rax");
+  } else if (ast->kind == AST_LESSER) {
+    codegen(varmap, ast->left);
+    codegen(varmap, ast->right);
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    emit_asm("cmpq %%rcx, %%rax");
+    emit_asm("setl %%al");
+    emit_asm("movzbl %%al, %%eax");
+    emit_push("%rax");
+  } else if (ast->kind == AST_GREATER) {
+    codegen(varmap, ast->left);
+    codegen(varmap, ast->right);
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    emit_asm("cmpq %%rcx, %%rax");
+    emit_asm("setg %%al");
+    emit_asm("movzbl %%al, %%eax");
+    emit_push("%rax");
   } else if (ast->kind == AST_MINUS) {
     codegen(varmap, ast->value);
     emit_pop("%rax");

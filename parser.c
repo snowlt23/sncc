@@ -45,6 +45,10 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_DIV";
   } else if (ast->kind == AST_MINUS) {
     return "AST_MINUS";
+  } else if (ast->kind == AST_LESSER) {
+    return "AST_LESSER";
+  } else if (ast->kind == AST_GREATER) {
+    return "AST_GREATER";
   } else if (ast->kind == AST_ASSIGN) {
     return "AST_ASSIGN";
   } else if (ast->kind == AST_CALL) {
@@ -109,12 +113,12 @@ astree* callexpr(tokenstream* ts) {
 
   vector* args = new_vector();
   if (get_token(ts)-> kind != TOKEN_RPAREN) {
-    vector_push(args, factor(ts));
+    vector_push(args, expression(ts));
     for (;;) {
       if (get_token(ts)->kind == TOKEN_RPAREN) break;
       token* t = get_token(ts); next_token(ts);
-      if (t->kind != TOKEN_COMMA) error("expected comma by call");
-      vector_push(args, factor(ts));
+      if (t->kind != TOKEN_COMMA) error("expected comma by call, but got %s", token_to_str(t));
+      vector_push(args, expression(ts));
     }
   }
 
@@ -127,18 +131,39 @@ astree* callexpr(tokenstream* ts) {
   return ast;
 }
 
-astree* infix_muldiv(tokenstream* ts) {
+// infix parser for lesser, greater, and lesser/greater equal.
+astree* infix_lge(tokenstream* ts) {
   astree* left = callexpr(ts);
+  for (;;) {
+    token* t = get_token(ts);
+    if (t == NULL) break;
+    if (t->kind == TOKEN_LESSER) {
+      next_token(ts);
+      astree* right = callexpr(ts);
+      left = new_ast_infix(AST_LESSER, left, right);
+    } else if (t->kind == TOKEN_GREATER) {
+      next_token(ts);
+      astree* right = callexpr(ts);
+      left = new_ast_infix(AST_GREATER, left, right);
+    } else {
+      break;
+    }
+  }
+  return left;
+}
+
+astree* infix_muldiv(tokenstream* ts) {
+  astree* left = infix_lge(ts);
   for (;;) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_MUL) {
       next_token(ts);
-      astree* right = callexpr(ts);
+      astree* right = infix_lge(ts);
       left = new_ast_infix(AST_MUL, left, right);
     } else if (t->kind == TOKEN_DIV) {
       next_token(ts);
-      astree* right = callexpr(ts);
+      astree* right = infix_lge(ts);
       left = new_ast_infix(AST_DIV, left, right);
     } else {
       break;

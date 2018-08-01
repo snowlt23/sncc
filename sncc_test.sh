@@ -42,3 +42,5 @@ rettest "add8(a1, a2, a3, a4, a5, a6, a7, a8) {a1 + a2 + a3 + a4 + a5 + a6 + a7 
 rettest "main() { if (1) 9; if (0) 5; }" 9
 rettest "main() { if (0) 9; if (1) 5; }" 5
 rettest "main() { if (0) 39 else 14; }" 14
+rettest "fib(n) { if (n < 2) n else fib(n-1) + fib(n-2); } main() { fib(10); }" 55
+rettest "f(x) { if (x > 5) 5 else 10; } main() { f(100); }" 5
