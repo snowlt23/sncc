@@ -160,12 +160,18 @@ void codegen(map* varmap, astree* ast) {
     emit_push("%rax");
   } else if (ast->kind == AST_IF) {
     codegen(varmap, ast->ifcond);
-    int labeln = gen_labeln();
+    int elsel = gen_labeln();
+    int endl = gen_labeln();
     emit_asm("pop %%rax");
     emit_asm("cmpq $0, %%rax");
-    emit_asm("je .L%d", labeln);
+    emit_asm("je .L%d", elsel);
     codegen(varmap, ast->ifbody);
-    emit_labeln(labeln);
+    emit_asm("jmp .L%d", endl);
+    emit_labeln(elsel);
+    if (ast->elsebody != NULL) {
+      codegen(varmap, ast->elsebody);
+    }
+    emit_labeln(endl);
   } else {
     error("unsupported %d kind in codegen", ast->kind);
   }

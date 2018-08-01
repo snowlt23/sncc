@@ -41,3 +41,4 @@ rettest "add(a, b) {a + b;} main() {add(4, 5);}" 9
 rettest "add8(a1, a2, a3, a4, a5, a6, a7, a8) {a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8;} main() {add8(1, 1, 1, 1, 1, 1, 1, 1);}" 8
 rettest "main() { if (1) 9; if (0) 5; }" 9
 rettest "main() { if (0) 9; if (1) 5; }" 5
+rettest "main() { if (0) 39 else 14; }" 14
