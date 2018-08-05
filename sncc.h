@@ -51,7 +51,6 @@ typedef enum {
   AST_MUL,
   AST_DIV,
   AST_LESSER,
-  AST_GREATER,
   AST_MINUS,
   AST_ASSIGN,
   AST_INTLIT,

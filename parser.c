@@ -47,8 +47,6 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_MINUS";
   } else if (ast->kind == AST_LESSER) {
     return "AST_LESSER";
-  } else if (ast->kind == AST_GREATER) {
-    return "AST_GREATER";
   } else if (ast->kind == AST_ASSIGN) {
     return "AST_ASSIGN";
   } else if (ast->kind == AST_CALL) {
@@ -144,7 +142,7 @@ astree* infix_lge(tokenstream* ts) {
     } else if (t->kind == TOKEN_GREATER) {
       next_token(ts);
       astree* right = callexpr(ts);
-      left = new_ast_infix(AST_GREATER, left, right);
+      left = new_ast_infix(AST_LESSER, right, left);
     } else {
       break;
     }
