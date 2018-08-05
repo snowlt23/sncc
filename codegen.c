@@ -167,6 +167,11 @@ void codegen(map* varmap, astree* ast) {
       emit_asm("addq $%d, %%rsp", (ast->arguments->len-6)*8);
     }
     emit_push("%rax");
+  } else if (ast->kind == AST_STATEMENT) {
+    for (int i=0; i<statement_len(ast->stmt); i++) {
+      astree* e = statement_get(ast->stmt, i);
+      codegen(varmap, e);
+    }
   } else if (ast->kind == AST_IF) {
     codegen(varmap, ast->ifcond);
     int elsel = gen_labeln();

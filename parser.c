@@ -51,6 +51,8 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_ASSIGN";
   } else if (ast->kind == AST_CALL) {
     return "AST_CALL";
+  } else if (ast->kind == AST_STATEMENT) {
+    return "AST_STATEMENT";
   } else if (ast->kind == AST_INTLIT) {
     return "AST_INTLIT";
   } else if (ast->kind == AST_IDENT) {
@@ -232,12 +234,12 @@ astree* parse_if(tokenstream* ts) {
   ast->ifcond = expression(ts);
   token* rparen = get_token(ts); next_token(ts);
   if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("if expected )rparen.");
-  ast->ifbody = expression(ts);
+  ast->ifbody = parse_compound(ts);
 
   ast->elsebody = NULL;
   if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_IDENT && strcmp(get_token(ts)->ident, "else") == 0) {
     next_token(ts);
-    ast->elsebody = expression(ts);
+    ast->elsebody = parse_compound(ts);
   }
 
   return ast;
@@ -251,14 +253,29 @@ statement parse_statement(tokenstream* ts) {
     if (ifast != NULL) {
       vector_push(v, (void*)ifast);
     } else {
-      vector_push(v, (void*)expression(ts));
+      vector_push(v, (void*)parse_compound(ts));
     }
-    token* semicolon = get_token(ts); next_token(ts);
-    if (semicolon == NULL || semicolon->kind != TOKEN_SEMICOLON) error("expect \";\" as a statement delimiter.");
   }
   statement st;
   st.vector = v;
   return st;
+}
+
+astree* parse_compound(tokenstream* ts) {
+  if (get_token(ts) == NULL) return NULL;
+  if (get_token(ts)->kind == TOKEN_LBRACKET) {
+    next_token(ts);
+    astree* ast = new_ast(AST_STATEMENT);
+    ast->stmt = parse_statement(ts);
+    if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_RBRACKET) error("expect }lbracket in compound statement.");
+    next_token(ts);
+    return ast;
+  } else {
+    astree* ast = expression(ts);
+    if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_SEMICOLON) error("expect ;semicolon as end of statement");
+    next_token(ts);
+    return ast;
+  }
 }
 
 astree* statement_get(statement st, int index) {

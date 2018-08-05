@@ -56,6 +56,7 @@ typedef enum {
   AST_INTLIT,
   AST_IDENT,
   AST_CALL,
+  AST_STATEMENT,
   AST_FUNCDEF,
   AST_IF
 } astkind;
@@ -134,6 +135,7 @@ void next_token(tokenstream* ts);
 astree* expression(tokenstream* ts);
 // statement
 statement parse_statement(tokenstream* ts);
+astree* parse_compound(tokenstream* ts);
 astree* statement_get(statement st, int index);
 int statement_len(statement st);
 // funcdecl

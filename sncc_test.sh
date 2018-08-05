@@ -40,7 +40,7 @@ rettest "main() {multidiv6_2(200, 1, 2, 1, 2, 1, 10, 5);}" 25
 rettest "add(a, b) {a + b;} main() {add(4, 5);}" 9
 rettest "add8(a1, a2, a3, a4, a5, a6, a7, a8) {a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8;} main() {add8(1, 1, 1, 1, 1, 1, 1, 1);}" 8
 rettest "main() { if (1) 9; if (0) 5; }" 9
-rettest "main() { if (0) 9; if (1) 5; }" 5
-rettest "main() { if (0) 39 else 14; }" 14
-rettest "fib(n) { if (n < 2) n else fib(n-1) + fib(n-2); } main() { fib(10); }" 55
-rettest "f(x) { if (x > 5) 5 else 10; } main() { f(100); }" 5
+rettest "main() { if (0) {9;} if (1) {5;} }" 5
+rettest "main() { if (0) 39; else 14; }" 14
+rettest "fib(n) { if (n < 2) {n;} else {fib(n-1) + fib(n-2);} } main() { fib(10); }" 55
+rettest "f(x) { if (x > 5) 5; else 10; } main() { f(100); }" 5
