@@ -385,6 +385,8 @@ int statement_len(statement st) {
 //
 
 char* parse_param(tokenstream* ts) {
+  if (!eq_ident(get_token(ts), "int")) error("expect int type by argument declaration");
+  next_token(ts);
   token* t = get_token(ts); next_token(ts);
   if (t->kind != TOKEN_IDENT) error("expected identifier in parameter.");
   return t->ident;
@@ -393,7 +395,8 @@ char* parse_param(tokenstream* ts) {
 paramtypelist parse_paramtype_list(tokenstream* ts) {
   vector* ptlist = new_vector();
   for (;;) {
-    if (get_token(ts) != NULL && get_token(ts)->kind != TOKEN_IDENT) break;
+    if (get_token(ts) == NULL) break;
+    if (get_token(ts)->kind != TOKEN_IDENT) break;
     char* pt = parse_param(ts);
     vector_push(ptlist, (void*)pt);
     token* t = get_token(ts);
