@@ -44,3 +44,4 @@ rettest "main() { if (0) {9;} if (1) {5;} }" 5
 rettest "main() { if (0) 39; else 14; }" 14
 rettest "fib(n) { if (n < 2) {n;} else {fib(n-1) + fib(n-2);} } main() { fib(10); }" 55
 rettest "f(x) { if (x > 5) 5; else 10; } main() { f(100); }" 5
+rettest "main() { i=0; while (i<5) { i = i+1; } i; }" 5

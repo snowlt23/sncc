@@ -106,6 +106,7 @@ stmttest "a = 1; a;" "2 AST_ASSIGN AST_IDENT"
 stmttest "if (1) 9;" "1 AST_IF"
 stmttest "if (1) {9;}" "1 AST_IF"
 stmttest "if (1) {9;} else {12;}" "1 AST_IF"
+stmttest "while (1) {1;}" "1 AST_WHILE"
 
 funcdecltest "main() {}" "main"
 funcdecltest "fib(n) {n;}" "fib n"

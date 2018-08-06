@@ -59,6 +59,8 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_IDENT";
   } else if (ast->kind == AST_IF) {
     return "AST_IF";
+  } else if (ast->kind == AST_WHILE) {
+    return "AST_WHILE";
   } else {
     assert(0);
   }
@@ -245,6 +247,22 @@ astree* parse_if(tokenstream* ts) {
   return ast;
 }
 
+astree* parse_while(tokenstream* ts) {
+  if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_IDENT || strcmp(get_token(ts)->ident, "while") != 0) return NULL;
+  next_token(ts);
+
+  astree* ast = new_ast(AST_WHILE);
+
+  token* lparen = get_token(ts); next_token(ts);
+  if (lparen == NULL || lparen->kind != TOKEN_LPAREN) error("if expected (lparen.");
+  ast->whilecond = expression(ts);
+  token* rparen = get_token(ts); next_token(ts);
+  if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("if expected )rparen.");
+  ast->whilebody = parse_compound(ts);
+
+  return ast;
+}
+
 statement parse_statement(tokenstream* ts) {
   vector* v = new_vector();
   for (;;) {
@@ -252,9 +270,15 @@ statement parse_statement(tokenstream* ts) {
     astree* ifast = parse_if(ts);
     if (ifast != NULL) {
       vector_push(v, (void*)ifast);
-    } else {
-      vector_push(v, (void*)parse_compound(ts));
+      continue;
     }
+    astree* whileast = parse_while(ts);
+    if (whileast != NULL) {
+      vector_push(v, (void*)whileast);
+      continue;
+    }
+
+    vector_push(v, (void*)parse_compound(ts));
   }
   statement st;
   st.vector = v;

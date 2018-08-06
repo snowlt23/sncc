@@ -186,6 +186,17 @@ void codegen(map* varmap, astree* ast) {
       codegen(varmap, ast->elsebody);
     }
     emit_labeln(endl);
+  } else if (ast->kind == AST_WHILE) {
+    int startl = gen_labeln();
+    int endl = gen_labeln();
+    emit_labeln(startl);
+    codegen(varmap, ast->whilecond);
+    emit_asm("pop %%rax");
+    emit_asm("cmpq $0, %%rax");
+    emit_asm("je .L%d", endl);
+    codegen(varmap, ast->whilebody);
+    emit_asm("jmp .L%d", startl);
+    emit_labeln(endl);
   } else {
     error("unsupported %d kind in codegen", ast->kind);
   }

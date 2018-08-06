@@ -58,7 +58,8 @@ typedef enum {
   AST_CALL,
   AST_STATEMENT,
   AST_FUNCDEF,
-  AST_IF
+  AST_IF,
+  AST_WHILE
 } astkind;
 
 typedef struct {
@@ -93,6 +94,10 @@ typedef struct _astree {
       struct _astree* ifcond;
       struct _astree* ifbody;
       struct _astree* elsebody;
+    };
+    struct {
+      struct _astree* whilecond;
+      struct _astree* whilebody;
     };
     statement stmt;
   };
