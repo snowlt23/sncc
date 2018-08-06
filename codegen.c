@@ -207,6 +207,14 @@ void assign_variable_position(map* varmap, int* pos, astree* ast) {
     if (ast->left->kind != AST_IDENT) error("current assign supports only variable.");
     *pos += 8;
     map_insert(varmap, ast->left->ident, *pos);
+  } else if (ast->kind == AST_STATEMENT) {
+    for (int i=0; i<statement_len(ast->stmt); i++) {
+      assign_variable_position(varmap, pos, statement_get(ast->stmt, i));
+    }
+  } else if (ast->kind == AST_IF) {
+    assign_variable_position(varmap, pos, ast->ifbody);
+  } else if (ast->kind == AST_WHILE) {
+    assign_variable_position(varmap, pos, ast->whilebody);
   }
 }
 

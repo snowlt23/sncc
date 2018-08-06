@@ -254,11 +254,51 @@ astree* parse_while(tokenstream* ts) {
   astree* ast = new_ast(AST_WHILE);
 
   token* lparen = get_token(ts); next_token(ts);
-  if (lparen == NULL || lparen->kind != TOKEN_LPAREN) error("if expected (lparen.");
+  if (lparen == NULL || lparen->kind != TOKEN_LPAREN) error("while expected (lparen.");
   ast->whilecond = expression(ts);
   token* rparen = get_token(ts); next_token(ts);
-  if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("if expected )rparen.");
+  if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("while expected )rparen.");
   ast->whilebody = parse_compound(ts);
+
+  return ast;
+}
+
+astree* parse_for(tokenstream* ts) {
+  if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_IDENT || strcmp(get_token(ts)->ident, "for") != 0) return NULL;
+  next_token(ts);
+
+  token* lparen = get_token(ts); next_token(ts);
+  if (lparen == NULL || lparen->kind != TOKEN_LPAREN) error("for expected (lparen.");
+
+  token* semicolon;
+
+  astree* forinit = expression(ts);
+  semicolon = get_token(ts); next_token(ts);
+  if (semicolon == NULL || semicolon->kind != TOKEN_SEMICOLON) error("for expected ;semicolon.");
+
+  astree* forcond = expression(ts);
+  semicolon = get_token(ts); next_token(ts);
+  if (semicolon == NULL || semicolon->kind != TOKEN_SEMICOLON) error("for expected ;semicolon.");
+
+  astree* fornext = expression(ts);
+
+  token* rparen = get_token(ts); next_token(ts);
+  if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("for expected )rparen.");
+
+  astree* forbody = parse_compound(ts);
+  astree* bodyast = new_ast(AST_STATEMENT);
+  bodyast->stmt.vector = new_vector();
+  vector_push(bodyast->stmt.vector, (void*)forbody);
+  vector_push(bodyast->stmt.vector, (void*)fornext);
+
+  astree* whileast = new_ast(AST_WHILE);
+  whileast->whilecond = forcond;
+  whileast->whilebody = bodyast;
+
+  astree* ast = new_ast(AST_STATEMENT);
+  ast->stmt.vector = new_vector();
+  vector_push(ast->stmt.vector, (void*)forinit);
+  vector_push(ast->stmt.vector, (void*)whileast);
 
   return ast;
 }
@@ -275,6 +315,11 @@ statement parse_statement(tokenstream* ts) {
     astree* whileast = parse_while(ts);
     if (whileast != NULL) {
       vector_push(v, (void*)whileast);
+      continue;
+    }
+    astree* forast = parse_for(ts);
+    if (forast != NULL) {
+      vector_push(v, (void*)forast);
       continue;
     }
 
