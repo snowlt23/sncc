@@ -53,6 +53,7 @@ typedef enum {
   AST_LESSER,
   AST_MINUS,
   AST_ASSIGN,
+  AST_VARDECL,
   AST_INTLIT,
   AST_IDENT,
   AST_CALL,
@@ -82,6 +83,9 @@ typedef struct _astree {
     struct {
       struct _astree* left;
       struct _astree* right;
+    };
+    struct {
+      char* varname;
     };
     struct _astree* value;
     int intval;

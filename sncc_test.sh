@@ -28,9 +28,9 @@ rettest "main() {1; 2; 1+3*3;}" 10
 rettest "main() {-5;}" 251
 rettest "main() {5 + (-5);}" 0
 rettest "main() {9 + -5;}" 4
-rettest "main() {a = 9; a;}" 9
-rettest "main() {a = 3; b = 4; a + b;}" 7
-rettest "main() {th=3; fo=4; th*fo;}" 12
+rettest "main() {int a; a = 9; a;}" 9
+rettest "main() {int a; int b; a = 3; b = 4; a + b;}" 7
+rettest "main() {int th; int fo; th=3; fo=4; th*fo;}" 12
 rettest "main() {num9();}" 9
 rettest "main() {num9() + num9();}" 18
 rettest "main() {add5(4);}" 9
@@ -44,5 +44,5 @@ rettest "main() { if (0) {9;} if (1) {5;} }" 5
 rettest "main() { if (0) 39; else 14; }" 14
 rettest "fib(n) { if (n < 2) {n;} else {fib(n-1) + fib(n-2);} } main() { fib(10); }" 55
 rettest "f(x) { if (x > 5) 5; else 10; } main() { f(100); }" 5
-rettest "main() { i=0; while (i<5) { i = i+1; } i; }" 5
-rettest "main() { for (i=0; i<10; i=i+1) {i = i+1;} i; }" 10
+rettest "main() { int i; i=0; while (i<5) { i = i+1; } i; }" 5
+rettest "main() { int i; for (i=0; i<10; i=i+1) {i = i+1;} i; }" 10

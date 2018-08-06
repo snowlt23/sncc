@@ -122,6 +122,8 @@ void codegen(map* varmap, astree* ast) {
     codegen(varmap, ast->right);
     emit_pop("%rax");
     emit_localvarset(pos, "%rax");
+  } else if (ast->kind == AST_VARDECL) {
+    // discard
   } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {
     if (ast->arguments->len > 0) {
       codegen(varmap, vector_get(ast->arguments, 0));
@@ -203,10 +205,9 @@ void codegen(map* varmap, astree* ast) {
 }
 
 void assign_variable_position(map* varmap, int* pos, astree* ast) {
-  if (ast->kind == AST_ASSIGN) {
-    if (ast->left->kind != AST_IDENT) error("current assign supports only variable.");
+  if (ast->kind == AST_VARDECL) {
     *pos += 8;
-    map_insert(varmap, ast->left->ident, *pos);
+    map_insert(varmap, ast->varname, *pos);
   } else if (ast->kind == AST_STATEMENT) {
     for (int i=0; i<statement_len(ast->stmt); i++) {
       assign_variable_position(varmap, pos, statement_get(ast->stmt, i));

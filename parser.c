@@ -3,6 +3,10 @@
 #include <assert.h>
 #include "sncc.h"
 
+bool eq_ident(token* id, char* s) {
+  return id != NULL && id->kind == TOKEN_IDENT && strcmp(id->ident, s) == 0;
+}
+
 astree* new_ast(astkind kind) {
   astree* ast = (astree*)malloc(sizeof(ast));
   ast->kind = kind;
@@ -49,6 +53,8 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_LESSER";
   } else if (ast->kind == AST_ASSIGN) {
     return "AST_ASSIGN";
+  } else if (ast->kind == AST_VARDECL) {
+    return "AST_VARDECL";
   } else if (ast->kind == AST_CALL) {
     return "AST_CALL";
   } else if (ast->kind == AST_STATEMENT) {
@@ -226,7 +232,7 @@ astree* expression(tokenstream* ts) {
 }
 
 astree* parse_if(tokenstream* ts) {
-  if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_IDENT || strcmp(get_token(ts)->ident, "if") != 0) return NULL;
+  if (!eq_ident(get_token(ts), "if")) return NULL;
   next_token(ts);
 
   astree* ast = new_ast(AST_IF);
@@ -248,7 +254,7 @@ astree* parse_if(tokenstream* ts) {
 }
 
 astree* parse_while(tokenstream* ts) {
-  if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_IDENT || strcmp(get_token(ts)->ident, "while") != 0) return NULL;
+  if (!eq_ident(get_token(ts), "while")) return NULL;
   next_token(ts);
 
   astree* ast = new_ast(AST_WHILE);
@@ -264,7 +270,7 @@ astree* parse_while(tokenstream* ts) {
 }
 
 astree* parse_for(tokenstream* ts) {
-  if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_IDENT || strcmp(get_token(ts)->ident, "for") != 0) return NULL;
+  if (!eq_ident(get_token(ts), "for")) return NULL;
   next_token(ts);
 
   token* lparen = get_token(ts); next_token(ts);
@@ -303,10 +309,24 @@ astree* parse_for(tokenstream* ts) {
   return ast;
 }
 
+astree* parse_vardecl(tokenstream* ts) {
+  if (!eq_ident(get_token(ts), "int")) return NULL;
+  next_token(ts);
+  token* varname = get_token(ts); next_token(ts);
+  if (varname == NULL || varname->kind != TOKEN_IDENT) error("expect ident in variable declaration");
+  astree* ast = new_ast(AST_VARDECL);
+  ast->varname = varname->ident;
+  return ast;
+}
+
 statement parse_statement(tokenstream* ts) {
   vector* v = new_vector();
   for (;;) {
     if (get_token(ts) == NULL || get_token(ts)->kind == TOKEN_RBRACKET) break;
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) {
+      next_token(ts);
+      continue;
+    }
     astree* ifast = parse_if(ts);
     if (ifast != NULL) {
       vector_push(v, (void*)ifast);
@@ -320,6 +340,11 @@ statement parse_statement(tokenstream* ts) {
     astree* forast = parse_for(ts);
     if (forast != NULL) {
       vector_push(v, (void*)forast);
+      continue;
+    }
+    astree* declast = parse_vardecl(ts);
+    if (declast != NULL) {
+      vector_push(v, (void*)declast);
       continue;
     }
 
