@@ -111,3 +111,4 @@ stmttest "int a;" "1 AST_VARDECL"
 
 funcdecltest "int main() {}" "main"
 funcdecltest "int fib(int n) {n;}" "fib n"
+funcdecltest "int padd(int* a, int* b) {int* c; c = a + b;}" "padd a b"

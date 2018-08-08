@@ -7,6 +7,10 @@ bool eq_ident(token* id, char* s) {
   return id != NULL && id->kind == TOKEN_IDENT && strcmp(id->ident, s) == 0;
 }
 
+//
+// ast
+//
+
 astree* new_ast(astkind kind) {
   astree* ast = (astree*)malloc(sizeof(ast));
   ast->kind = kind;
@@ -72,6 +76,27 @@ char* ast_to_kindstr(astree* ast) {
   }
 }
 
+//
+// typenode
+//
+
+typenode* new_typenode(typekind kind) {
+  typenode* tn = malloc(sizeof(typenode));
+  tn->kind = kind;
+  tn->ptrof = NULL;
+  return tn;
+}
+
+typenode* new_ptrnode(typenode* typ) {
+  typenode* tn = new_typenode(TYPE_PTR);
+  tn->ptrof = typ;
+  return tn;
+}
+
+//
+// tokenstream
+//
+
 tokenstream* new_tokenstream(vector* tokens) {
   tokenstream* ts = (tokenstream*)malloc(sizeof(tokenstream));
   ts->tokens = tokens;
@@ -87,6 +112,10 @@ token* get_token(tokenstream* ts) {
 void next_token(tokenstream* ts) {
   ts->pos++;
 }
+
+//
+// parser
+//
 
 astree* parser_top(tokenstream* ts);
 
@@ -310,12 +339,10 @@ astree* parse_for(tokenstream* ts) {
 }
 
 astree* parse_vardecl(tokenstream* ts) {
-  if (!eq_ident(get_token(ts), "int")) return NULL;
-  next_token(ts);
-  token* varname = get_token(ts); next_token(ts);
-  if (varname == NULL || varname->kind != TOKEN_IDENT) error("expect ident in variable declaration");
+  paramtype* pt = parse_paramtype(ts);
+  if (pt == NULL) return NULL;
   astree* ast = new_ast(AST_VARDECL);
-  ast->varname = varname->ident;
+  ast->vardecl = pt;
   return ast;
 }
 
@@ -384,12 +411,24 @@ int statement_len(statement st) {
 // funcdecl
 //
 
-char* parse_param(tokenstream* ts) {
-  if (!eq_ident(get_token(ts), "int")) error("expect int type by argument declaration");
+paramtype* parse_paramtype(tokenstream* ts) {
+  if (!eq_ident(get_token(ts), "int")) return NULL;
   next_token(ts);
+  typenode* tn = new_typenode(TYPE_INT);
+  for (;;) {
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_MUL) {
+      next_token(ts);
+      tn = new_ptrnode(tn);
+    } else {
+      break;
+    }
+  }
   token* t = get_token(ts); next_token(ts);
   if (t->kind != TOKEN_IDENT) error("expected identifier in parameter.");
-  return t->ident;
+  paramtype* pt = malloc(sizeof(paramtype));
+  pt->typ = tn;
+  pt->name = t->ident;
+  return pt;
 }
 
 paramtypelist parse_paramtype_list(tokenstream* ts) {
@@ -397,7 +436,8 @@ paramtypelist parse_paramtype_list(tokenstream* ts) {
   for (;;) {
     if (get_token(ts) == NULL) break;
     if (get_token(ts)->kind != TOKEN_IDENT) break;
-    char* pt = parse_param(ts);
+    paramtype* pt = parse_paramtype(ts);
+    if (pt == NULL) error("expect type declaration in parameters.");
     vector_push(ptlist, (void*)pt);
     token* t = get_token(ts);
     if (t == NULL) error("require more token.");
@@ -409,8 +449,8 @@ paramtypelist parse_paramtype_list(tokenstream* ts) {
   return ptl;
 }
 
-char* paramtypelist_get(paramtypelist ptlist, int index) {
-  return (char*)vector_get(ptlist.vector, index);
+paramtype* paramtypelist_get(paramtypelist ptlist, int index) {
+  return (paramtype*)vector_get(ptlist.vector, index);
 }
 
 int paramtypelist_len(paramtypelist ptlist) {
@@ -419,7 +459,7 @@ int paramtypelist_len(paramtypelist ptlist) {
 
 funcdecl parse_funcdecl(tokenstream* ts) {
   funcdecl fdecl;
-  fdecl.fdecl = parse_param(ts);
+  fdecl.fdecl = parse_paramtype(ts);
   token* lparen = get_token(ts); next_token(ts);
   if (lparen == NULL || lparen->kind != TOKEN_LPAREN) error("function decl expect \"(\", but got %s", token_to_str(lparen));
   fdecl.argdecls = parse_paramtype_list(ts);

@@ -207,7 +207,7 @@ void codegen(map* varmap, astree* ast) {
 void assign_variable_position(map* varmap, int* pos, astree* ast) {
   if (ast->kind == AST_VARDECL) {
     *pos += 8;
-    map_insert(varmap, ast->varname, *pos);
+    map_insert(varmap, ast->vardecl->name, *pos);
   } else if (ast->kind == AST_STATEMENT) {
     for (int i=0; i<statement_len(ast->stmt); i++) {
       assign_variable_position(varmap, pos, statement_get(ast->stmt, i));
@@ -223,19 +223,19 @@ void codegen_funcdecl(funcdecl fdecl) {
   map* varmap = new_map();
   int varpos = 0;
   for (int i=0; i<paramtypelist_len(fdecl.argdecls); i++) {
-    char* argname = paramtypelist_get(fdecl.argdecls, i);
+    paramtype* argparam = paramtypelist_get(fdecl.argdecls, i);
     varpos += 8;
-    map_insert(varmap, argname, varpos);
+    map_insert(varmap, argparam->name, varpos);
   }
   for (int i=0; i<statement_len(fdecl.body); i++) {
     assign_variable_position(varmap, &varpos, statement_get(fdecl.body, i));
   }
-  emit_label(fdecl.fdecl);
+  emit_label(fdecl.fdecl->name);
   emit_prologue(varpos);
   int argpos = 0;
   for (int i=0; i<paramtypelist_len(fdecl.argdecls); i++) {
-    char* argname = paramtypelist_get(fdecl.argdecls, i);
-    int pos = map_get(varmap, argname);
+    paramtype* argparam = paramtypelist_get(fdecl.argdecls, i);
+    int pos = map_get(varmap, argparam->name);
     if (i == 0) {
       emit_localvarset(pos, "%rdi");
     } else if (i == 1) {

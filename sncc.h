@@ -67,12 +67,27 @@ typedef struct {
   vector* vector;
 } statement;
 
+typedef enum {
+  TYPE_INT,
+  TYPE_PTR
+} typekind;
+
+typedef struct _typenode {
+  typekind kind;
+  struct _typenode* ptrof;
+} typenode;
+
+typedef struct {
+  typenode* typ;
+  char* name;
+} paramtype;
+
 typedef struct {
   vector* vector;
 } paramtypelist;
 
 typedef struct {
-  char* fdecl;
+  paramtype* fdecl;
   paramtypelist argdecls;
   statement body;
 } funcdecl;
@@ -84,9 +99,7 @@ typedef struct _astree {
       struct _astree* left;
       struct _astree* right;
     };
-    struct {
-      char* varname;
-    };
+    paramtype* vardecl;
     struct _astree* value;
     int intval;
     char* ident;
@@ -148,7 +161,8 @@ astree* parse_compound(tokenstream* ts);
 astree* statement_get(statement st, int index);
 int statement_len(statement st);
 // funcdecl
-char* paramtypelist_get(paramtypelist ptlist, int index);
+paramtype* parse_paramtype(tokenstream* ts);
+paramtype* paramtypelist_get(paramtypelist ptlist, int index);
 int paramtypelist_len(paramtypelist ptlist);
 funcdecl parse_funcdecl(tokenstream* ts);
 char* ast_to_kindstr(astree* ast);
