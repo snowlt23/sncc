@@ -122,6 +122,16 @@ void codegen(map* varmap, astree* ast) {
     codegen(varmap, ast->right);
     emit_pop("%rax");
     emit_localvarset(pos, "%rax");
+  } else if (ast->kind == AST_ADDR) {
+    if (ast->value->kind != AST_IDENT) error("expect &addr operator variable.");
+    int pos = map_get(varmap, ast->value->ident);
+    if (pos == -1) error("undeclared %s variable.", ast->value->ident);
+    emit_asm("leaq -%d(%%rbp), %%rax", pos);
+    emit_push("%rax");
+  } else if (ast->kind == AST_DEREF) {
+    codegen(varmap, ast->value);
+    emit_pop("%rax");
+    emit_asm("pushq (%%rax)");
   } else if (ast->kind == AST_VARDECL) {
     // discard
   } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {
