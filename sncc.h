@@ -12,8 +12,12 @@ typedef struct {
 } vector;
 
 typedef struct {
-  char* name;
+  struct _typenode* typ;
   int pos;
+} mapelem;
+typedef struct {
+  char* name;
+  mapelem elem;
 } mappair;
 typedef struct {
   vector* vector;
@@ -144,9 +148,9 @@ void vector_push(vector* v, void* elem);
 // map.c
 map* new_map_cap(int cap);
 map* new_map();
-mappair* new_mappair(char* name, int pos);
-int map_get(map* m, char* name);
-void map_insert(map* m, char* name, int pos);
+mappair* new_mappair(char* name, mapelem elem);
+mapelem map_get(map* m, char* name);
+void map_insert(map* m, char* name, mapelem elem);
 
 // lexer.c
 vector* lexer();

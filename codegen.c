@@ -69,7 +69,7 @@ void emit_localvarset(int pos, char* value) {
 
 void codegen(map* varmap, astree* ast) {
   if (ast->kind == AST_IDENT) {
-    int pos = map_get(varmap, ast->ident);
+    int pos = map_get(varmap, ast->ident).pos;
     if (pos == -1) error("undeclared %s variable.", ast->ident);
     emit_localvarref(pos);
   } else if (ast->kind == AST_INTLIT) {
@@ -117,14 +117,24 @@ void codegen(map* varmap, astree* ast) {
     emit_asm("negq %%rax");
     emit_push("%rax");
   } else if (ast->kind == AST_ASSIGN) {
-    int pos = map_get(varmap, ast->left->ident);
-    if (pos == -1) error("undeclared %s variable.", ast->left->ident);
-    codegen(varmap, ast->right);
-    emit_pop("%rax");
-    emit_localvarset(pos, "%rax");
+    if (ast->left->kind == AST_IDENT) {
+      int pos = map_get(varmap, ast->left->ident).pos;
+      if (pos == -1) error("undeclared %s variable.", ast->left->ident);
+      codegen(varmap, ast->right);
+      emit_pop("%rax");
+      emit_localvarset(pos, "%rax");
+    } else if (ast->left->kind == AST_DEREF) {
+      codegen(varmap, ast->left->value);
+      codegen(varmap, ast->right);
+      emit_pop("%rcx");
+      emit_pop("%rax");
+      emit_asm("movq %%rcx, (%%rax)");
+    } else {
+      assert(false);
+    }
   } else if (ast->kind == AST_ADDR) {
     if (ast->value->kind != AST_IDENT) error("expect &addr operator variable.");
-    int pos = map_get(varmap, ast->value->ident);
+    int pos = map_get(varmap, ast->value->ident).pos;
     if (pos == -1) error("undeclared %s variable.", ast->value->ident);
     emit_asm("leaq -%d(%%rbp), %%rax", pos);
     emit_push("%rax");
@@ -217,7 +227,10 @@ void codegen(map* varmap, astree* ast) {
 void assign_variable_position(map* varmap, int* pos, astree* ast) {
   if (ast->kind == AST_VARDECL) {
     *pos += 8;
-    map_insert(varmap, ast->vardecl->name, *pos);
+    mapelem elem;
+    elem.typ = ast->vardecl->typ;
+    elem.pos = *pos;
+    map_insert(varmap, ast->vardecl->name, elem);
   } else if (ast->kind == AST_STATEMENT) {
     for (int i=0; i<statement_len(ast->stmt); i++) {
       assign_variable_position(varmap, pos, statement_get(ast->stmt, i));
@@ -235,7 +248,10 @@ void codegen_funcdecl(funcdecl fdecl) {
   for (int i=0; i<paramtypelist_len(fdecl.argdecls); i++) {
     paramtype* argparam = paramtypelist_get(fdecl.argdecls, i);
     varpos += 8;
-    map_insert(varmap, argparam->name, varpos);
+    mapelem elem;
+    elem.typ = argparam->typ;
+    elem.pos = varpos;
+    map_insert(varmap, argparam->name, elem);
   }
   for (int i=0; i<statement_len(fdecl.body); i++) {
     assign_variable_position(varmap, &varpos, statement_get(fdecl.body, i));
@@ -245,7 +261,7 @@ void codegen_funcdecl(funcdecl fdecl) {
   int argpos = 0;
   for (int i=0; i<paramtypelist_len(fdecl.argdecls); i++) {
     paramtype* argparam = paramtypelist_get(fdecl.argdecls, i);
-    int pos = map_get(varmap, argparam->name);
+    int pos = map_get(varmap, argparam->name).pos;
     if (i == 0) {
       emit_localvarset(pos, "%rdi");
     } else if (i == 1) {

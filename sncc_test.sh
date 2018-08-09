@@ -47,3 +47,4 @@ rettest "int f(int x) { if (x > 5) 5; else 10; } int main() { f(100); }" 5
 rettest "int main() { int i; i=0; while (i<5) { i = i+1; } i; }" 5
 rettest "int main() { int i; for (i=0; i<10; i=i+1) {i = i+1;} i; }" 10
 rettest "int main() { int x; x = 3; int* y; y = &x; *y; }" 3
+rettest "int main() { int x; x = 3; int* y; y = &x; *y = 9; x; }" 9
