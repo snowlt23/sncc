@@ -67,6 +67,16 @@ void emit_localvarset(int pos, char* value) {
   emit_asm("movq %s, -%d(%%rbp)", value, pos);
 }
 
+int typesize(typenode* typ) {
+  if (typ->kind == TYPE_INT) {
+    return 4;
+  } else if (typ->kind == TYPE_PTR) {
+    return 8;
+  } else {
+    assert(false);
+  }
+}
+
 void codegen(map* varmap, astree* ast) {
   if (ast->kind == AST_IDENT) {
     int pos = map_get(varmap, ast->ident).pos;
@@ -77,6 +87,12 @@ void codegen(map* varmap, astree* ast) {
   } else if (ast->kind == AST_ADD) {
     codegen(varmap, ast->left);
     codegen(varmap, ast->right);
+    if (ast->left->typ->kind == TYPE_PTR) { // pointer arithmetic
+      emit_pop("%rax");
+      emit_asm("movq $%d, %%rcx", typesize(ast->left->typ->ptrof));
+      emit_asm("imulq %%rcx");
+      emit_push("%rax");
+    }
     emit_pop("%rcx");
     emit_pop("%rax");
     emit_add("%rcx", "%rax");
@@ -84,6 +100,12 @@ void codegen(map* varmap, astree* ast) {
   } else if (ast->kind == AST_SUB) {
     codegen(varmap, ast->left);
     codegen(varmap, ast->right);
+    assert(ast->left->typ != NULL);
+    if (ast->left->typ->kind == TYPE_PTR) { // pointer arithmetic
+      emit_pop("%rax");
+      emit_asm("imulq $%d", typesize(ast->left->typ->ptrof));
+      emit_push("%rax");
+    }
     emit_pop("%rcx");
     emit_pop("%rax");
     emit_sub("%rcx", "%rax");

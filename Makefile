@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall
 
-SNCC_LIBS = string.o vector.o map.o lexer.o parser.o codegen.o
+SNCC_LIBS = string.o vector.o map.o lexer.o parser.o semantic.o codegen.o
 
 build: sncc ;
 

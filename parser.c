@@ -12,8 +12,9 @@ bool eq_ident(token* id, char* s) {
 //
 
 astree* new_ast(astkind kind) {
-  astree* ast = (astree*)malloc(sizeof(ast));
+  astree* ast = (astree*)malloc(sizeof(astree));
   ast->kind = kind;
+  ast->typ = NULL;
   return ast;
 }
 

@@ -101,6 +101,7 @@ typedef struct {
 
 typedef struct _astree {
   astkind kind;
+  typenode* typ;
   union {
     struct {
       struct _astree* left;
@@ -158,6 +159,12 @@ char* token_to_kindstr(token* token);
 char* token_to_str(token* token);
 
 // parser.c
+// ast
+char* ast_to_kindstr(astree* ast);
+// type
+typenode* new_typenode(typekind kind);
+typenode* new_ptrnode(typenode* typ);
+// tokenstream
 tokenstream* new_tokenstream(vector* tokens);
 token* get_token(tokenstream* ts);
 void next_token(tokenstream* ts);
@@ -172,7 +179,10 @@ paramtype* parse_paramtype(tokenstream* ts);
 paramtype* paramtypelist_get(paramtypelist ptlist, int index);
 int paramtypelist_len(paramtypelist ptlist);
 funcdecl parse_funcdecl(tokenstream* ts);
-char* ast_to_kindstr(astree* ast);
+
+// semantic.c
+void semantic_analysis(map* varmap, astree* ast);
+void semantic_analysis_funcdecl(funcdecl fdecl);
 
 // codegen.c
 void codegen(map* varmap, astree* ast);
