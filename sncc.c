@@ -9,7 +9,7 @@ int main() {
   for (;;) {
     if (get_token(ts) == NULL) break;
     funcdecl fdecl = parse_funcdecl(ts);
-    semantic_analysis_funcdecl(fdecl);
+    semantic_analysis_funcdecl(&fdecl);
     codegen_funcdecl(fdecl);
   }
 

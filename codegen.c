@@ -77,16 +77,14 @@ int typesize(typenode* typ) {
   }
 }
 
-void codegen(map* varmap, astree* ast) {
+void codegen(astree* ast) {
   if (ast->kind == AST_IDENT) {
-    int pos = map_get(varmap, ast->ident).pos;
-    if (pos == -1) error("undeclared %s variable.", ast->ident);
-    emit_localvarref(pos);
+    emit_localvarref(ast->offset);
   } else if (ast->kind == AST_INTLIT) {
     emit_push_int(ast->intval);
   } else if (ast->kind == AST_ADD) {
-    codegen(varmap, ast->left);
-    codegen(varmap, ast->right);
+    codegen(ast->left);
+    codegen(ast->right);
     if (ast->left->typ->kind == TYPE_PTR) { // pointer arithmetic
       emit_pop("%rax");
       emit_asm("movq $%d, %%rcx", typesize(ast->left->typ->ptrof));
@@ -98,8 +96,8 @@ void codegen(map* varmap, astree* ast) {
     emit_add("%rcx", "%rax");
     emit_push("%rax");
   } else if (ast->kind == AST_SUB) {
-    codegen(varmap, ast->left);
-    codegen(varmap, ast->right);
+    codegen(ast->left);
+    codegen(ast->right);
     assert(ast->left->typ != NULL);
     if (ast->left->typ->kind == TYPE_PTR) { // pointer arithmetic
       emit_pop("%rax");
@@ -111,22 +109,22 @@ void codegen(map* varmap, astree* ast) {
     emit_sub("%rcx", "%rax");
     emit_push("%rax");
   } else if (ast->kind == AST_MUL) {
-    codegen(varmap, ast->left);
-    codegen(varmap, ast->right);
+    codegen(ast->left);
+    codegen(ast->right);
     emit_pop("%rcx");
     emit_pop("%rax");
     emit_mul("%rcx");
     emit_push("%rax");
   } else if (ast->kind == AST_DIV) {
-    codegen(varmap, ast->left);
-    codegen(varmap, ast->right);
+    codegen(ast->left);
+    codegen(ast->right);
     emit_pop("%rcx");
     emit_pop("%rax");
     emit_div("%rcx");
     emit_push("%rax");
   } else if (ast->kind == AST_LESSER) {
-    codegen(varmap, ast->left);
-    codegen(varmap, ast->right);
+    codegen(ast->left);
+    codegen(ast->right);
     emit_pop("%rcx");
     emit_pop("%rax");
     emit_asm("cmpq %%rcx, %%rax");
@@ -134,20 +132,19 @@ void codegen(map* varmap, astree* ast) {
     emit_asm("movzbl %%al, %%eax");
     emit_push("%rax");
   } else if (ast->kind == AST_MINUS) {
-    codegen(varmap, ast->value);
+    codegen(ast->value);
     emit_pop("%rax");
     emit_asm("negq %%rax");
     emit_push("%rax");
   } else if (ast->kind == AST_ASSIGN) {
     if (ast->left->kind == AST_IDENT) {
-      int pos = map_get(varmap, ast->left->ident).pos;
-      if (pos == -1) error("undeclared %s variable.", ast->left->ident);
-      codegen(varmap, ast->right);
+      int offset = ast->left->offset;
+      codegen(ast->right);
       emit_pop("%rax");
-      emit_localvarset(pos, "%rax");
+      emit_localvarset(offset, "%rax");
     } else if (ast->left->kind == AST_DEREF) {
-      codegen(varmap, ast->left->value);
-      codegen(varmap, ast->right);
+      codegen(ast->left->value);
+      codegen(ast->right);
       emit_pop("%rcx");
       emit_pop("%rax");
       emit_asm("movq %%rcx, (%%rax)");
@@ -156,44 +153,43 @@ void codegen(map* varmap, astree* ast) {
     }
   } else if (ast->kind == AST_ADDR) {
     if (ast->value->kind != AST_IDENT) error("expect &addr operator variable.");
-    int pos = map_get(varmap, ast->value->ident).pos;
-    if (pos == -1) error("undeclared %s variable.", ast->value->ident);
-    emit_asm("leaq -%d(%%rbp), %%rax", pos);
+    int offset = ast->value->offset;
+    emit_asm("leaq -%d(%%rbp), %%rax", offset);
     emit_push("%rax");
   } else if (ast->kind == AST_DEREF) {
-    codegen(varmap, ast->value);
+    codegen(ast->value);
     emit_pop("%rax");
     emit_asm("pushq (%%rax)");
   } else if (ast->kind == AST_VARDECL) {
     // discard
   } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {
     if (ast->arguments->len > 0) {
-      codegen(varmap, vector_get(ast->arguments, 0));
+      codegen(vector_get(ast->arguments, 0));
       emit_pop("%rax");
       emit_asm("movq %%rax, %%rdi");
     }
     if (ast->arguments->len > 1) {
-      codegen(varmap, vector_get(ast->arguments, 1));
+      codegen(vector_get(ast->arguments, 1));
       emit_pop("%rax");
       emit_asm("movq %%rax, %%rsi");
     }
     if (ast->arguments->len > 2) {
-      codegen(varmap, vector_get(ast->arguments, 2));
+      codegen(vector_get(ast->arguments, 2));
       emit_pop("%rax");
       emit_asm("movq %%rax, %%rdx");
     }
     if (ast->arguments->len > 3) {
-      codegen(varmap, vector_get(ast->arguments, 3));
+      codegen(vector_get(ast->arguments, 3));
       emit_pop("%rax");
       emit_asm("movq %%rax, %%rcx");
     }
     if (ast->arguments->len > 4) {
-      codegen(varmap, vector_get(ast->arguments, 4));
+      codegen(vector_get(ast->arguments, 4));
       emit_pop("%rax");
       emit_asm("movq %%rax, %%r8");
     }
     if (ast->arguments->len > 5) {
-      codegen(varmap, vector_get(ast->arguments, 5));
+      codegen(vector_get(ast->arguments, 5));
       emit_pop("%rax");
       emit_asm("movq %%rax, %%r9");
     }
@@ -202,7 +198,7 @@ void codegen(map* varmap, astree* ast) {
       emit_asm("subq $%d, %%rsp", (ast->arguments->len-6)*8);
     }
     for (int i=6; i<ast->arguments->len; i++) {
-      codegen(varmap, vector_get(ast->arguments, i));
+      codegen(vector_get(ast->arguments, i));
       emit_pop("%rax");
       emit_asm("movq %%rax, %d(%%rsp)", (i-6)*8);
     }
@@ -214,31 +210,31 @@ void codegen(map* varmap, astree* ast) {
   } else if (ast->kind == AST_STATEMENT) {
     for (int i=0; i<statement_len(ast->stmt); i++) {
       astree* e = statement_get(ast->stmt, i);
-      codegen(varmap, e);
+      codegen(e);
     }
   } else if (ast->kind == AST_IF) {
-    codegen(varmap, ast->ifcond);
+    codegen(ast->ifcond);
     int elsel = gen_labeln();
     int endl = gen_labeln();
     emit_asm("pop %%rax");
     emit_asm("cmpq $0, %%rax");
     emit_asm("je .L%d", elsel);
-    codegen(varmap, ast->ifbody);
+    codegen(ast->ifbody);
     emit_asm("jmp .L%d", endl);
     emit_labeln(elsel);
     if (ast->elsebody != NULL) {
-      codegen(varmap, ast->elsebody);
+      codegen(ast->elsebody);
     }
     emit_labeln(endl);
   } else if (ast->kind == AST_WHILE) {
     int startl = gen_labeln();
     int endl = gen_labeln();
     emit_labeln(startl);
-    codegen(varmap, ast->whilecond);
+    codegen(ast->whilecond);
     emit_asm("pop %%rax");
     emit_asm("cmpq $0, %%rax");
     emit_asm("je .L%d", endl);
-    codegen(varmap, ast->whilebody);
+    codegen(ast->whilebody);
     emit_asm("jmp .L%d", startl);
     emit_labeln(endl);
   } else {
@@ -246,66 +242,35 @@ void codegen(map* varmap, astree* ast) {
   }
 }
 
-void assign_variable_position(map* varmap, int* pos, astree* ast) {
-  if (ast->kind == AST_VARDECL) {
-    *pos += 8;
-    mapelem elem;
-    elem.typ = ast->vardecl->typ;
-    elem.pos = *pos;
-    map_insert(varmap, ast->vardecl->name, elem);
-  } else if (ast->kind == AST_STATEMENT) {
-    for (int i=0; i<statement_len(ast->stmt); i++) {
-      assign_variable_position(varmap, pos, statement_get(ast->stmt, i));
-    }
-  } else if (ast->kind == AST_IF) {
-    assign_variable_position(varmap, pos, ast->ifbody);
-  } else if (ast->kind == AST_WHILE) {
-    assign_variable_position(varmap, pos, ast->whilebody);
-  }
-}
-
 void codegen_funcdecl(funcdecl fdecl) {
-  map* varmap = new_map();
-  int varpos = 0;
-  for (int i=0; i<paramtypelist_len(fdecl.argdecls); i++) {
-    paramtype* argparam = paramtypelist_get(fdecl.argdecls, i);
-    varpos += 8;
-    mapelem elem;
-    elem.typ = argparam->typ;
-    elem.pos = varpos;
-    map_insert(varmap, argparam->name, elem);
-  }
-  for (int i=0; i<statement_len(fdecl.body); i++) {
-    assign_variable_position(varmap, &varpos, statement_get(fdecl.body, i));
-  }
   emit_label(fdecl.fdecl->name);
-  emit_prologue(varpos);
+  emit_prologue(fdecl.stacksize);
   int argpos = 0;
   for (int i=0; i<paramtypelist_len(fdecl.argdecls); i++) {
     paramtype* argparam = paramtypelist_get(fdecl.argdecls, i);
-    int pos = map_get(varmap, argparam->name).pos;
+    int offset = argparam->offset;
     if (i == 0) {
-      emit_localvarset(pos, "%rdi");
+      emit_localvarset(offset, "%rdi");
     } else if (i == 1) {
-      emit_localvarset(pos, "%rsi");
+      emit_localvarset(offset, "%rsi");
     } else if (i == 2) {
-      emit_localvarset(pos, "%rdx");
+      emit_localvarset(offset, "%rdx");
     } else if (i == 3) {
-      emit_localvarset(pos, "%rcx");
+      emit_localvarset(offset, "%rcx");
     } else if (i == 4) {
-      emit_localvarset(pos, "%r8");
+      emit_localvarset(offset, "%r8");
     } else if (i == 5) {
-      emit_localvarset(pos, "%r9");
+      emit_localvarset(offset, "%r9");
     } else {
       argpos += 8;
       emit_asm("mov -%d(%%rbp), %%rax", argpos);
-      emit_localvarset(pos, "%rax");
+      emit_localvarset(offset, "%rax");
     }
   }
   for (int i=0; i<statement_len(fdecl.body); i++) {
-    codegen(varmap, statement_get(fdecl.body, i));
+    codegen(statement_get(fdecl.body, i));
   }
   emit_pop("%rax");
-  emit_epilogue(varpos);
+  emit_epilogue(fdecl.stacksize);
   emit_return();
 }

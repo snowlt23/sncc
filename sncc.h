@@ -87,6 +87,7 @@ typedef struct _typenode {
 typedef struct {
   typenode* typ;
   char* name;
+  int offset;
 } paramtype;
 
 typedef struct {
@@ -97,6 +98,7 @@ typedef struct {
   paramtype* fdecl;
   paramtypelist argdecls;
   statement body;
+  int stacksize;
 } funcdecl;
 
 typedef struct _astree {
@@ -110,7 +112,10 @@ typedef struct _astree {
     paramtype* vardecl;
     struct _astree* value;
     int intval;
-    char* ident;
+    struct {
+      char* ident;
+      int offset;
+    };
     struct {
       struct _astree* call;
       vector* arguments;
@@ -146,7 +151,6 @@ void vector_push(vector* v, void* elem);
 // map.c
 map* new_map_cap(int cap);
 map* new_map();
-mappair* new_mappair(char* name, mapelem elem);
 mapelem map_get(map* m, char* name);
 void map_insert(map* m, char* name, mapelem elem);
 
@@ -178,11 +182,11 @@ int paramtypelist_len(paramtypelist ptlist);
 funcdecl parse_funcdecl(tokenstream* ts);
 
 // semantic.c
-void semantic_analysis(map* varmap, astree* ast);
-void semantic_analysis_funcdecl(funcdecl fdecl);
+void semantic_analysis(astree* ast);
+void semantic_analysis_funcdecl(funcdecl* fdecl);
 
 // codegen.c
-void codegen(map* varmap, astree* ast);
+void codegen(astree* ast);
 void codegen_funcdecl(funcdecl fdecl);
 // emit
 void emit_global(char* name);
