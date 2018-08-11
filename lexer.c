@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
+#include <string.h>
 #include "sncc.h"
 
 token* new_token(tokenkind kind) {
@@ -17,7 +18,7 @@ token* new_intlit(int x) {
 }
 token* new_ident(char* s) {
   token* t = new_token(TOKEN_IDENT);
-  t->ident = string_copy(s);
+  t->ident = strdup(s);
   return t;
 }
 

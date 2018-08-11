@@ -136,9 +136,6 @@ typedef struct {
 // utilities
 #define error(...) {fprintf(stderr, __VA_ARGS__); exit(1);}
 
-// string.c
-char* string_copy(char* s);
-
 // vector.c
 vector* new_vector_cap(int cap);
 vector* new_vector();
