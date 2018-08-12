@@ -7,6 +7,10 @@ bool eq_ident(token* id, char* s) {
   return id != NULL && id->kind == TOKEN_IDENT && strcmp(id->ident, s) == 0;
 }
 
+void expect_token(token* t, tokenkind kind) {
+  if (t == NULL || t->kind != kind) error("expected %s token.", token_to_kindstr(t));
+}
+
 //
 // ast
 //
@@ -121,6 +125,21 @@ void next_token(tokenstream* ts) {
 //
 // parser
 //
+
+typenode* parse_type(tokenstream* ts) {
+  if (!eq_ident(get_token(ts), "int")) return NULL;
+  next_token(ts);
+  typenode* tn = new_typenode(TYPE_INT);
+  for (;;) {
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_MUL) {
+      next_token(ts);
+      tn = new_ptrnode(tn);
+    } else {
+      break;
+    }
+  }
+  return tn;
+}
 
 astree* parser_top(tokenstream* ts);
 
@@ -253,14 +272,34 @@ astree* prefix_addsub_deref(tokenstream* ts) {
   }
 }
 
+astree* prefix_sizeof(tokenstream* ts) {
+  if (eq_ident(get_token(ts), "sizeof")) {
+    next_token(ts);
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_LPAREN) next_token(ts);
+    astree* ast;
+    typenode* typ = parse_type(ts);
+    if (typ == NULL) {
+      ast = new_ast(AST_SIZEOF_EXPR);
+      ast->value = expression(ts);
+    } else {
+      ast = new_ast(AST_SIZEOF_TYPE);
+      ast->typedesc = typ;
+    }
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_RPAREN) next_token(ts);
+    return ast;
+  } else {
+    return prefix_addsub_deref(ts);
+  }
+}
+
 astree* infix_assign(tokenstream* ts) {
-  astree* left = prefix_addsub_deref(ts);
+  astree* left = prefix_sizeof(ts);
   for (;;) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_ASSIGN) {
       next_token(ts);
-      astree* right = prefix_addsub_deref(ts);
+      astree* right = prefix_sizeof(ts);
       left = new_ast_infix(AST_ASSIGN, left, right);
     } else {
       break;
@@ -279,15 +318,13 @@ astree* parse_if(tokenstream* ts) {
 
   astree* ast = new_ast(AST_IF);
 
-  token* lparen = get_token(ts); next_token(ts);
-  if (lparen == NULL || lparen->kind != TOKEN_LPAREN) error("if expected (lparen.");
+  expect_token(get_token(ts), TOKEN_LPAREN); next_token(ts);
   ast->ifcond = expression(ts);
-  token* rparen = get_token(ts); next_token(ts);
-  if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("if expected )rparen.");
+  expect_token(get_token(ts), TOKEN_RPAREN); next_token(ts);
   ast->ifbody = parse_compound(ts);
 
   ast->elsebody = NULL;
-  if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_IDENT && strcmp(get_token(ts)->ident, "else") == 0) {
+  if (eq_ident(get_token(ts), "else")) {
     next_token(ts);
     ast->elsebody = parse_compound(ts);
   }
@@ -301,11 +338,9 @@ astree* parse_while(tokenstream* ts) {
 
   astree* ast = new_ast(AST_WHILE);
 
-  token* lparen = get_token(ts); next_token(ts);
-  if (lparen == NULL || lparen->kind != TOKEN_LPAREN) error("while expected (lparen.");
+  expect_token(get_token(ts), TOKEN_LPAREN); next_token(ts);
   ast->whilecond = expression(ts);
-  token* rparen = get_token(ts); next_token(ts);
-  if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("while expected )rparen.");
+  expect_token(get_token(ts), TOKEN_RPAREN); next_token(ts);
   ast->whilebody = parse_compound(ts);
 
   return ast;
@@ -315,23 +350,17 @@ astree* parse_for(tokenstream* ts) {
   if (!eq_ident(get_token(ts), "for")) return NULL;
   next_token(ts);
 
-  token* lparen = get_token(ts); next_token(ts);
-  if (lparen == NULL || lparen->kind != TOKEN_LPAREN) error("for expected (lparen.");
-
-  token* semicolon;
+  expect_token(get_token(ts), TOKEN_LPAREN); next_token(ts);
 
   astree* forinit = expression(ts);
-  semicolon = get_token(ts); next_token(ts);
-  if (semicolon == NULL || semicolon->kind != TOKEN_SEMICOLON) error("for expected ;semicolon.");
+  expect_token(get_token(ts), TOKEN_SEMICOLON); next_token(ts);
 
   astree* forcond = expression(ts);
-  semicolon = get_token(ts); next_token(ts);
-  if (semicolon == NULL || semicolon->kind != TOKEN_SEMICOLON) error("for expected ;semicolon.");
+  expect_token(get_token(ts), TOKEN_SEMICOLON); next_token(ts);
 
   astree* fornext = expression(ts);
 
-  token* rparen = get_token(ts); next_token(ts);
-  if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("for expected )rparen.");
+  expect_token(get_token(ts), TOKEN_RPAREN); next_token(ts);
 
   astree* forbody = parse_compound(ts);
   astree* bodyast = new_ast(AST_STATEMENT);
@@ -399,13 +428,11 @@ astree* parse_compound(tokenstream* ts) {
     next_token(ts);
     astree* ast = new_ast(AST_STATEMENT);
     ast->stmt = parse_statement(ts);
-    if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_RBRACKET) error("expect }lbracket in compound statement.");
-    next_token(ts);
+    expect_token(get_token(ts), TOKEN_RBRACKET); next_token(ts);
     return ast;
   } else {
     astree* ast = expression(ts);
-    if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_SEMICOLON) error("expect ;semicolon as end of statement");
-    next_token(ts);
+    expect_token(get_token(ts), TOKEN_SEMICOLON); next_token(ts);
     return ast;
   }
 }
@@ -415,17 +442,8 @@ astree* parse_compound(tokenstream* ts) {
 //
 
 paramtype* parse_paramtype(tokenstream* ts) {
-  if (!eq_ident(get_token(ts), "int")) return NULL;
-  next_token(ts);
-  typenode* tn = new_typenode(TYPE_INT);
-  for (;;) {
-    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_MUL) {
-      next_token(ts);
-      tn = new_ptrnode(tn);
-    } else {
-      break;
-    }
-  }
+  typenode* tn = parse_type(ts);
+  if (tn == NULL) return NULL;
   token* t = get_token(ts); next_token(ts);
   if (t->kind != TOKEN_IDENT) error("expected identifier in parameter.");
   paramtype* pt = malloc(sizeof(paramtype));
@@ -453,17 +471,13 @@ vector* parse_paramtype_list(tokenstream* ts) {
 funcdecl parse_funcdecl(tokenstream* ts) {
   funcdecl fdecl;
   fdecl.fdecl = parse_paramtype(ts);
-  token* lparen = get_token(ts); next_token(ts);
-  if (lparen == NULL || lparen->kind != TOKEN_LPAREN) error("function decl expect \"(\", but got %s", token_to_str(lparen));
+  expect_token(get_token(ts), TOKEN_LPAREN); next_token(ts);
   fdecl.argdecls = parse_paramtype_list(ts);
-  token* rparen = get_token(ts); next_token(ts);
-  if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("function decl expect \")\", but got %s", token_to_str(rparen));
+  expect_token(get_token(ts), TOKEN_RPAREN); next_token(ts);
 
-  token* lbracket = get_token(ts); next_token(ts);
-  if (lbracket == NULL || lbracket->kind != TOKEN_LBRACKET) error("function decl expect \"{\", but got %s", token_to_str(lbracket));
+  expect_token(get_token(ts), TOKEN_LBRACKET); next_token(ts);
   fdecl.body = parse_statement(ts);
-  token* rbracket = get_token(ts); next_token(ts);
-  if (rbracket == NULL || rbracket->kind != TOKEN_RBRACKET) error("function decl expect \"}\", but got %s", token_to_str(rbracket));
+  expect_token(get_token(ts), TOKEN_RBRACKET); next_token(ts);
 
   return fdecl;
 }

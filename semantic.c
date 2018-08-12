@@ -82,6 +82,27 @@ void semantic_analysis(astree* ast) {
   } else if (ast->kind == AST_WHILE) {
     semantic_analysis(ast->whilecond);
     semantic_analysis(ast->whilebody);
+  } else if (ast->kind == AST_SIZEOF_EXPR) {
+    semantic_analysis(ast->value);
+    ast->kind = AST_INTLIT;
+    if (ast->value->typ->kind == TYPE_INT) {
+      ast->intval = 4;
+    } else if (ast->value->typ->kind == TYPE_PTR) {
+      ast->intval = 8;
+    } else {
+      assert(false);
+    }
+    ast->typ = new_typenode(TYPE_INT);
+  } else if (ast->kind == AST_SIZEOF_TYPE) {
+    ast->kind = AST_INTLIT;
+    if (ast->typedesc->kind == TYPE_INT) {
+      ast->intval = 4;
+    } else if (ast->typedesc->kind == TYPE_PTR) {
+      ast->intval = 8;
+    } else {
+      assert(false);
+    }
+    ast->typ = new_typenode(TYPE_INT);
   } else {
     error("unsupported %d kind in codegen", ast->kind);
   }

@@ -50,3 +50,7 @@ rettest "int main() { int x; x = 3; int* y; y = &x; *y; }" 3
 rettest "int main() { int x; x = 3; int* y; y = &x; *y = 9; x; }" 9
 rettest "int main() { int x; x = 3; int* y; y = &x; int** z; z = &y; **z = 9; x; }" 9
 rettest "int main() { int* p; alloc4(&p, 1, 2, 4, 8); int* q; q = p + 2; int a; a = *q; q = p + 3; int b; b = *q; a + b; }" 12
+rettest "int main() { sizeof(int); }" 4
+rettest "int main() { sizeof(int*); }" 8
+rettest "int main() { int a; sizeof(a); }" 4
+rettest "int main() { int* a; sizeof(a); }" 8

@@ -68,7 +68,9 @@ typedef enum {
   AST_STATEMENT,
   AST_FUNCDEF,
   AST_IF,
-  AST_WHILE
+  AST_WHILE,
+  AST_SIZEOF_EXPR,
+  AST_SIZEOF_TYPE
 } astkind;
 
 typedef enum {
@@ -104,6 +106,7 @@ typedef struct _astree {
     };
     paramtype* vardecl;
     struct _astree* value;
+    typenode* typedesc;
     int intval;
     struct {
       char* ident;
