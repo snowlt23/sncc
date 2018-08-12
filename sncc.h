@@ -66,6 +66,7 @@ typedef enum {
   AST_VARDECL,
   AST_INTLIT,
   AST_IDENT,
+  AST_GLOBALREF,
   AST_CALL,
   AST_STATEMENT,
   AST_FUNCDEF,
@@ -94,12 +95,25 @@ typedef struct {
   int offset;
 } paramtype;
 
+typedef enum {
+  TOP_FUNCDECL,
+  TOP_GLOBALVAR
+} toplevelkind;
+
 typedef struct {
   paramtype* fdecl;
   vector* argdecls;
   vector* body;
   int stacksize;
 } funcdecl;
+
+typedef struct {
+  toplevelkind kind;
+  union {
+    funcdecl fdecl;
+    paramtype* vdecl;
+  };
+} toplevel;
 
 typedef struct _astree {
   astkind kind;
@@ -175,18 +189,18 @@ astree* expression(tokenstream* ts);
 paramtype* parse_paramtype(tokenstream* ts);
 vector* parse_statement(tokenstream* ts);
 astree* parse_compound(tokenstream* ts);
-// funcdecl
-funcdecl parse_funcdecl(tokenstream* ts);
+// toplevel
+toplevel parse_toplevel(tokenstream* ts);
 
 // semantic.c
 int typesize(typenode* tn);
 void init_semantic();
 void semantic_analysis(astree* ast);
-void semantic_analysis_funcdecl(funcdecl* fdecl);
+void semantic_analysis_toplevel(toplevel* top);
 
 // codegen.c
 void codegen(astree* ast);
-void codegen_funcdecl(funcdecl fdecl);
+void codegen_toplevel(toplevel top);
 // emit
 void emit_global(char* name);
 void emit_label(char* label);

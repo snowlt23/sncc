@@ -5,6 +5,7 @@
 map* varmap;
 int varpos;
 map* fnmap;
+map* globalvarmap;
 
 varinfo* new_varinfo(typenode* typ, int offset) {
   varinfo* info = malloc(sizeof(varinfo));
@@ -15,6 +16,7 @@ varinfo* new_varinfo(typenode* typ, int offset) {
 
 void init_semantic() {
   fnmap = new_map();
+  globalvarmap = new_map();
 }
 
 void init_fn_semantic() {
@@ -41,9 +43,15 @@ int typesize(typenode* typ) {
 void semantic_analysis(astree* ast) {
   if (ast->kind == AST_IDENT) {
     varinfo* info = map_get(varmap, ast->ident);
-    if (info == NULL) error("undeclared %s variable.", ast->ident);
-    ast->typ = info->typ;
-    ast->offset = info->offset;
+    if (info == NULL) { // lookup global variable
+      typenode* typ = map_get(globalvarmap, ast->ident);
+      if (typ == NULL) error("undeclared %s variable.", ast->ident);
+      ast->kind = AST_GLOBALREF;
+      ast->typ = typ;
+    } else {
+      ast->typ = info->typ;
+      ast->offset = info->offset;
+    }
   } else if (ast->kind == AST_INTLIT) {
     ast->typ = new_typenode(TYPE_INT);
   } else if (ast->kind == AST_ADD || ast->kind == AST_SUB) {
@@ -126,17 +134,27 @@ void semantic_analysis(astree* ast) {
   }
 }
 
-void semantic_analysis_funcdecl(funcdecl* fdecl) {
+void semantic_analysis_toplevel(toplevel* top) {
   init_fn_semantic();
-  map_insert(fnmap, fdecl->fdecl->name, fdecl->fdecl->typ);
-  for (int i=0; i<fdecl->argdecls->len; i++) {
-    paramtype* argparam = vector_get(fdecl->argdecls, i);
-    varpos += 8;
-    argparam->offset = varpos;
-    map_insert(varmap, argparam->name, new_varinfo(argparam->typ, varpos));
+  if (top->kind == TOP_FUNCDECL) {
+    map_insert(fnmap, top->fdecl.fdecl->name, top->fdecl.fdecl->typ);
+    for (int i=0; i<top->fdecl.argdecls->len; i++) {
+      paramtype* argparam = vector_get(top->fdecl.argdecls, i);
+      if (argparam->typ->kind == TYPE_INT) {
+        varpos += 8;
+      } else {
+        varpos += typesize(argparam->typ);
+      }
+      argparam->offset = varpos;
+      map_insert(varmap, argparam->name, new_varinfo(argparam->typ, varpos));
+    }
+    for (int i=0; i<top->fdecl.body->len; i++) {
+      semantic_analysis(vector_get(top->fdecl.body, i));
+    }
+    top->fdecl.stacksize = varpos;
+  } else if (top->kind == TOP_GLOBALVAR) {
+    map_insert(globalvarmap, top->vdecl->name, top->vdecl->typ);
+  } else {
+    assert(false);
   }
-  for (int i=0; i<fdecl->body->len; i++) {
-    semantic_analysis(vector_get(fdecl->body, i));
-  }
-  fdecl->stacksize = varpos;
 }

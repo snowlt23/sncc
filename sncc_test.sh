@@ -59,3 +59,5 @@ rettest "int main() { int* a[10]; sizeof(a); }" 80
 rettest "int main() { int a[4]; a[0] = 1; a[1] = 2; a[2] = 3; a[3] = 4; a[0]+a[1]+a[2]+a[3]; }" 10
 rettest "int* ptrid(int* p) {p;} int main() { int a; int* b; b = ptrid(&a); *b = 5; a; }" 5
 rettest "int main() { int a[10]; *&a[0] = 10; a[0]; }" 10
+rettest "int x; int main() {x = 9; x;}" 9
+rettest "int x[10]; int main() {x[0] = 1; x[1] = 2; x[2] = 3; x[0]+x[1]+x[2];}" 6

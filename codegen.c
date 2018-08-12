@@ -71,6 +71,9 @@ void codegen_lvalue(astree* ast) {
   if (ast->kind == AST_IDENT) {
     emit_asm("leaq -%d(%%rbp), %%rax", ast->offset);
     emit_push("%rax");
+  } else if (ast->kind == AST_GLOBALREF) {
+    emit_asm("leaq %s(%%rip), %%rax", ast->ident);
+    emit_push("%rax");
   } else if (ast->kind == AST_DEREF) {
     codegen(ast->value);
   } else {
@@ -80,6 +83,15 @@ void codegen_lvalue(astree* ast) {
 
 void codegen(astree* ast) {
   if (ast->kind == AST_IDENT) {
+    if (ast->typ->truetype != NULL && ast->typ->truetype->kind == TYPE_ARRAY) {
+      codegen_lvalue(ast);
+    } else {
+      codegen_lvalue(ast);
+      emit_pop("%rax");
+      emit_asm("movq (%%rax), %%rax");
+      emit_push("%rax");
+    }
+  } else if (ast->kind == AST_GLOBALREF) {
     if (ast->typ->truetype != NULL && ast->typ->truetype->kind == TYPE_ARRAY) {
       codegen_lvalue(ast);
     } else {
@@ -269,4 +281,17 @@ void codegen_funcdecl(funcdecl fdecl) {
   emit_pop("%rax");
   emit_epilogue(fdecl.stacksize);
   emit_return();
+}
+
+void codegen_toplevel(toplevel top) {
+  if (top.kind == TOP_FUNCDECL) {
+    printf(".text\n");
+    codegen_funcdecl(top.fdecl);
+  } else if (top.kind == TOP_GLOBALVAR) {
+    printf(".data\n");
+    emit_label(top.vdecl->name);
+    emit_asm(".zero %d", typesize(top.vdecl->typ));
+  } else {
+    assert(false);
+  }
 }

@@ -513,16 +513,25 @@ vector* parse_paramtype_list(tokenstream* ts) {
   return ptlist;
 }
 
-funcdecl parse_funcdecl(tokenstream* ts) {
-  funcdecl fdecl;
-  fdecl.fdecl = parse_paramtype(ts);
-  expect_token(get_token(ts), TOKEN_LPAREN); next_token(ts);
-  fdecl.argdecls = parse_paramtype_list(ts);
-  expect_token(get_token(ts), TOKEN_RPAREN); next_token(ts);
+toplevel parse_toplevel(tokenstream* ts) {
+  toplevel top;
 
-  expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
-  fdecl.body = parse_statement(ts);
-  expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
+  paramtype* pt = parse_paramtype(ts);
+  if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_LPAREN) {
+    next_token(ts);
+    top.kind = TOP_FUNCDECL;
+    top.fdecl.fdecl = pt;
+    top.fdecl.argdecls = parse_paramtype_list(ts);
+    expect_token(get_token(ts), TOKEN_RPAREN); next_token(ts);
+    expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
+    top.fdecl.body = parse_statement(ts);
+    expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
+  } else {
+    top.kind = TOP_GLOBALVAR;
+    top.vdecl = pt;
+  }
 
-  return fdecl;
+  if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) next_token(ts);
+
+  return top;
 }

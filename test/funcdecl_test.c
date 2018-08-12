@@ -5,11 +5,11 @@
 int main() {
   vector* tokenss = lexer();
   tokenstream* ts = new_tokenstream(tokenss);
-  funcdecl fdecl = parse_funcdecl(ts);
+  toplevel top = parse_toplevel(ts);
 
-  printf("%s ", fdecl.fdecl->name);
-  for (int i=0; i<fdecl.argdecls->len; i++) {
-    paramtype* pt = vector_get(fdecl.argdecls, i);
+  printf("%s ", top.fdecl.fdecl->name);
+  for (int i=0; i<top.fdecl.argdecls->len; i++) {
+    paramtype* pt = vector_get(top.fdecl.argdecls, i);
     printf(" %s", pt->name);
   }
 }

@@ -9,9 +9,9 @@ int main() {
   emit_global("main");
   for (;;) {
     if (get_token(ts) == NULL) break;
-    funcdecl fdecl = parse_funcdecl(ts);
-    semantic_analysis_funcdecl(&fdecl);
-    codegen_funcdecl(fdecl);
+    toplevel top = parse_toplevel(ts);
+    semantic_analysis_toplevel(&top);
+    codegen_toplevel(top);
   }
 
   return 0;
