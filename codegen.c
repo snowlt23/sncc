@@ -151,10 +151,7 @@ void codegen(astree* ast) {
     emit_pop("%rax");
     emit_asm("movq %%rcx, (%%rax)");
   } else if (ast->kind == AST_ADDR) {
-    if (ast->value->kind != AST_IDENT) error("expect &addr operator variable.");
-    int offset = ast->value->offset;
-    emit_asm("leaq -%d(%%rbp), %%rax", offset);
-    emit_push("%rax");
+    codegen_lvalue(ast->value);
   } else if (ast->kind == AST_DEREF) {
     codegen(ast->value);
     emit_pop("%rax");
