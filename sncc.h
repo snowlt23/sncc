@@ -180,6 +180,7 @@ funcdecl parse_funcdecl(tokenstream* ts);
 
 // semantic.c
 int typesize(typenode* tn);
+void init_semantic();
 void semantic_analysis(astree* ast);
 void semantic_analysis_funcdecl(funcdecl* fdecl);
 

@@ -4,6 +4,7 @@
 
 map* varmap;
 int varpos;
+map* fnmap;
 
 varinfo* new_varinfo(typenode* typ, int offset) {
   varinfo* info = malloc(sizeof(varinfo));
@@ -13,6 +14,10 @@ varinfo* new_varinfo(typenode* typ, int offset) {
 }
 
 void init_semantic() {
+  fnmap = new_map();
+}
+
+void init_fn_semantic() {
   varmap = new_map();
   varpos = 0;
 }
@@ -87,7 +92,12 @@ void semantic_analysis(astree* ast) {
     for (int i=0; i<ast->arguments->len; i++) {
       semantic_analysis(vector_get(ast->arguments, i));
     }
-    ast->typ = new_typenode(TYPE_INT); // FIXME:
+    typenode* rettyp = map_get(fnmap, ast->call->ident);
+    if (rettyp == NULL){
+      ast->typ = new_typenode(TYPE_INT);
+    } else {
+      ast->typ = rettyp;
+    }
   } else if (ast->kind == AST_STATEMENT) {
     for (int i=0; i<ast->stmt->len; i++) {
       astree* e = vector_get(ast->stmt, i);
@@ -117,7 +127,8 @@ void semantic_analysis(astree* ast) {
 }
 
 void semantic_analysis_funcdecl(funcdecl* fdecl) {
-  init_semantic();
+  init_fn_semantic();
+  map_insert(fnmap, fdecl->fdecl->name, fdecl->fdecl->typ);
   for (int i=0; i<fdecl->argdecls->len; i++) {
     paramtype* argparam = vector_get(fdecl->argdecls, i);
     varpos += 8;
