@@ -80,7 +80,14 @@ void codegen_lvalue(astree* ast) {
 
 void codegen(astree* ast) {
   if (ast->kind == AST_IDENT) {
-    emit_localvarref(ast->offset);
+    if (ast->typ->truetype != NULL && ast->typ->truetype->kind == TYPE_ARRAY) {
+      codegen_lvalue(ast);
+    } else {
+      codegen_lvalue(ast);
+      emit_pop("%rax");
+      emit_asm("movq (%%rax), %%rax");
+      emit_push("%rax");
+    }
   } else if (ast->kind == AST_INTLIT) {
     emit_push_int(ast->intval);
   } else if (ast->kind == AST_ADD) {

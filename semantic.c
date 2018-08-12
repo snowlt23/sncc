@@ -18,6 +18,10 @@ void init_semantic() {
 }
 
 int typesize(typenode* typ) {
+  if (typ->truetype != NULL) {
+    return typesize(typ->truetype);
+  }
+
   if (typ->kind == TYPE_INT) {
     return 4;
   } else if (typ->kind == TYPE_PTR) {
@@ -73,10 +77,10 @@ void semantic_analysis(astree* ast) {
     if (ast->value->typ->kind != TYPE_PTR) error("cannot deref operator apply to noptr.");
     ast->typ = ast->value->typ->ptrof;
   } else if (ast->kind == AST_VARDECL) {
-    if (ast->vardecl->typ->kind == TYPE_ARRAY) {
-      varpos += typesize(ast->vardecl->typ);
-    } else {
+    if (ast->vardecl->typ->kind == TYPE_INT) {
       varpos += 8;
+    } else {
+      varpos += typesize(ast->vardecl->typ);
     }
     map_insert(varmap, ast->vardecl->name, new_varinfo(ast->vardecl->typ, varpos));
   } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {

@@ -85,6 +85,7 @@ typedef struct _typenode {
   typekind kind;
   struct _typenode* ptrof;
   size_t arraysize;
+  struct _typenode* truetype;
 } typenode;
 
 typedef struct {

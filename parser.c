@@ -93,6 +93,7 @@ typenode* new_typenode(typekind kind) {
   typenode* tn = malloc(sizeof(typenode));
   tn->kind = kind;
   tn->ptrof = NULL;
+  tn->truetype = NULL;
   return tn;
 }
 
@@ -103,9 +104,11 @@ typenode* new_ptrnode(typenode* typ) {
 }
 
 typenode* new_arraynode(typenode* typ, size_t size) {
-  typenode* tn = new_typenode(TYPE_ARRAY);
+  typenode* tn = new_typenode(TYPE_PTR);
   tn->ptrof = typ;
-  tn->arraysize = size;
+  tn->truetype = new_typenode(TYPE_ARRAY);
+  tn->truetype->ptrof = typ;
+  tn->truetype->arraysize = size;
   return tn;
 }
 
@@ -172,8 +175,27 @@ astree* factor(tokenstream* ts) {
   }
 }
 
+astree* gen_ptrderef(astree* value, astree* index) {
+  return new_ast_prefix(AST_DEREF, new_ast_infix(AST_ADD, value, index));
+}
+
+astree* arrayref(tokenstream* ts) {
+  astree* value = factor(ts);
+  for (;;) {
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_LBRACKET) {
+      next_token(ts);
+      astree* index = expression(ts);
+      value = gen_ptrderef(value, index);
+      expect_token(get_token(ts), TOKEN_RBRACKET); next_token(ts);
+    } else {
+      break;
+    }
+  }
+  return value;
+}
+
 astree* callexpr(tokenstream* ts) {
-  astree* call = factor(ts);
+  astree* call = arrayref(ts);
   token* lparen = get_token(ts);
   if (lparen == NULL) return call;
   if (lparen->kind != TOKEN_LPAREN) return call;
