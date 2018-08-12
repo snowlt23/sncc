@@ -13,11 +13,12 @@ typedef struct {
 
 typedef struct {
   struct _typenode* typ;
-  int pos;
-} mapelem;
+  int offset;
+} varinfo;
+
 typedef struct {
   char* name;
-  mapelem elem;
+  void* value;
 } mappair;
 typedef struct {
   vector* vector;
@@ -87,12 +88,8 @@ typedef struct {
 } paramtype;
 
 typedef struct {
-  vector* vector;
-} paramtypelist;
-
-typedef struct {
   paramtype* fdecl;
-  paramtypelist argdecls;
+  vector* argdecls;
   vector* body;
   int stacksize;
 } funcdecl;
@@ -147,8 +144,8 @@ void vector_push(vector* v, void* elem);
 // map.c
 map* new_map_cap(int cap);
 map* new_map();
-mapelem map_get(map* m, char* name);
-void map_insert(map* m, char* name, mapelem elem);
+void* map_get(map* m, char* name);
+void map_insert(map* m, char* name, void* value);
 
 // lexer.c
 vector* lexer();
@@ -167,12 +164,10 @@ token* get_token(tokenstream* ts);
 void next_token(tokenstream* ts);
 astree* expression(tokenstream* ts);
 // statement
+paramtype* parse_paramtype(tokenstream* ts);
 vector* parse_statement(tokenstream* ts);
 astree* parse_compound(tokenstream* ts);
 // funcdecl
-paramtype* parse_paramtype(tokenstream* ts);
-paramtype* paramtypelist_get(paramtypelist ptlist, int index);
-int paramtypelist_len(paramtypelist ptlist);
 funcdecl parse_funcdecl(tokenstream* ts);
 
 // semantic.c

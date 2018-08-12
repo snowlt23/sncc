@@ -5,6 +5,13 @@
 map* varmap;
 int varpos;
 
+varinfo* new_varinfo(typenode* typ, int offset) {
+  varinfo* info = malloc(sizeof(varinfo));
+  info->typ = typ;
+  info->offset = offset;
+  return info;
+}
+
 void init_semantic() {
   varmap = new_map();
   varpos = 0;
@@ -12,10 +19,10 @@ void init_semantic() {
 
 void semantic_analysis(astree* ast) {
   if (ast->kind == AST_IDENT) {
-    mapelem elem = map_get(varmap, ast->ident);
-    if (elem.pos == -1) error("undeclared %s variable.", ast->ident);
-    ast->typ = elem.typ;
-    ast->offset = elem.pos;
+    varinfo* info = map_get(varmap, ast->ident);
+    if (info == NULL) error("undeclared %s variable.", ast->ident);
+    ast->typ = info->typ;
+    ast->offset = info->offset;
   } else if (ast->kind == AST_INTLIT) {
     ast->typ = new_typenode(TYPE_INT);
   } else if (ast->kind == AST_ADD || ast->kind == AST_SUB) {
@@ -55,10 +62,7 @@ void semantic_analysis(astree* ast) {
     ast->typ = ast->value->typ->ptrof;
   } else if (ast->kind == AST_VARDECL) {
     varpos += 8;
-    mapelem elem;
-    elem.typ = ast->vardecl->typ;
-    elem.pos = varpos;
-    map_insert(varmap, ast->vardecl->name, elem);
+    map_insert(varmap, ast->vardecl->name, new_varinfo(ast->vardecl->typ, varpos));
   } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {
     for (int i=0; i<ast->arguments->len; i++) {
       semantic_analysis(vector_get(ast->arguments, i));
@@ -85,14 +89,11 @@ void semantic_analysis(astree* ast) {
 
 void semantic_analysis_funcdecl(funcdecl* fdecl) {
   init_semantic();
-  for (int i=0; i<paramtypelist_len(fdecl->argdecls); i++) {
-    paramtype* argparam = paramtypelist_get(fdecl->argdecls, i);
+  for (int i=0; i<fdecl->argdecls->len; i++) {
+    paramtype* argparam = vector_get(fdecl->argdecls, i);
     varpos += 8;
-    mapelem elem;
-    elem.typ = argparam->typ;
-    elem.pos = varpos;
     argparam->offset = varpos;
-    map_insert(varmap, argparam->name, elem);
+    map_insert(varmap, argparam->name, new_varinfo(argparam->typ, varpos));
   }
   for (int i=0; i<fdecl->body->len; i++) {
     semantic_analysis(vector_get(fdecl->body, i));

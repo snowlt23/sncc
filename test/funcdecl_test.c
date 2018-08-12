@@ -8,8 +8,8 @@ int main() {
   funcdecl fdecl = parse_funcdecl(ts);
 
   printf("%s ", fdecl.fdecl->name);
-  for (int i=0; i<paramtypelist_len(fdecl.argdecls); i++) {
-    paramtype* pt = paramtypelist_get(fdecl.argdecls, i);
+  for (int i=0; i<fdecl.argdecls->len; i++) {
+    paramtype* pt = vector_get(fdecl.argdecls, i);
     printf(" %s", pt->name);
   }
 }

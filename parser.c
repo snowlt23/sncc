@@ -434,7 +434,7 @@ paramtype* parse_paramtype(tokenstream* ts) {
   return pt;
 }
 
-paramtypelist parse_paramtype_list(tokenstream* ts) {
+vector* parse_paramtype_list(tokenstream* ts) {
   vector* ptlist = new_vector();
   for (;;) {
     if (get_token(ts) == NULL) break;
@@ -447,17 +447,7 @@ paramtypelist parse_paramtype_list(tokenstream* ts) {
     if (t->kind != TOKEN_COMMA) break;
     next_token(ts);
   }
-  paramtypelist ptl;
-  ptl.vector = ptlist;
-  return ptl;
-}
-
-paramtype* paramtypelist_get(paramtypelist ptlist, int index) {
-  return (paramtype*)vector_get(ptlist.vector, index);
-}
-
-int paramtypelist_len(paramtypelist ptlist) {
-  return ptlist.vector->len;
+  return ptlist;
 }
 
 funcdecl parse_funcdecl(tokenstream* ts) {

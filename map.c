@@ -12,31 +12,29 @@ map* new_map() {
   return new_map_cap(256);
 }
 
-mappair* new_mappair(char* name, mapelem elem) {
+mappair* new_mappair(char* name, void* value) {
   mappair* mp = (mappair*)malloc(sizeof(mappair));
   mp->name = name;
-  mp->elem = elem;
+  mp->value = value;
   return mp;
 }
 
-mapelem map_get(map* m, char* name) {
+void* map_get(map* m, char* name) {
   for (int i=0; i<m->vector->len; i++) {
     mappair* mp = (mappair*)vector_get(m->vector, i);
     if (strcmp(mp->name, name) == 0) {
-      return mp->elem;
+      return mp->value;
     }
   }
-  mapelem elem;
-  elem.pos = -1;
-  return elem;
+  return NULL;
 }
-void map_insert(map* m, char* name, mapelem elem) {
+void map_insert(map* m, char* name, void* value) {
   for (int i=0; i<m->vector->len; i++) {
     mappair* mp = (mappair*)vector_get(m->vector, i);
     if (strcmp(mp->name, name) == 0) {
-      mp->elem = elem;
+      mp->value = value;
       return;
     }
   }
-  vector_push(m->vector, new_mappair(name, elem));
+  vector_push(m->vector, new_mappair(name, value));
 }

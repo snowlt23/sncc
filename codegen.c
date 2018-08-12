@@ -246,8 +246,8 @@ void codegen_funcdecl(funcdecl fdecl) {
   emit_label(fdecl.fdecl->name);
   emit_prologue(fdecl.stacksize);
   int argpos = 0;
-  for (int i=0; i<paramtypelist_len(fdecl.argdecls); i++) {
-    paramtype* argparam = paramtypelist_get(fdecl.argdecls, i);
+  for (int i=0; i<fdecl.argdecls->len; i++) {
+    paramtype* argparam = vector_get(fdecl.argdecls, i);
     int offset = argparam->offset;
     if (i == 0) {
       emit_localvarset(offset, "%rdi");
