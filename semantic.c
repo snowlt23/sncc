@@ -65,8 +65,8 @@ void semantic_analysis(astree* ast) {
     }
     ast->typ = new_typenode(TYPE_INT); // FIXME:
   } else if (ast->kind == AST_STATEMENT) {
-    for (int i=0; i<statement_len(ast->stmt); i++) {
-      astree* e = statement_get(ast->stmt, i);
+    for (int i=0; i<ast->stmt->len; i++) {
+      astree* e = vector_get(ast->stmt, i);
       semantic_analysis(e);
     }
   } else if (ast->kind == AST_IF) {
@@ -94,8 +94,8 @@ void semantic_analysis_funcdecl(funcdecl* fdecl) {
     argparam->offset = varpos;
     map_insert(varmap, argparam->name, elem);
   }
-  for (int i=0; i<statement_len(fdecl->body); i++) {
-    semantic_analysis(statement_get(fdecl->body, i));
+  for (int i=0; i<fdecl->body->len; i++) {
+    semantic_analysis(vector_get(fdecl->body, i));
   }
   fdecl->stacksize = varpos;
 }

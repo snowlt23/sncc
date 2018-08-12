@@ -4,10 +4,10 @@
 int main() {
   vector* tokenss = lexer();
   tokenstream* ts = new_tokenstream(tokenss);
-  statement stmt = parse_statement(ts);
-  printf("%d", statement_len(stmt));
-  for (int i=0; i<statement_len(stmt); i++) {
-    astree* ast = statement_get(stmt, i);
+  vector* stmt = parse_statement(ts);
+  printf("%d", stmt->len);
+  for (int i=0; i<stmt->len; i++) {
+    astree* ast = vector_get(stmt, i);
     printf(" %s", ast_to_kindstr(ast));
   }
 }

@@ -208,8 +208,8 @@ void codegen(astree* ast) {
     }
     emit_push("%rax");
   } else if (ast->kind == AST_STATEMENT) {
-    for (int i=0; i<statement_len(ast->stmt); i++) {
-      astree* e = statement_get(ast->stmt, i);
+    for (int i=0; i<ast->stmt->len; i++) {
+      astree* e = vector_get(ast->stmt, i);
       codegen(e);
     }
   } else if (ast->kind == AST_IF) {
@@ -267,8 +267,8 @@ void codegen_funcdecl(funcdecl fdecl) {
       emit_localvarset(offset, "%rax");
     }
   }
-  for (int i=0; i<statement_len(fdecl.body); i++) {
-    codegen(statement_get(fdecl.body, i));
+  for (int i=0; i<fdecl.body->len; i++) {
+    codegen(vector_get(fdecl.body, i));
   }
   emit_pop("%rax");
   emit_epilogue(fdecl.stacksize);

@@ -335,18 +335,18 @@ astree* parse_for(tokenstream* ts) {
 
   astree* forbody = parse_compound(ts);
   astree* bodyast = new_ast(AST_STATEMENT);
-  bodyast->stmt.vector = new_vector();
-  vector_push(bodyast->stmt.vector, (void*)forbody);
-  vector_push(bodyast->stmt.vector, (void*)fornext);
+  bodyast->stmt = new_vector();
+  vector_push(bodyast->stmt, (void*)forbody);
+  vector_push(bodyast->stmt, (void*)fornext);
 
   astree* whileast = new_ast(AST_WHILE);
   whileast->whilecond = forcond;
   whileast->whilebody = bodyast;
 
   astree* ast = new_ast(AST_STATEMENT);
-  ast->stmt.vector = new_vector();
-  vector_push(ast->stmt.vector, (void*)forinit);
-  vector_push(ast->stmt.vector, (void*)whileast);
+  ast->stmt = new_vector();
+  vector_push(ast->stmt, (void*)forinit);
+  vector_push(ast->stmt, (void*)whileast);
 
   return ast;
 }
@@ -359,7 +359,7 @@ astree* parse_vardecl(tokenstream* ts) {
   return ast;
 }
 
-statement parse_statement(tokenstream* ts) {
+vector* parse_statement(tokenstream* ts) {
   vector* v = new_vector();
   for (;;) {
     if (get_token(ts) == NULL || get_token(ts)->kind == TOKEN_RBRACKET) break;
@@ -390,9 +390,7 @@ statement parse_statement(tokenstream* ts) {
 
     vector_push(v, (void*)parse_compound(ts));
   }
-  statement st;
-  st.vector = v;
-  return st;
+  return v;
 }
 
 astree* parse_compound(tokenstream* ts) {
@@ -410,14 +408,6 @@ astree* parse_compound(tokenstream* ts) {
     next_token(ts);
     return ast;
   }
-}
-
-astree* statement_get(statement st, int index) {
-  return (astree*)vector_get(st.vector, index);
-}
-
-int statement_len(statement st) {
-  return st.vector->len;
 }
 
 //

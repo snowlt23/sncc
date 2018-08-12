@@ -70,10 +70,6 @@ typedef enum {
   AST_WHILE
 } astkind;
 
-typedef struct {
-  vector* vector;
-} statement;
-
 typedef enum {
   TYPE_INT,
   TYPE_PTR
@@ -97,7 +93,7 @@ typedef struct {
 typedef struct {
   paramtype* fdecl;
   paramtypelist argdecls;
-  statement body;
+  vector* body;
   int stacksize;
 } funcdecl;
 
@@ -129,7 +125,7 @@ typedef struct _astree {
       struct _astree* whilecond;
       struct _astree* whilebody;
     };
-    statement stmt;
+    vector* stmt;
   };
 } astree;
 
@@ -171,10 +167,8 @@ token* get_token(tokenstream* ts);
 void next_token(tokenstream* ts);
 astree* expression(tokenstream* ts);
 // statement
-statement parse_statement(tokenstream* ts);
+vector* parse_statement(tokenstream* ts);
 astree* parse_compound(tokenstream* ts);
-astree* statement_get(statement st, int index);
-int statement_len(statement st);
 // funcdecl
 paramtype* parse_paramtype(tokenstream* ts);
 paramtype* paramtypelist_get(paramtypelist ptlist, int index);
