@@ -73,7 +73,11 @@ void semantic_analysis(astree* ast) {
     if (ast->value->typ->kind != TYPE_PTR) error("cannot deref operator apply to noptr.");
     ast->typ = ast->value->typ->ptrof;
   } else if (ast->kind == AST_VARDECL) {
-    varpos += 8;
+    if (ast->vardecl->typ->kind == TYPE_ARRAY) {
+      varpos += typesize(ast->vardecl->typ);
+    } else {
+      varpos += 8;
+    }
     map_insert(varmap, ast->vardecl->name, new_varinfo(ast->vardecl->typ, varpos));
   } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {
     for (int i=0; i<ast->arguments->len; i++) {
