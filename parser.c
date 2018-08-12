@@ -238,15 +238,15 @@ astree* prefix_addsub_deref(tokenstream* ts) {
   token* t = get_token(ts);
   if (t != NULL && t->kind == TOKEN_SUB) {
     next_token(ts);
-    astree* value = infix_addsub(ts);
+    astree* value = prefix_addsub_deref(ts);
     return new_ast_prefix(AST_MINUS, value);
   } else if (t != NULL && t->kind == TOKEN_MUL) {
     next_token(ts);
-    astree* value = infix_addsub(ts);
+    astree* value = prefix_addsub_deref(ts);
     return new_ast_prefix(AST_DEREF, value);
   } else if (t != NULL && t->kind == TOKEN_AND) {
     next_token(ts);
-    astree* value = infix_addsub(ts);
+    astree* value = prefix_addsub_deref(ts);
     return new_ast_prefix(AST_ADDR, value);
   } else {
     return infix_addsub(ts);

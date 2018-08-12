@@ -77,6 +77,17 @@ int typesize(typenode* typ) {
   }
 }
 
+void codegen_lvalue(astree* ast) {
+  if (ast->kind == AST_IDENT) {
+    emit_asm("leaq -%d(%%rbp), %%rax", ast->offset);
+    emit_push("%rax");
+  } else if (ast->kind == AST_DEREF) {
+    codegen(ast->value);
+  } else {
+    error("%s isn't lvalue.", ast_to_kindstr(ast));
+  }
+}
+
 void codegen(astree* ast) {
   if (ast->kind == AST_IDENT) {
     emit_localvarref(ast->offset);
@@ -137,20 +148,11 @@ void codegen(astree* ast) {
     emit_asm("negq %%rax");
     emit_push("%rax");
   } else if (ast->kind == AST_ASSIGN) {
-    if (ast->left->kind == AST_IDENT) {
-      int offset = ast->left->offset;
-      codegen(ast->right);
-      emit_pop("%rax");
-      emit_localvarset(offset, "%rax");
-    } else if (ast->left->kind == AST_DEREF) {
-      codegen(ast->left->value);
-      codegen(ast->right);
-      emit_pop("%rcx");
-      emit_pop("%rax");
-      emit_asm("movq %%rcx, (%%rax)");
-    } else {
-      assert(false);
-    }
+    codegen_lvalue(ast->left);
+    codegen(ast->right);
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    emit_asm("movq %%rcx, (%%rax)");
   } else if (ast->kind == AST_ADDR) {
     if (ast->value->kind != AST_IDENT) error("expect &addr operator variable.");
     int offset = ast->value->offset;

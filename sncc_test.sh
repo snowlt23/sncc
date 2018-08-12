@@ -48,4 +48,5 @@ rettest "int main() { int i; i=0; while (i<5) { i = i+1; } i; }" 5
 rettest "int main() { int i; for (i=0; i<10; i=i+1) {i = i+1;} i; }" 10
 rettest "int main() { int x; x = 3; int* y; y = &x; *y; }" 3
 rettest "int main() { int x; x = 3; int* y; y = &x; *y = 9; x; }" 9
+rettest "int main() { int x; x = 3; int* y; y = &x; int** z; z = &y; **z = 9; x; }" 9
 rettest "int main() { int* p; alloc4(&p, 1, 2, 4, 8); int* q; q = p + 2; int a; a = *q; q = p + 3; int b; b = *q; a + b; }" 12
