@@ -67,16 +67,6 @@ void emit_localvarset(int pos, char* value) {
   emit_asm("movq %s, -%d(%%rbp)", value, pos);
 }
 
-int typesize(typenode* typ) {
-  if (typ->kind == TYPE_INT) {
-    return 4;
-  } else if (typ->kind == TYPE_PTR) {
-    return 8;
-  } else {
-    assert(false);
-  }
-}
-
 void codegen_lvalue(astree* ast) {
   if (ast->kind == AST_IDENT) {
     emit_asm("leaq -%d(%%rbp), %%rax", ast->offset);

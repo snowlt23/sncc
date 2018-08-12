@@ -61,6 +61,10 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_LBRACKET";
   } else if (token->kind == TOKEN_RBRACKET) {
     return "TOKEN_RBRACKET";
+  } else if (token->kind == TOKEN_LBRACE) {
+    return "TOKEN_LBRACE";
+  } else if (token->kind == TOKEN_RBRACE) {
+    return "TOKEN_RBRACE";
   } else if (token->kind == TOKEN_COMMA) {
     return "TOKEN_COMMA";
   } else if (token->kind == TOKEN_SEMICOLON) {
@@ -92,10 +96,14 @@ char* token_to_str(token* token) {
     return "(";
   } else if (token->kind == TOKEN_RPAREN) {
     return ")";
-  } else if (token->kind == TOKEN_LBRACKET) {
+  } else if (token->kind == TOKEN_LBRACE) {
     return "{";
-  } else if (token->kind == TOKEN_RBRACKET) {
+  } else if (token->kind == TOKEN_RBRACE) {
     return "}";
+  } else if (token->kind == TOKEN_LBRACKET) {
+    return "[";
+  } else if (token->kind == TOKEN_RBRACKET) {
+    return "]";
   } else if (token->kind == TOKEN_COMMA) {
     return ",";
   } else if (token->kind == TOKEN_SEMICOLON) {
@@ -149,10 +157,14 @@ vector* lexer() {
       vector_push(tokenss, new_token(TOKEN_LPAREN));
     } else if (c == ')') {
       vector_push(tokenss, new_token(TOKEN_RPAREN));
-    } else if (c == '{') {
+    } else if (c == '[') {
       vector_push(tokenss, new_token(TOKEN_LBRACKET));
-    } else if (c == '}') {
+    } else if (c == ']') {
       vector_push(tokenss, new_token(TOKEN_RBRACKET));
+    } else if (c == '{') {
+      vector_push(tokenss, new_token(TOKEN_LBRACE));
+    } else if (c == '}') {
+      vector_push(tokenss, new_token(TOKEN_RBRACE));
     } else if (c == ',') {
       vector_push(tokenss, new_token(TOKEN_COMMA));
     } else if (c == ';') {

@@ -54,3 +54,5 @@ rettest "int main() { sizeof(int); }" 4
 rettest "int main() { sizeof(int*); }" 8
 rettest "int main() { int a; sizeof(a); }" 4
 rettest "int main() { int* a; sizeof(a); }" 8
+rettest "int main() { int a[10]; sizeof(a); }" 40
+rettest "int main() { int* a[10]; sizeof(a); }" 80

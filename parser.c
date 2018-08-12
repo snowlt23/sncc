@@ -102,6 +102,13 @@ typenode* new_ptrnode(typenode* typ) {
   return tn;
 }
 
+typenode* new_arraynode(typenode* typ, size_t size) {
+  typenode* tn = new_typenode(TYPE_ARRAY);
+  tn->ptrof = typ;
+  tn->arraysize = size;
+  return tn;
+}
+
 //
 // tokenstream
 //
@@ -391,7 +398,7 @@ astree* parse_vardecl(tokenstream* ts) {
 vector* parse_statement(tokenstream* ts) {
   vector* v = new_vector();
   for (;;) {
-    if (get_token(ts) == NULL || get_token(ts)->kind == TOKEN_RBRACKET) break;
+    if (get_token(ts) == NULL || get_token(ts)->kind == TOKEN_RBRACE) break;
     if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) {
       next_token(ts);
       continue;
@@ -424,11 +431,11 @@ vector* parse_statement(tokenstream* ts) {
 
 astree* parse_compound(tokenstream* ts) {
   if (get_token(ts) == NULL) return NULL;
-  if (get_token(ts)->kind == TOKEN_LBRACKET) {
+  if (get_token(ts)->kind == TOKEN_LBRACE) {
     next_token(ts);
     astree* ast = new_ast(AST_STATEMENT);
     ast->stmt = parse_statement(ts);
-    expect_token(get_token(ts), TOKEN_RBRACKET); next_token(ts);
+    expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
     return ast;
   } else {
     astree* ast = expression(ts);
@@ -446,6 +453,22 @@ paramtype* parse_paramtype(tokenstream* ts) {
   if (tn == NULL) return NULL;
   token* t = get_token(ts); next_token(ts);
   if (t->kind != TOKEN_IDENT) error("expected identifier in parameter.");
+  for (;;) { // array declaration
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_LBRACKET) {
+      next_token(ts);
+      expect_token(get_token(ts), TOKEN_INTLIT);
+      int arraysize = get_token(ts)->intval;
+      next_token(ts);
+      if (tn->kind == TYPE_ARRAY) {
+        tn->ptrof = new_arraynode(tn->ptrof, arraysize);
+      } else {
+        tn = new_arraynode(tn, arraysize);
+      }
+      expect_token(get_token(ts), TOKEN_RBRACKET); next_token(ts);
+    } else {
+      break;
+    }
+  }
   paramtype* pt = malloc(sizeof(paramtype));
   pt->typ = tn;
   pt->name = t->ident;
@@ -475,9 +498,9 @@ funcdecl parse_funcdecl(tokenstream* ts) {
   fdecl.argdecls = parse_paramtype_list(ts);
   expect_token(get_token(ts), TOKEN_RPAREN); next_token(ts);
 
-  expect_token(get_token(ts), TOKEN_LBRACKET); next_token(ts);
+  expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
   fdecl.body = parse_statement(ts);
-  expect_token(get_token(ts), TOKEN_RBRACKET); next_token(ts);
+  expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
 
   return fdecl;
 }

@@ -38,6 +38,8 @@ typedef enum {
   TOKEN_RPAREN,
   TOKEN_LBRACKET,
   TOKEN_RBRACKET,
+  TOKEN_LBRACE,
+  TOKEN_RBRACE,
   TOKEN_COMMA,
   TOKEN_SEMICOLON,
   TOKEN_IDENT
@@ -75,12 +77,14 @@ typedef enum {
 
 typedef enum {
   TYPE_INT,
-  TYPE_PTR
+  TYPE_PTR,
+  TYPE_ARRAY
 } typekind;
 
 typedef struct _typenode {
   typekind kind;
   struct _typenode* ptrof;
+  size_t arraysize;
 } typenode;
 
 typedef struct {
@@ -174,6 +178,7 @@ astree* parse_compound(tokenstream* ts);
 funcdecl parse_funcdecl(tokenstream* ts);
 
 // semantic.c
+int typesize(typenode* tn);
 void semantic_analysis(astree* ast);
 void semantic_analysis_funcdecl(funcdecl* fdecl);
 

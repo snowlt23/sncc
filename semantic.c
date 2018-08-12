@@ -17,6 +17,18 @@ void init_semantic() {
   varpos = 0;
 }
 
+int typesize(typenode* typ) {
+  if (typ->kind == TYPE_INT) {
+    return 4;
+  } else if (typ->kind == TYPE_PTR) {
+    return 8;
+  } else if (typ->kind == TYPE_ARRAY) {
+    return typesize(typ->ptrof) * typ->arraysize;
+  } else {
+    assert(false);
+  }
+}
+
 void semantic_analysis(astree* ast) {
   if (ast->kind == AST_IDENT) {
     varinfo* info = map_get(varmap, ast->ident);
@@ -85,23 +97,11 @@ void semantic_analysis(astree* ast) {
   } else if (ast->kind == AST_SIZEOF_EXPR) {
     semantic_analysis(ast->value);
     ast->kind = AST_INTLIT;
-    if (ast->value->typ->kind == TYPE_INT) {
-      ast->intval = 4;
-    } else if (ast->value->typ->kind == TYPE_PTR) {
-      ast->intval = 8;
-    } else {
-      assert(false);
-    }
+    ast->intval = typesize(ast->value->typ);
     ast->typ = new_typenode(TYPE_INT);
   } else if (ast->kind == AST_SIZEOF_TYPE) {
     ast->kind = AST_INTLIT;
-    if (ast->typedesc->kind == TYPE_INT) {
-      ast->intval = 4;
-    } else if (ast->typedesc->kind == TYPE_PTR) {
-      ast->intval = 8;
-    } else {
-      assert(false);
-    }
+    ast->intval = typesize(ast->typedesc);
     ast->typ = new_typenode(TYPE_INT);
   } else {
     error("unsupported %d kind in codegen", ast->kind);
