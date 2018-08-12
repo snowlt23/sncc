@@ -81,25 +81,44 @@ void codegen_lvalue(astree* ast) {
   }
 }
 
+void codegen_movevalue(typenode* typ) {
+  if (typ->truetype != NULL && typ->truetype->kind == TYPE_ARRAY) {
+  } else if (typ->kind == TYPE_CHAR) {
+    emit_pop("%rax");
+    emit_asm("movsbl (%%rax), %%eax");
+    emit_push("%rax");
+  } else if (typ->kind == TYPE_INT) {
+    emit_pop("%rax");
+    emit_asm("movl (%%rax), %%eax");
+    emit_push("%rax");
+  } else if (typ->kind == TYPE_PTR) {
+    emit_pop("%rax");
+    emit_asm("movq (%%rax), %%rax");
+    emit_push("%rax");
+  } else {
+    assert(false);
+  }
+}
+
+void codegen_movereg(typenode* typ, char* reg8, char* reg32, char* reg64) {
+  if (typ->kind == TYPE_CHAR) {
+    emit_asm("movb %s, (%%rax)", reg8);
+  } else if (typ->kind == TYPE_INT) {
+    emit_asm("movl %s, (%%rax)", reg32);
+  } else if (typ->kind == TYPE_PTR) {
+    emit_asm("movq %s, (%%rax)", reg64);
+  } else {
+    assert(false);
+  }
+}
+
 void codegen(astree* ast) {
   if (ast->kind == AST_IDENT) {
-    if (ast->typ->truetype != NULL && ast->typ->truetype->kind == TYPE_ARRAY) {
-      codegen_lvalue(ast);
-    } else {
-      codegen_lvalue(ast);
-      emit_pop("%rax");
-      emit_asm("movq (%%rax), %%rax");
-      emit_push("%rax");
-    }
+    codegen_lvalue(ast);
+    codegen_movevalue(ast->typ);
   } else if (ast->kind == AST_GLOBALREF) {
-    if (ast->typ->truetype != NULL && ast->typ->truetype->kind == TYPE_ARRAY) {
-      codegen_lvalue(ast);
-    } else {
-      codegen_lvalue(ast);
-      emit_pop("%rax");
-      emit_asm("movq (%%rax), %%rax");
-      emit_push("%rax");
-    }
+    codegen_lvalue(ast);
+    codegen_movevalue(ast->typ);
   } else if (ast->kind == AST_INTLIT) {
     emit_push_int(ast->intval);
   } else if (ast->kind == AST_ADD) {
@@ -161,13 +180,12 @@ void codegen(astree* ast) {
     codegen(ast->right);
     emit_pop("%rcx");
     emit_pop("%rax");
-    emit_asm("movq %%rcx, (%%rax)");
+    codegen_movereg(ast->left->typ, "%cl", "%ecx", "%rcx");
   } else if (ast->kind == AST_ADDR) {
     codegen_lvalue(ast->value);
   } else if (ast->kind == AST_DEREF) {
     codegen(ast->value);
-    emit_pop("%rax");
-    emit_asm("pushq (%%rax)");
+    codegen_movevalue(ast->typ);
   } else if (ast->kind == AST_VARDECL) {
     // discard
   } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {
@@ -257,22 +275,23 @@ void codegen_funcdecl(funcdecl fdecl) {
   for (int i=0; i<fdecl.argdecls->len; i++) {
     paramtype* argparam = vector_get(fdecl.argdecls, i);
     int offset = argparam->offset;
+    emit_asm("leaq -%d(%%rbp), %%rax", offset);
     if (i == 0) {
-      emit_localvarset(offset, "%rdi");
+      codegen_movereg(argparam->typ, "%dil", "%edi", "%rdi");
     } else if (i == 1) {
-      emit_localvarset(offset, "%rsi");
+      codegen_movereg(argparam->typ, "%sil", "%esi", "%rsi");
     } else if (i == 2) {
-      emit_localvarset(offset, "%rdx");
+      codegen_movereg(argparam->typ, "%dl", "%edx", "%rdx");
     } else if (i == 3) {
-      emit_localvarset(offset, "%rcx");
+      codegen_movereg(argparam->typ, "%cl", "%ecx", "%rcx");
     } else if (i == 4) {
-      emit_localvarset(offset, "%r8");
+      codegen_movereg(argparam->typ, "%r8b", "%r8d", "%r8");
     } else if (i == 5) {
-      emit_localvarset(offset, "%r9");
+      codegen_movereg(argparam->typ, "%r9b", "%r9d", "%r9");
     } else {
       argpos += 8;
-      emit_asm("mov -%d(%%rbp), %%rax", argpos);
-      emit_localvarset(offset, "%rax");
+      emit_asm("movq -%d(%%rbp), %%rcx", argpos);
+      codegen_movereg(argparam->typ, "%cl", "%ecx", "%rcx");
     }
   }
   for (int i=0; i<fdecl.body->len; i++) {

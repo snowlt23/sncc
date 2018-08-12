@@ -31,6 +31,8 @@ int typesize(typenode* typ) {
 
   if (typ->kind == TYPE_INT) {
     return 4;
+  } else if (typ->kind == TYPE_CHAR) {
+    return 1;
   } else if (typ->kind == TYPE_PTR) {
     return 8;
   } else if (typ->kind == TYPE_ARRAY) {
@@ -78,9 +80,6 @@ void semantic_analysis(astree* ast) {
   } else if (ast->kind == AST_ASSIGN) {
     semantic_analysis(ast->left);
     semantic_analysis(ast->right);
-    if (ast->left->typ->kind != ast->right->typ->kind) {
-      error("type mismatch in assign.");
-    }
     ast->typ = new_typenode(TYPE_INT);
   } else if (ast->kind == AST_ADDR) {
     semantic_analysis(ast->value);
@@ -90,11 +89,7 @@ void semantic_analysis(astree* ast) {
     if (ast->value->typ->kind != TYPE_PTR) error("cannot deref operator apply to noptr.");
     ast->typ = ast->value->typ->ptrof;
   } else if (ast->kind == AST_VARDECL) {
-    if (ast->vardecl->typ->kind == TYPE_INT) {
-      varpos += 8;
-    } else {
-      varpos += typesize(ast->vardecl->typ);
-    }
+    varpos += typesize(ast->vardecl->typ);
     map_insert(varmap, ast->vardecl->name, new_varinfo(ast->vardecl->typ, varpos));
   } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {
     for (int i=0; i<ast->arguments->len; i++) {
@@ -140,11 +135,7 @@ void semantic_analysis_toplevel(toplevel* top) {
     map_insert(fnmap, top->fdecl.fdecl->name, top->fdecl.fdecl->typ);
     for (int i=0; i<top->fdecl.argdecls->len; i++) {
       paramtype* argparam = vector_get(top->fdecl.argdecls, i);
-      if (argparam->typ->kind == TYPE_INT) {
-        varpos += 8;
-      } else {
-        varpos += typesize(argparam->typ);
-      }
+      varpos += typesize(argparam->typ);
       argparam->offset = varpos;
       map_insert(varmap, argparam->name, new_varinfo(argparam->typ, varpos));
     }

@@ -137,9 +137,16 @@ void next_token(tokenstream* ts) {
 //
 
 typenode* parse_type(tokenstream* ts) {
-  if (!eq_ident(get_token(ts), "int")) return NULL;
-  next_token(ts);
-  typenode* tn = new_typenode(TYPE_INT);
+  typenode* tn;
+  if (eq_ident(get_token(ts), "int")) {
+    next_token(ts);
+    tn = new_typenode(TYPE_INT);
+  } else if (eq_ident(get_token(ts), "char")) {
+    next_token(ts);
+    tn = new_typenode(TYPE_CHAR);
+  } else {
+    return NULL;
+  }
   for (;;) {
     if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_MUL) {
       next_token(ts);
