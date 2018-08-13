@@ -132,6 +132,8 @@ void semantic_analysis(astree* ast) {
       astree* e = vector_get(ast->stmt, i);
       semantic_analysis(e);
     }
+  } else if (ast->kind == AST_RETURN) {
+    semantic_analysis(ast->value);
   } else if (ast->kind == AST_IF) {
     semantic_analysis(ast->ifcond);
     semantic_analysis(ast->ifbody);

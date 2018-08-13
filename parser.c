@@ -8,7 +8,7 @@ bool eq_ident(token* id, char* s) {
 }
 
 void expect_token(token* t, tokenkind kind) {
-  if (t == NULL || t->kind != kind) error("expected %s token.", token_to_kindstr(t));
+  if (t == NULL || t->kind != kind) error("expected %d token.", kind);
 }
 
 //
@@ -84,6 +84,8 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_STRLIT";
   } else if (ast->kind == AST_IDENT) {
     return "AST_IDENT";
+  } else if (ast->kind == AST_RETURN) {
+    return "AST_RETURN";
   } else if (ast->kind == AST_IF) {
     return "AST_IF";
   } else if (ast->kind == AST_WHILE) {
@@ -359,6 +361,17 @@ astree* expression(tokenstream* ts) {
   return infix_assign(ts);
 }
 
+astree* parse_return(tokenstream* ts) {
+  if (!eq_ident(get_token(ts), "return")) return NULL;
+  next_token(ts);
+
+  astree* ast = new_ast(AST_RETURN);
+  ast->value = expression(ts);
+  expect_token(get_token(ts), TOKEN_SEMICOLON); next_token(ts);
+
+  return ast;
+}
+
 astree* parse_if(tokenstream* ts) {
   if (!eq_ident(get_token(ts), "if")) return NULL;
   next_token(ts);
@@ -435,7 +448,38 @@ astree* parse_vardecl(tokenstream* ts) {
   return ast;
 }
 
-vector* parse_statement(tokenstream* ts) {
+astree* parse_statement(tokenstream* ts) {
+  astree* returnast = parse_return(ts);
+  if (returnast != NULL) {
+    return returnast;
+  }
+
+  astree* ifast = parse_if(ts);
+  if (ifast != NULL) {
+    return ifast;
+  }
+
+  astree* whileast = parse_while(ts);
+  if (whileast != NULL) {
+    return whileast;
+  }
+
+  astree* forast = parse_for(ts);
+  if (forast != NULL) {
+    return forast;
+  }
+
+  astree* declast = parse_vardecl(ts);
+  if (declast != NULL) {
+    return declast;
+  }
+
+  astree* e = expression(ts);
+  if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) next_token(ts);
+  return e;
+}
+
+vector* parse_statements(tokenstream* ts) {
   vector* v = new_vector();
   for (;;) {
     if (get_token(ts) == NULL || get_token(ts)->kind == TOKEN_RBRACE) break;
@@ -443,28 +487,8 @@ vector* parse_statement(tokenstream* ts) {
       next_token(ts);
       continue;
     }
-    astree* ifast = parse_if(ts);
-    if (ifast != NULL) {
-      vector_push(v, (void*)ifast);
-      continue;
-    }
-    astree* whileast = parse_while(ts);
-    if (whileast != NULL) {
-      vector_push(v, (void*)whileast);
-      continue;
-    }
-    astree* forast = parse_for(ts);
-    if (forast != NULL) {
-      vector_push(v, (void*)forast);
-      continue;
-    }
-    astree* declast = parse_vardecl(ts);
-    if (declast != NULL) {
-      vector_push(v, (void*)declast);
-      continue;
-    }
-
-    vector_push(v, (void*)parse_compound(ts));
+    vector_push(v, (void*)parse_statement(ts));
+    // vector_push(v, (void*)parse_compound(ts));
   }
   return v;
 }
@@ -474,12 +498,11 @@ astree* parse_compound(tokenstream* ts) {
   if (get_token(ts)->kind == TOKEN_LBRACE) {
     next_token(ts);
     astree* ast = new_ast(AST_STATEMENT);
-    ast->stmt = parse_statement(ts);
+    ast->stmt = parse_statements(ts);
     expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
     return ast;
   } else {
-    astree* ast = expression(ts);
-    expect_token(get_token(ts), TOKEN_SEMICOLON); next_token(ts);
+    astree* ast = parse_statement(ts);
     return ast;
   }
 }
@@ -542,7 +565,7 @@ toplevel parse_toplevel(tokenstream* ts) {
     top.fdecl.argdecls = parse_paramtype_list(ts);
     expect_token(get_token(ts), TOKEN_RPAREN); next_token(ts);
     expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
-    top.fdecl.body = parse_statement(ts);
+    top.fdecl.body = parse_statements(ts);
     expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
   } else {
     top.kind = TOP_GLOBALVAR;

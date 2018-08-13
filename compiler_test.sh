@@ -115,6 +115,7 @@ stmttest "if (1) {9;}" "1 AST_IF"
 stmttest "if (1) {9;} else {12;}" "1 AST_IF"
 stmttest "while (1) {1;}" "1 AST_WHILE"
 stmttest "int a;" "1 AST_VARDECL"
+stmttest "return 1;" "1 AST_RETURN"
 
 funcdecltest "int main() {}" "main"
 funcdecltest "int fib(int n) {n;}" "fib n"

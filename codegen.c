@@ -245,6 +245,11 @@ void codegen(astree* ast) {
       astree* e = vector_get(ast->stmt, i);
       codegen(e);
     }
+  } else if (ast->kind == AST_RETURN) {
+    codegen(ast->value);
+    emit_pop("%rax");
+    emit_epilogue();
+    emit_asm("ret");
   } else if (ast->kind == AST_IF) {
     codegen(ast->ifcond);
     char* elsel = gen_label();
@@ -304,7 +309,6 @@ void codegen_funcdecl(funcdecl fdecl) {
   for (int i=0; i<fdecl.body->len; i++) {
     codegen(vector_get(fdecl.body, i));
   }
-  emit_pop("%rax");
   emit_epilogue(fdecl.stacksize);
   emit_return();
 }

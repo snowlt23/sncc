@@ -4,7 +4,7 @@
 int main() {
   vector* tokenss = lexer();
   tokenstream* ts = new_tokenstream(tokenss);
-  vector* stmt = parse_statement(ts);
+  vector* stmt = parse_statements(ts);
   printf("%d", stmt->len);
   for (int i=0; i<stmt->len; i++) {
     astree* ast = vector_get(stmt, i);
