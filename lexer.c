@@ -16,6 +16,11 @@ token* new_intlit(int x) {
   t->intval = x;
   return t;
 }
+token* new_strlit(char* s) {
+  token* t = new_token(TOKEN_STRLIT);
+  t->strval = s;
+  return t;
+}
 token* new_ident(char* s) {
   token* t = new_token(TOKEN_IDENT);
   t->ident = strdup(s);
@@ -53,6 +58,8 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_AND";
   } else if (token->kind == TOKEN_INTLIT) {
     return "TOKEN_INTLIT";
+  } else if (token->kind == TOKEN_STRLIT) {
+    return "TOKEN_STRLIT";
   } else if (token->kind == TOKEN_LPAREN) {
     return "TOKEN_LPAREN";
   } else if (token->kind == TOKEN_RPAREN) {
@@ -110,6 +117,8 @@ char* token_to_str(token* token) {
     return ";";
   } else if (token->kind == TOKEN_INTLIT) {
     return int_to_str(token->intval);
+  } else if (token->kind == TOKEN_STRLIT) {
+    return token->strval;
   } else if (token->kind == TOKEN_IDENT) {
     return token->ident;
   } else {
@@ -137,6 +146,15 @@ vector* lexer() {
         }
         digitbuf[i] = nc;
       }
+    } else if (c == '"') { // string literal
+      char strbuf[1024] = {};
+      for (int i=0; ; i++) {
+        assert(i < 1024);
+        char nc = getc(stdin);
+        if (nc == '"') break;
+        strbuf[i] = nc;
+      }
+      vector_push(tokenss, new_strlit(strdup(strbuf)));
     } else if (c == '+') {
       vector_push(tokenss, new_token(TOKEN_ADD));
     } else if (c == '-') {

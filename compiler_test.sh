@@ -59,6 +59,7 @@ unittest "test/map_test.c"
 
 lexertest "9" "TOKEN_INTLIT:9"
 lexertest "12345" "TOKEN_INTLIT:12345"
+lexertest "\"yukaia\"" "TOKEN_STRLIT:yukaia"
 lexertest "yukari" "TOKEN_IDENT:yukari"
 lexertest "+" "TOKEN_ADD:+"
 lexertest "-" "TOKEN_SUB:-"

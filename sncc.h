@@ -34,6 +34,7 @@ typedef enum {
   TOKEN_ASSIGN,
   TOKEN_AND,
   TOKEN_INTLIT,
+  TOKEN_STRLIT,
   TOKEN_LPAREN,
   TOKEN_RPAREN,
   TOKEN_LBRACKET,
@@ -49,6 +50,7 @@ typedef struct {
   tokenkind kind;
   union {
     int intval;
+    char* strval;
     char* ident;
   };
 } token;
@@ -65,6 +67,7 @@ typedef enum {
   AST_DEREF,
   AST_VARDECL,
   AST_INTLIT,
+  AST_STRLIT,
   AST_IDENT,
   AST_GLOBALREF,
   AST_CALL,
