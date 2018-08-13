@@ -245,63 +245,18 @@ astree* callexpr(tokenstream* ts) {
   return ast;
 }
 
-astree* infix_eq(tokenstream* ts) {
-  astree* left = callexpr(ts);
-  for (;;) {
-    token* t = get_token(ts);
-    if (t == NULL) break;
-    if (t->kind == TOKEN_EQ) {
-      next_token(ts);
-      astree* right = callexpr(ts);
-      left = new_ast_infix(AST_EQ, left, right);
-    } else {
-      break;
-    }
-  }
-  return left;
-}
-
-// infix parser for lesser, greater, and lesser/greater equal.
-astree* infix_lge(tokenstream* ts) {
-  astree* left = infix_eq(ts);
-  for (;;) {
-    token* t = get_token(ts);
-    if (t == NULL) break;
-    if (t->kind == TOKEN_LESSER) {
-      next_token(ts);
-      astree* right = infix_eq(ts);
-      left = new_ast_infix(AST_LESSER, left, right);
-    } else if (t->kind == TOKEN_GREATER) {
-      next_token(ts);
-      astree* right = infix_eq(ts);
-      left = new_ast_infix(AST_LESSER, right, left);
-    } else if (t->kind == TOKEN_LESSEREQ) {
-      next_token(ts);
-      astree* right = infix_eq(ts);
-      left = new_ast_infix(AST_LESSEREQ, left, right);
-    } else if (t->kind == TOKEN_GREATEREQ) {
-      next_token(ts);
-      astree* right = infix_eq(ts);
-      left = new_ast_infix(AST_LESSEREQ, right, left);
-    } else {
-      break;
-    }
-  }
-  return left;
-}
-
 astree* infix_muldiv(tokenstream* ts) {
-  astree* left = infix_lge(ts);
+  astree* left = callexpr(ts);
   for (;;) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_MUL) {
       next_token(ts);
-      astree* right = infix_lge(ts);
+      astree* right = callexpr(ts);
       left = new_ast_infix(AST_MUL, left, right);
     } else if (t->kind == TOKEN_DIV) {
       next_token(ts);
-      astree* right = infix_lge(ts);
+      astree* right = callexpr(ts);
       left = new_ast_infix(AST_DIV, left, right);
     } else {
       break;
@@ -369,14 +324,59 @@ astree* prefix_sizeof(tokenstream* ts) {
   }
 }
 
-astree* infix_assign(tokenstream* ts) {
+astree* infix_eq(tokenstream* ts) {
   astree* left = prefix_sizeof(ts);
+  for (;;) {
+    token* t = get_token(ts);
+    if (t == NULL) break;
+    if (t->kind == TOKEN_EQ) {
+      next_token(ts);
+      astree* right = prefix_sizeof(ts);
+      left = new_ast_infix(AST_EQ, left, right);
+    } else {
+      break;
+    }
+  }
+  return left;
+}
+
+// infix parser for lesser, greater, and lesser/greater equal.
+astree* infix_lge(tokenstream* ts) {
+  astree* left = infix_eq(ts);
+  for (;;) {
+    token* t = get_token(ts);
+    if (t == NULL) break;
+    if (t->kind == TOKEN_LESSER) {
+      next_token(ts);
+      astree* right = infix_eq(ts);
+      left = new_ast_infix(AST_LESSER, left, right);
+    } else if (t->kind == TOKEN_GREATER) {
+      next_token(ts);
+      astree* right = infix_eq(ts);
+      left = new_ast_infix(AST_LESSER, right, left);
+    } else if (t->kind == TOKEN_LESSEREQ) {
+      next_token(ts);
+      astree* right = infix_eq(ts);
+      left = new_ast_infix(AST_LESSEREQ, left, right);
+    } else if (t->kind == TOKEN_GREATEREQ) {
+      next_token(ts);
+      astree* right = infix_eq(ts);
+      left = new_ast_infix(AST_LESSEREQ, right, left);
+    } else {
+      break;
+    }
+  }
+  return left;
+}
+
+astree* infix_assign(tokenstream* ts) {
+  astree* left = infix_lge(ts);
   for (;;) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_ASSIGN) {
       next_token(ts);
-      astree* right = prefix_sizeof(ts);
+      astree* right = infix_lge(ts);
       left = new_ast_infix(AST_ASSIGN, left, right);
     } else {
       break;

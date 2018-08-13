@@ -338,6 +338,7 @@ void codegen_strlits() {
     emit_label(info->label);
     emit_asm(".ascii \"%s\\0\"", info->strval);
   }
+  strlits = new_vector();
 }
 
 void codegen_toplevel(toplevel top) {

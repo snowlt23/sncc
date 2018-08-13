@@ -32,6 +32,8 @@ rettest "int main() {return 1 <= 0;}" 0
 rettest "int main() {return 1 >= 0;}" 1
 rettest "int main() {return 9 == 9;}" 1
 rettest "int main() {return 9 == 8;}" 0
+rettest "int main() {return 2 <= 5-2;}" 1
+rettest "int main() {return 10 <= 5-1;}" 0
 rettest "int main() {int a; a = 9; return a;}" 9
 rettest "int main() {int a; int b; a = 3; b = 4; return a + b;}" 7
 rettest "int main() {int th; int fo; th=3; fo=4; return th*fo;}" 12
@@ -50,6 +52,7 @@ rettest "int fib(int n) { if (n < 2) {return n;} else {return fib(n-1) + fib(n-2
 rettest "int f(int x) { if (x > 5) return 5; else return 10; } int main() { return f(100); }" 5
 rettest "int main() { int i; i=0; while (i<5) { i = i+1; } return i; }" 5
 rettest "int main() { int i; for (i=0; i<10; i=i+1) {i = i+1;} return i; }" 10
+rettest "int main() { int i; for(i=0; i<10; i=i+1) { if (i==5) return 5; } return 0;}" 5
 rettest "int main() { int x; x = 3; int* y; y = &x; return *y; }" 3
 rettest "int main() { int x; x = 3; int* y; y = &x; *y = 9; return x; }" 9
 rettest "int main() { int x; x = 3; int* y; y = &x; int** z; z = &y; **z = 9; return x; }" 9
