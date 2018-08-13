@@ -152,6 +152,7 @@ vector* lexer() {
         assert(i < 1024);
         char nc = getc(stdin);
         if (nc == '"') break;
+        if (nc == EOF) error("expect end of string literal.");
         strbuf[i] = nc;
       }
       vector_push(tokenss, new_strlit(strdup(strbuf)));

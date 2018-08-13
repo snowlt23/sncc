@@ -131,6 +131,7 @@ typedef struct _astree {
     struct _astree* value;
     typenode* typedesc;
     int intval;
+    char* strval;
     struct {
       char* ident;
       int offset;

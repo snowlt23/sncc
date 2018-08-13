@@ -41,6 +41,12 @@ astree* new_ast_intlit(int x) {
   return ast;
 }
 
+astree* new_ast_strlit(char* s) {
+  astree* ast = new_ast(AST_STRLIT);
+  ast->strval = s;
+  return ast;
+}
+
 astree* new_ast_ident(char* id) {
   astree* ast = new_ast(AST_IDENT);
   ast->ident = id;
@@ -74,6 +80,8 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_STATEMENT";
   } else if (ast->kind == AST_INTLIT) {
     return "AST_INTLIT";
+  } else if (ast->kind == AST_STRLIT) {
+    return "AST_STRLIT";
   } else if (ast->kind == AST_IDENT) {
     return "AST_IDENT";
   } else if (ast->kind == AST_IF) {
@@ -174,6 +182,9 @@ astree* factor(tokenstream* ts) {
   } else if (t->kind == TOKEN_INTLIT) {
     next_token(ts);
     return new_ast_intlit(t->intval);
+  } else if (t->kind == TOKEN_STRLIT) {
+    next_token(ts);
+    return new_ast_strlit(t->strval);
   } else if (t->kind == TOKEN_IDENT) {
     next_token(ts);
     return new_ast_ident(t->ident);

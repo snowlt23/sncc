@@ -105,6 +105,7 @@ exprtest "a = 1 + 2 * 3" "AST_ASSIGN"
 exprtest "fib()" "AST_CALL"
 exprtest "&a" "AST_ADDR"
 exprtest "*a" "AST_DEREF"
+exprtest "\"yukaia\"" "AST_STRLIT"
 
 stmttest "1; 2; 3;" "3 AST_INTLIT AST_INTLIT AST_INTLIT"
 stmttest "1 + 1; 2 - 2; 3 * 3;" "3 AST_ADD AST_SUB AST_MUL"
