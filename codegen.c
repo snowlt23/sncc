@@ -161,6 +161,24 @@ void codegen(astree* ast) {
     emit_asm("setl %%al");
     emit_asm("movzbl %%al, %%eax");
     emit_push("%rax");
+  } else if (ast->kind == AST_LESSEREQ) {
+    codegen(ast->left);
+    codegen(ast->right);
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    emit_asm("cmpq %%rcx, %%rax");
+    emit_asm("setle %%al");
+    emit_asm("movzbl %%al, %%eax");
+    emit_push("%rax");
+  } else if (ast->kind == AST_EQ) {
+    codegen(ast->left);
+    codegen(ast->right);
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    emit_asm("cmpq %%rcx, %%rax");
+    emit_asm("sete %%al");
+    emit_asm("movzbl %%al, %%eax");
+    emit_push("%rax");
   } else if (ast->kind == AST_MINUS) {
     codegen(ast->value);
     emit_pop("%rax");

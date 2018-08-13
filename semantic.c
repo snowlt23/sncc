@@ -92,7 +92,7 @@ void semantic_analysis(astree* ast) {
     } else {
       error("illegal add arithmetic.");
     }
-  } else if (ast->kind == AST_MUL || ast->kind == AST_DIV || ast->kind == AST_LESSER) {
+  } else if (ast->kind == AST_MUL || ast->kind == AST_DIV || ast->kind == AST_LESSER || ast->kind == AST_LESSEREQ) {
     semantic_analysis(ast->left);
     semantic_analysis(ast->right);
     if (ast->left->typ->kind == TYPE_INT && ast->right->typ->kind == TYPE_INT) {
@@ -107,6 +107,9 @@ void semantic_analysis(astree* ast) {
     semantic_analysis(ast->left);
     semantic_analysis(ast->right);
     ast->typ = new_typenode(TYPE_INT);
+  } else if (ast->kind == AST_EQ) {
+    semantic_analysis(ast->left);
+    semantic_analysis(ast->right);
   } else if (ast->kind == AST_ADDR) {
     semantic_analysis(ast->value);
     ast->typ = new_ptrnode(ast->value->typ);

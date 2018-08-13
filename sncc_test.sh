@@ -28,6 +28,10 @@ rettest "int main() {1; 2; return 1+3*3;}" 10
 rettest "int main() {return -5;}" 251
 rettest "int main() {return 5 + (-5);}" 0
 rettest "int main() {return 9 + -5;}" 4
+rettest "int main() {return 1 <= 0;}" 0
+rettest "int main() {return 1 >= 0;}" 1
+rettest "int main() {return 9 == 9;}" 1
+rettest "int main() {return 9 == 8;}" 0
 rettest "int main() {int a; a = 9; return a;}" 9
 rettest "int main() {int a; int b; a = 3; b = 4; return a + b;}" 7
 rettest "int main() {int th; int fo; th=3; fo=4; return th*fo;}" 12

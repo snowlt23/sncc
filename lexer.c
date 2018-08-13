@@ -52,8 +52,14 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_LESSER";
   } else if (token->kind == TOKEN_GREATER) {
     return "TOKEN_GREATER";
+  } else if (token->kind == TOKEN_LESSEREQ) {
+    return "TOKEN_LESSEREQ";
+  } else if (token->kind == TOKEN_GREATEREQ) {
+    return "TOKEN_GREATEREQ";
   } else if (token->kind == TOKEN_ASSIGN) {
     return "TOKEN_ASSIGN";
+  } else if (token->kind == TOKEN_EQ) {
+    return "TOKEN_EQ";
   } else if (token->kind == TOKEN_AND) {
     return "TOKEN_AND";
   } else if (token->kind == TOKEN_INTLIT) {
@@ -95,8 +101,14 @@ char* token_to_str(token* token) {
     return "<";
   } else if (token->kind == TOKEN_GREATER) {
     return ">";
+  } else if (token->kind == TOKEN_LESSEREQ) {
+    return "<=";
+  } else if (token->kind == TOKEN_GREATEREQ) {
+    return ">=";
   } else if (token->kind == TOKEN_ASSIGN) {
     return "=";
+  } else if (token->kind == TOKEN_EQ) {
+    return "==";
   } else if (token->kind == TOKEN_AND) {
     return "&";
   } else if (token->kind == TOKEN_LPAREN) {
@@ -165,13 +177,31 @@ vector* lexer() {
     } else if (c == '/') {
       vector_push(tokenss, new_token(TOKEN_DIV));
     } else if (c == '<') {
-      vector_push(tokenss, new_token(TOKEN_LESSER));
+      char nc = getc(stdin);
+      if (nc == '=') {
+        vector_push(tokenss, new_token(TOKEN_LESSEREQ));
+      } else {
+        ungetc(nc, stdin);
+        vector_push(tokenss, new_token(TOKEN_LESSER));
+      }
     } else if (c == '>') {
-      vector_push(tokenss, new_token(TOKEN_GREATER));
+      char nc = getc(stdin);
+      if (nc == '=') {
+        vector_push(tokenss, new_token(TOKEN_GREATEREQ));
+      } else {
+        ungetc(nc, stdin);
+        vector_push(tokenss, new_token(TOKEN_GREATER));
+      }
     } else if (c == '&') {
       vector_push(tokenss, new_token(TOKEN_AND));
     } else if (c == '=') {
-      vector_push(tokenss, new_token(TOKEN_ASSIGN));
+      char nc = getc(stdin);
+      if (nc == '=') {
+        vector_push(tokenss, new_token(TOKEN_EQ));
+      } else {
+        ungetc(nc, stdin);
+        vector_push(tokenss, new_token(TOKEN_ASSIGN));
+      }
     } else if (c == '(') {
       vector_push(tokenss, new_token(TOKEN_LPAREN));
     } else if (c == ')') {
