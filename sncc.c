@@ -11,6 +11,7 @@ int main() {
     if (get_token(ts) == NULL) break;
     toplevel top = parse_toplevel(ts);
     semantic_analysis_toplevel(&top);
+    codegen_strlits();
     codegen_toplevel(top);
   }
 

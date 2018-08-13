@@ -62,3 +62,4 @@ rettest "int main() { int a[10]; *&a[0] = 10; a[0]; }" 10
 rettest "int x; int main() {x = 9; x;}" 9
 rettest "int x[10]; int main() {x[0] = 1; x[1] = 2; x[2] = 3; x[0]+x[1]+x[2];}" 6
 rettest "int main() {char x[3]; x[0] = 9; x[0];}" 9
+rettest "int main() {char* s; s = \"yukaia\"; s[0];}" 121

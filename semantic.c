@@ -1,11 +1,22 @@
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 #include "sncc.h"
 
 map* varmap;
 int varpos;
 map* fnmap;
 map* globalvarmap;
+vector* strlits;
+
+int labelcnt = 0;
+
+char* gen_label() {
+  labelcnt++;
+  char labelbuf[256] = {};
+  snprintf(labelbuf, 256, ".L%d", labelcnt);
+  return strdup(labelbuf);
+}
 
 varinfo* new_varinfo(typenode* typ, int offset) {
   varinfo* info = malloc(sizeof(varinfo));
@@ -14,9 +25,17 @@ varinfo* new_varinfo(typenode* typ, int offset) {
   return info;
 }
 
+strlitinfo* new_strlitinfo(char* label, char* strval) {
+  strlitinfo* info = malloc(sizeof(strlitinfo));
+  info->label = label;
+  info->strval = strval;
+  return info;
+}
+
 void init_semantic() {
   fnmap = new_map();
   globalvarmap = new_map();
+  strlits = new_vector();
 }
 
 void init_fn_semantic() {
@@ -56,6 +75,13 @@ void semantic_analysis(astree* ast) {
     }
   } else if (ast->kind == AST_INTLIT) {
     ast->typ = new_typenode(TYPE_INT);
+  } else if (ast->kind == AST_STRLIT) {
+    char* strval = ast->strval;
+    int strsize = strlen(strval);
+    ast->kind = AST_GLOBALREF;
+    ast->ident = gen_label();
+    ast->typ = new_arraynode(new_typenode(TYPE_CHAR), strsize+1);
+    vector_push(strlits, new_strlitinfo(ast->ident, strval));
   } else if (ast->kind == AST_ADD || ast->kind == AST_SUB) {
     semantic_analysis(ast->left);
     semantic_analysis(ast->right);

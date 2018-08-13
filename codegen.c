@@ -4,19 +4,10 @@
 
 #define emit_asm(...) {printf("  "); printf(__VA_ARGS__); printf("\n");}
 
-int labelcnt = 0;
-
-int gen_labeln() {
-  labelcnt++;
-  return labelcnt;
-}
-
 void emit_label(char* label) {
   printf("%s:\n", label);
 }
-void emit_labeln(int n) {
-  printf(".L%d:\n", n);
-}
+
 void emit_global(char* name) {
   emit_asm(".global %s", name);
 }
@@ -240,29 +231,29 @@ void codegen(astree* ast) {
     }
   } else if (ast->kind == AST_IF) {
     codegen(ast->ifcond);
-    int elsel = gen_labeln();
-    int endl = gen_labeln();
+    char* elsel = gen_label();
+    char* endl = gen_label();
     emit_asm("pop %%rax");
     emit_asm("cmpq $0, %%rax");
-    emit_asm("je .L%d", elsel);
+    emit_asm("je %s", elsel);
     codegen(ast->ifbody);
-    emit_asm("jmp .L%d", endl);
-    emit_labeln(elsel);
+    emit_asm("jmp %s", endl);
+    emit_label(elsel);
     if (ast->elsebody != NULL) {
       codegen(ast->elsebody);
     }
-    emit_labeln(endl);
+    emit_label(endl);
   } else if (ast->kind == AST_WHILE) {
-    int startl = gen_labeln();
-    int endl = gen_labeln();
-    emit_labeln(startl);
+    char* startl = gen_label();
+    char* endl = gen_label();
+    emit_label(startl);
     codegen(ast->whilecond);
     emit_asm("pop %%rax");
     emit_asm("cmpq $0, %%rax");
-    emit_asm("je .L%d", endl);
+    emit_asm("je %s", endl);
     codegen(ast->whilebody);
-    emit_asm("jmp .L%d", startl);
-    emit_labeln(endl);
+    emit_asm("jmp %s", startl);
+    emit_label(endl);
   } else {
     error("unsupported %d kind in codegen", ast->kind);
   }
@@ -300,6 +291,15 @@ void codegen_funcdecl(funcdecl fdecl) {
   emit_pop("%rax");
   emit_epilogue(fdecl.stacksize);
   emit_return();
+}
+
+void codegen_strlits() {
+  printf(".data\n");
+  for (int i=0; i<strlits->len; i++) {
+    strlitinfo* info = vector_get(strlits, i);
+    emit_label(info->label);
+    emit_asm(".ascii \"%s\"", info->strval);
+  }
 }
 
 void codegen_toplevel(toplevel top) {

@@ -17,6 +17,11 @@ typedef struct {
 } varinfo;
 
 typedef struct {
+  char* label;
+  char* strval;
+} strlitinfo;
+
+typedef struct {
   char* name;
   void* value;
 } mappair;
@@ -158,6 +163,9 @@ typedef struct {
   int pos;
 } tokenstream;
 
+// globals
+extern vector* strlits;
+
 // utilities
 #define error(...) {fprintf(stderr, __VA_ARGS__); exit(1);}
 
@@ -185,6 +193,7 @@ char* ast_to_kindstr(astree* ast);
 // type
 typenode* new_typenode(typekind kind);
 typenode* new_ptrnode(typenode* typ);
+typenode* new_arraynode(typenode* typ, size_t size);
 // tokenstream
 tokenstream* new_tokenstream(vector* tokens);
 token* get_token(tokenstream* ts);
@@ -199,11 +208,13 @@ toplevel parse_toplevel(tokenstream* ts);
 
 // semantic.c
 int typesize(typenode* tn);
+char* gen_label();
 void init_semantic();
 void semantic_analysis(astree* ast);
 void semantic_analysis_toplevel(toplevel* top);
 
 // codegen.c
+void codegen_strlits();
 void codegen(astree* ast);
 void codegen_toplevel(toplevel top);
 // emit
