@@ -32,6 +32,9 @@ rettest "int main() {return 1 <= 0;}" 0
 rettest "int main() {return 1 >= 0;}" 1
 rettest "int main() {return 9 == 9;}" 1
 rettest "int main() {return 9 == 8;}" 0
+rettest "int main() {return !0;}" 1
+rettest "int main() {return !1;}" 0
+rettest "int main() {return !10;}" 0
 rettest "int main() {return 2 <= 5-2;}" 1
 rettest "int main() {return 10 <= 5-1;}" 0
 rettest "int main() {int a; a = 9; return a;}" 9

@@ -60,6 +60,8 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_ASSIGN";
   } else if (token->kind == TOKEN_EQ) {
     return "TOKEN_EQ";
+  } else if (token->kind == TOKEN_NOT) {
+    return "TOKEN_NOT";
   } else if (token->kind == TOKEN_AND) {
     return "TOKEN_AND";
   } else if (token->kind == TOKEN_INTLIT) {
@@ -109,6 +111,8 @@ char* token_to_str(token* token) {
     return "=";
   } else if (token->kind == TOKEN_EQ) {
     return "==";
+  } else if (token->kind == TOKEN_NOT) {
+    return "!";
   } else if (token->kind == TOKEN_AND) {
     return "&";
   } else if (token->kind == TOKEN_LPAREN) {
@@ -202,6 +206,8 @@ vector* lexer() {
         ungetc(nc, stdin);
         vector_push(tokenss, new_token(TOKEN_ASSIGN));
       }
+    } else if (c == '!') {
+      vector_push(tokenss, new_token(TOKEN_NOT));
     } else if (c == '(') {
       vector_push(tokenss, new_token(TOKEN_LPAREN));
     } else if (c == ')') {

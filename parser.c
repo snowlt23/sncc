@@ -299,6 +299,10 @@ astree* prefix_addsub_deref(tokenstream* ts) {
     next_token(ts);
     astree* value = prefix_addsub_deref(ts);
     return new_ast_prefix(AST_ADDR, value);
+  } else if (t != NULL && t->kind == TOKEN_NOT) {
+    next_token(ts);
+    astree* value = prefix_addsub_deref(ts);
+    return new_ast_infix(AST_EQ, value, new_ast_intlit(0));
   } else {
     return infix_addsub(ts);
   }
@@ -376,7 +380,7 @@ astree* infix_assign(tokenstream* ts) {
     if (t == NULL) break;
     if (t->kind == TOKEN_ASSIGN) {
       next_token(ts);
-      astree* right = infix_lge(ts);
+      astree* right = expression(ts);
       left = new_ast_infix(AST_ASSIGN, left, right);
     } else {
       break;
