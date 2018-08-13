@@ -180,6 +180,13 @@ void codegen(astree* ast) {
   } else if (ast->kind == AST_VARDECL) {
     // discard
   } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {
+    emit_push("%rdi");
+    emit_push("%rsi");
+    emit_push("%rdx");
+    emit_push("%rcx");
+    emit_push("%r8");
+    emit_push("%r9");
+
     if (ast->arguments->len > 0) {
       codegen(vector_get(ast->arguments, 0));
       emit_pop("%rax");
@@ -219,10 +226,19 @@ void codegen(astree* ast) {
       emit_pop("%rax");
       emit_asm("movq %%rax, %d(%%rsp)", (i-6)*8);
     }
+    emit_asm("movq $0, %%rax");
     emit_call(ast->call->ident);
     if (ast->arguments->len-6 >= 1) {
       emit_asm("addq $%d, %%rsp", (ast->arguments->len-6)*8);
     }
+
+    emit_pop("%r9");
+    emit_pop("%r8");
+    emit_pop("%rcx");
+    emit_pop("%rdx");
+    emit_pop("%rsi");
+    emit_pop("%rdi");
+    
     emit_push("%rax");
   } else if (ast->kind == AST_STATEMENT) {
     for (int i=0; i<ast->stmt->len; i++) {
@@ -298,7 +314,7 @@ void codegen_strlits() {
   for (int i=0; i<strlits->len; i++) {
     strlitinfo* info = vector_get(strlits, i);
     emit_label(info->label);
-    emit_asm(".ascii \"%s\"", info->strval);
+    emit_asm(".ascii \"%s\\0\"", info->strval);
   }
 }
 
