@@ -35,12 +35,12 @@ strlitinfo* new_strlitinfo(char* label, char* strval) {
 void init_semantic() {
   fnmap = new_map();
   globalvarmap = new_map();
-  strlits = new_vector();
 }
 
 void init_fn_semantic() {
   varmap = new_map();
   varpos = 0;
+  strlits = new_vector();
 }
 
 int typesize(typenode* typ) {
