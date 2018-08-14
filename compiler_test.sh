@@ -2,9 +2,7 @@ unittest() {
   gcc -otest.out -Wall $1
   ./test.out
   RET=$?
-  if [ $RET = 0 ]; then
-    echo "[OK] unittest: $1"
-  else
+  if [ ! $RET = 0 ]; then
     echo "[ERROR] unittest: $1"
     exit 1
   fi
@@ -13,9 +11,7 @@ unittest() {
 lexertest() {
   OUT=`echo "$1" | ./lexer.out`
   OUT=`echo $OUT`
-  if [ "$OUT" = "$2" ]; then
-    echo "[OK] lexer: $1"
-  else
+  if [ ! "$OUT" = "$2" ]; then
     echo "[ERROR] lexer: $1, expected $2, but got $OUT"
     exit 1
   fi
@@ -24,9 +20,7 @@ lexertest() {
 exprtest() {
   OUT=`echo "$1" | ./parser_expr.out`
   OUT=`echo $OUT`
-  if [ "$OUT" = "$2" ]; then
-    echo "[OK] expr: $1"
-  else
+  if [ ! "$OUT" = "$2" ]; then
     echo "[ERROR] expr: $1, expected $2, but got $OUT"
     exit 1
   fi
@@ -35,9 +29,7 @@ exprtest() {
 stmttest() {
   OUT=`echo "$1" | ./parser_stmt.out`
   OUT=`echo $OUT`
-  if [ "$OUT" = "$2" ]; then
-    echo "[OK] stmt:  $1"
-  else
+  if [ ! "$OUT" = "$2" ]; then
     echo "[ERROR] stmt: $1, expected $2, but got $OUT"
     exit 1
   fi
@@ -46,9 +38,7 @@ stmttest() {
 funcdecltest() {
   OUT=`echo "$1" | ./funcdecl.out`
   OUT=`echo $OUT`
-  if [ "$OUT" = "$2" ]; then
-    echo "[OK] funcdecl: $1"
-  else
+  if [ ! "$OUT" = "$2" ]; then
     echo "[ERROR] funcdecl: $1, expected $2, but got $OUT"
     exit 1
   fi
@@ -121,3 +111,5 @@ stmttest "return 1;" "1 AST_RETURN"
 funcdecltest "int main() {}" "main"
 funcdecltest "int fib(int n) {n;}" "fib n"
 funcdecltest "int padd(int* a, int* b) {int* c; c = a + b;}" "padd a b"
+
+echo "[OK]"
