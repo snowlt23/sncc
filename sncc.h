@@ -139,7 +139,10 @@ typedef struct _astree {
       struct _astree* left;
       struct _astree* right;
     };
-    paramtype* vardecl;
+    struct {
+      paramtype* vardecl;
+      struct _astree* varinit;
+    };
     struct _astree* value;
     typenode* typedesc;
     int intval;
@@ -196,6 +199,8 @@ char* token_to_str(token* token);
 
 // parser.c
 // ast
+astree* new_ast(astkind kind);
+astree* new_ast_ident(char* ident);
 char* ast_to_kindstr(astree* ast);
 // type
 typenode* new_typenode(typekind kind);

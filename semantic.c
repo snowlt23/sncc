@@ -120,6 +120,13 @@ void semantic_analysis(astree* ast) {
   } else if (ast->kind == AST_VARDECL) {
     varpos += typesize(ast->vardecl->typ);
     map_insert(varmap, ast->vardecl->name, new_varinfo(ast->vardecl->typ, varpos));
+    if (ast->varinit != NULL) {
+      astree* assignast = new_ast(AST_ASSIGN);
+      assignast->left = new_ast_ident(ast->vardecl->name);
+      assignast->right = ast->varinit;
+      semantic_analysis(assignast);
+      *ast = *assignast;
+    }
   } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {
     for (int i=0; i<ast->arguments->len; i++) {
       semantic_analysis(vector_get(ast->arguments, i));

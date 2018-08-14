@@ -26,10 +26,8 @@ int infix_test() {
 }
 
 int variable_test() {
-  int a;
-  a = 9;
-  int b;
-  b = 8;
+  int a = 9;
+  int b = 8;
   test(a + b, 17);
 }
 
@@ -95,21 +93,18 @@ int for_test() {
 
 int addr_test() {
   int x;
-  int* p;
-  p = &x;
+  int* p = &x;
   *p = 9;
   test(x, 9);
 
-  int** pp;
-  pp = &p;
+  int** pp = &p;
   **pp = 555;
   test(x, 555);
 }
 
 int pointer_arithmetic_test() {
   int arr[10];
-  int* p;
-  p = arr;
+  int* p = arr;
   *(p+0) = 1;
   *(p+1) = 2;
   *(p+2) = 3;
@@ -159,8 +154,7 @@ int garr[10];
 int globalvar_test() {
   gx = 9;
   test(gx, 9);
-  int* p;
-  p = &gx;
+  int* p = &gx;
   *p = 555;
   test(gx, 555);
 
@@ -174,8 +168,7 @@ int string_test() {
   cc[0] = 9;
   test(cc[0], 9);
 
-  char* s;
-  s = "yukaia";
+  char* s = "yukaia";
   test(s[0], 121);
 }
 
@@ -190,8 +183,7 @@ int dfs(int i, int sum, int cnt) {
   if (i == 10) return 0;
   if (cnt == N) return 0;
   
-  int acc;
-  acc = 0;
+  int acc = 0;
   acc = acc+dfs(i+1, sum+i, cnt+1);
   acc = acc+dfs(i+1, sum, cnt);
   return acc;

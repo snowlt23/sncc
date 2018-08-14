@@ -16,8 +16,7 @@ int canplace(int row, int column) {
 }
 
 int queen(int row, int n) {
-  int count;
-  count = 0;
+  int count = 0;
 
   int column;
   for (column=1; column<=n; column=column+1) {

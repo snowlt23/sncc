@@ -477,6 +477,12 @@ astree* parse_vardecl(tokenstream* ts) {
   if (pt == NULL) return NULL;
   astree* ast = new_ast(AST_VARDECL);
   ast->vardecl = pt;
+  if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_ASSIGN) {
+    next_token(ts);
+    ast->varinit = expression(ts);
+  } else {
+    ast->varinit = NULL;
+  }
   return ast;
 }
 
