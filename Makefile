@@ -24,7 +24,14 @@ compiler-test: lexer.out parser_expr.out parser_stmt.out funcdecl.out
 sncc-test: sncclib.o
 	./sncc_test.sh
 
-test: sncc compiler-test sncc-test ;
+# test: sncc compiler-test sncc-test ;
+
+test.pp.c: test.c
+	gcc -P -E test.c > test.pp.c
+test: sncc test.pp.c
+	./sncc < test.pp.c > test.s
+	gcc test.s
+	./a.out
 
 .PHONY: clean
 clean:

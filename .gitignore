@@ -1,7 +1,7 @@
-
 *.exe
 *.out
 sncc
+test.pp.c
 /*.s
 *.o
 *.log
