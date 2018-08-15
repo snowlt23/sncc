@@ -389,6 +389,6 @@ int main() {
   typedef_vector_test();
   typedef_bool_test();
 
-  printf("[OK]");
+  printf("[OK]\n");
   return 0;
 }
