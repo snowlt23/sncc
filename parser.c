@@ -403,6 +403,10 @@ astree* infix_eq(tokenstream* ts) {
       next_token(ts);
       astree* right = infix_addsub(ts);
       left = new_ast_infix(AST_EQ, left, right);
+    } else if (t->kind == TOKEN_NOTEQ) {
+      next_token(ts);
+      astree* right = infix_addsub(ts);
+      left = new_ast_infix(AST_EQ, new_ast_infix(AST_EQ, left, right), new_ast_intlit(0));
     } else {
       break;
     }

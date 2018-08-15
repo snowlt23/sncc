@@ -6,9 +6,11 @@
 #include "sncc.h"
 
 FILE* input;
+map* definemap;
 
 void init_lexer() {
   input = stdin;
+  definemap = new_map();
 }
 
 token* new_token(tokenkind kind) {
@@ -76,6 +78,8 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_INC";
   } else if (token->kind == TOKEN_EQ) {
     return "TOKEN_EQ";
+  } else if (token->kind == TOKEN_NOTEQ) {
+    return "TOKEN_NOTEQ";
   } else if (token->kind == TOKEN_NOT) {
     return "TOKEN_NOT";
   } else if (token->kind == TOKEN_DOT) {
@@ -176,192 +180,247 @@ char* token_to_str(token* token) {
   }
 }
 
+void skip_spaces() {
+  for (;;) {
+    char nc = getc(input);
+    if (nc != ' ') {
+      ungetc(nc, input);
+      break;
+    }
+  }
+}
+
+char* read_ident() {
+  skip_spaces();
+  char identbuf[256] = {};
+  for (int i=0; ; i++) {
+    if (i >= 256) assert(false);
+    char nc = getc(input);
+    if (!isidenttail(nc)) {
+      ungetc(nc, input);
+      break;
+    }
+    identbuf[i] = nc;
+  }
+  return strdup(identbuf);
+}
+
+char* read_strlit() {
+  skip_spaces();
+  char strbuf[1024] = {};
+  for (int i=0; ; i++) {
+    assert(i < 1024);
+    char nc = getc(input);
+    if (nc == '"') break;
+    if (nc == EOF) error("expect end of string literal.");
+    strbuf[i] = nc;
+  }
+  return strdup(strbuf);
+}
+
+char* read_strlit_angled() {
+  skip_spaces();
+  char strbuf[1024] = {};
+  for (int i=0; ; i++) {
+    assert(i < 1024);
+    char nc = getc(input);
+    if (nc == '>') break;
+    if (nc == EOF) error("expect end of string literal.");
+    strbuf[i] = nc;
+  }
+  return strdup(strbuf);
+}
+
+void preprocessor(vector* tokenss, char* prename) {
+  if (strcmp(prename, "include") == 0) {
+    skip_spaces();
+    char c = getc(input);
+    char* includename;
+    if (c == '"') {
+      includename = read_strlit();
+    } else if (c == '<') {
+      includename = malloc(sizeof(char)*1024+sizeof(char));
+      char* slit = read_strlit_angled();
+      snprintf(includename, 1024, "include/%s", slit);
+    } else {
+      error("#include expected string literal.");
+    }
+    FILE* tmpf = input;
+    input = fopen(includename, "r");
+    vector* includetokens = lexer();
+    for (int i=0; i<includetokens->len; i++) {
+      vector_push(tokenss, vector_get(includetokens, i));
+    }
+    fclose(input);
+    input = tmpf;
+  } else if (strcmp(prename, "define") == 0) {
+    char* definename = read_ident();
+    vector* definetokens = new_vector();
+    for (;;) {
+      skip_spaces();
+      char c = getc(input);
+      if (c == '\n') break;
+      ungetc(c, input);
+      bool cont = single_token_lexer(definetokens);
+      if (!cont) break;
+    }
+    map_insert(definemap, definename, definetokens);
+  } else {
+    error("unsupported %s preprocessor.", prename);
+  }
+}
+
+bool single_token_lexer(vector* tokenss) {
+  char c = getc(input);
+  if (c == EOF) {
+    return false;
+  } else if (isdigit(c)) { // int literal
+    char digitbuf[256] = {};
+    digitbuf[0] = c;
+    for (int i=1; ; i++) {
+      assert(i < 256);
+      char nc = getc(input);
+      if (!isdigit(nc)) {
+        ungetc(nc, input);
+        vector_push(tokenss, new_intlit(atoi(digitbuf)));
+        break;
+      }
+      digitbuf[i] = nc;
+    }
+  } else if (c == '#') { // preprocessor
+    char* prename = read_ident();
+    preprocessor(tokenss, prename);
+  } else if (c == '"') { // string literal
+    vector_push(tokenss, new_strlit(read_strlit()));
+  } else if (c == '+') {
+    char nc = getc(input);
+    if (nc == '+') {
+      vector_push(tokenss, new_token(TOKEN_INC));
+    } else if (nc == '=') {
+      vector_push(tokenss, new_token(TOKEN_ADDASSIGN));
+    } else {
+      ungetc(nc, input);
+      vector_push(tokenss, new_token(TOKEN_ADD));
+    }
+  } else if (c == '-') {
+    char nc = getc(input);
+    if (nc == '>') {
+      vector_push(tokenss, new_token(TOKEN_ALLOW));
+    } else {
+      ungetc(nc, input);
+      vector_push(tokenss, new_token(TOKEN_SUB));
+    }
+  } else if (c == '*') {
+    char nc = getc(input);
+    if (nc == '=') {
+      vector_push(tokenss, new_token(TOKEN_MULASSIGN));
+    } else {
+      ungetc(nc, input);
+      vector_push(tokenss, new_token(TOKEN_MUL));
+    }
+  } else if (c == '/') {
+    char nc = getc(input);
+    if (nc == '/') {
+      for (;;) {
+        nc = getc(input);
+        if (nc == EOF || nc == '\n') break;
+      }
+    } else {
+      ungetc(nc, input);
+      vector_push(tokenss, new_token(TOKEN_DIV));
+    }
+  } else if (c == '<') {
+    char nc = getc(input);
+    if (nc == '=') {
+      vector_push(tokenss, new_token(TOKEN_LESSEREQ));
+    } else {
+      ungetc(nc, input);
+      vector_push(tokenss, new_token(TOKEN_LESSER));
+    }
+  } else if (c == '>') {
+    char nc = getc(input);
+    if (nc == '=') {
+      vector_push(tokenss, new_token(TOKEN_GREATEREQ));
+    } else {
+      ungetc(nc, input);
+      vector_push(tokenss, new_token(TOKEN_GREATER));
+    }
+  } else if (c == '.') {
+    vector_push(tokenss, new_token(TOKEN_DOT));
+  } else if (c == '|') {
+    char nc = getc(input);
+    if (nc == '|') {
+      vector_push(tokenss, new_token(TOKEN_LOR));
+    } else {
+      error("unsupporte | token in currently.");
+    }
+  } else if (c == '&') {
+    char nc = getc(input);
+    if (nc == '&') {
+      vector_push(tokenss, new_token(TOKEN_LAND));
+    } else {
+      ungetc(nc, input);
+      vector_push(tokenss, new_token(TOKEN_AND));
+    }
+  } else if (c == '=') {
+    char nc = getc(input);
+    if (nc == '=') {
+      vector_push(tokenss, new_token(TOKEN_EQ));
+    } else {
+      ungetc(nc, input);
+      vector_push(tokenss, new_token(TOKEN_ASSIGN));
+    }
+  } else if (c == '!') {
+    char nc = getc(input);
+    if (nc == '=') {
+      vector_push(tokenss, new_token(TOKEN_NOTEQ));
+    } else {
+      ungetc(nc, input);
+      vector_push(tokenss, new_token(TOKEN_NOT));
+    }
+  } else if (c == '(') {
+    vector_push(tokenss, new_token(TOKEN_LPAREN));
+  } else if (c == ')') {
+    vector_push(tokenss, new_token(TOKEN_RPAREN));
+  } else if (c == '[') {
+    vector_push(tokenss, new_token(TOKEN_LBRACKET));
+  } else if (c == ']') {
+    vector_push(tokenss, new_token(TOKEN_RBRACKET));
+  } else if (c == '{') {
+    vector_push(tokenss, new_token(TOKEN_LBRACE));
+  } else if (c == '}') {
+    vector_push(tokenss, new_token(TOKEN_RBRACE));
+  } else if (c == ',') {
+    vector_push(tokenss, new_token(TOKEN_COMMA));
+  } else if (c == ';') {
+    vector_push(tokenss, new_token(TOKEN_SEMICOLON));
+  } else if (c == ' ') {
+    return true;
+  } else if (c == '\n') {
+    return true;
+  } else if (isident(c)) {
+    ungetc(c, input);
+    char* id = read_ident();
+    vector* definetokens = map_get(definemap, id);
+    if (definetokens != NULL) {
+      for (int i=0; i<definetokens->len; i++) {
+        vector_push(tokenss, vector_get(definetokens, i));
+      }
+    } else {
+      vector_push(tokenss, new_ident(id));
+    }
+  } else {
+    error("unexpected token %c.", c);
+  }
+  return true;
+}
+
 vector* lexer() {
   vector* tokenss = new_vector();
 
   for (;;) {
-    char c = getc(input);
-    if (c == EOF) {
-      break;
-    } else if (isdigit(c)) { // int literal
-      char digitbuf[256] = {};
-      digitbuf[0] = c;
-      for (int i=1; ; i++) {
-        assert(i < 256);
-        char nc = getc(input);
-        if (!isdigit(nc)) {
-          ungetc(nc, input);
-          vector_push(tokenss, new_intlit(atoi(digitbuf)));
-          break;
-        }
-        digitbuf[i] = nc;
-      }
-    } else if (c == '#') { // preprocessor
-      char identbuf[256] = {};
-      for (int i=0; ; i++) {
-        if (i >= 256) assert(false);
-        char nc = getc(input);
-        if (!isidenttail(nc)) {
-          ungetc(nc, input);
-          break;
-        }
-        identbuf[i] = nc;
-      }
-      if (strcmp(identbuf, "include") == 0) {
-        for (;;) {
-          char nc = getc(input);
-          if (nc != ' ') {
-            ungetc(nc, input);
-            break;
-          }
-        }
-        if (getc(stdin) != '"') error("include expect string literal.");
-        char strbuf[1024] = {};
-        for (int i=0; ; i++) {
-          assert(i < 1024);
-          char nc = getc(input);
-          if (nc == '"') break;
-          if (nc == EOF) error("expect end of string literal.");
-          strbuf[i] = nc;
-        }
-        fprintf(stderr, "%s", strbuf);
-        FILE* tmpf = input;
-        input = fopen(strbuf, "r");
-        vector* includetokens = lexer();
-        for (int i=0; i<includetokens->len; i++) {
-          vector_push(tokenss, vector_get(includetokens, i));
-        }
-        fclose(input);
-        input = tmpf;
-      } else {
-        error("unsupported %s preprocessor.", identbuf);
-      }
-    } else if (c == '"') { // string literal
-      char strbuf[1024] = {};
-      for (int i=0; ; i++) {
-        assert(i < 1024);
-        char nc = getc(input);
-        if (nc == '"') break;
-        if (nc == EOF) error("expect end of string literal.");
-        strbuf[i] = nc;
-      }
-      vector_push(tokenss, new_strlit(strdup(strbuf)));
-    } else if (c == '+') {
-      char nc = getc(input);
-      if (nc == '+') {
-        vector_push(tokenss, new_token(TOKEN_INC));
-      } else if (nc == '=') {
-        vector_push(tokenss, new_token(TOKEN_ADDASSIGN));
-      } else {
-        ungetc(nc, input);
-        vector_push(tokenss, new_token(TOKEN_ADD));
-      }
-    } else if (c == '-') {
-      char nc = getc(input);
-      if (nc == '>') {
-        vector_push(tokenss, new_token(TOKEN_ALLOW));
-      } else {
-        ungetc(nc, input);
-        vector_push(tokenss, new_token(TOKEN_SUB));
-      }
-    } else if (c == '*') {
-      char nc = getc(input);
-      if (nc == '=') {
-        vector_push(tokenss, new_token(TOKEN_MULASSIGN));
-      } else {
-        ungetc(nc, input);
-        vector_push(tokenss, new_token(TOKEN_MUL));
-      }
-    } else if (c == '/') {
-      char nc = getc(input);
-      if (nc == '/') {
-        for (;;) {
-          nc = getc(input);
-          if (nc == EOF || nc == '\n') break;
-        }
-      } else {
-        ungetc(nc, input);
-        vector_push(tokenss, new_token(TOKEN_DIV));
-      }
-    } else if (c == '<') {
-      char nc = getc(input);
-      if (nc == '=') {
-        vector_push(tokenss, new_token(TOKEN_LESSEREQ));
-      } else {
-        ungetc(nc, input);
-        vector_push(tokenss, new_token(TOKEN_LESSER));
-      }
-    } else if (c == '>') {
-      char nc = getc(input);
-      if (nc == '=') {
-        vector_push(tokenss, new_token(TOKEN_GREATEREQ));
-      } else {
-        ungetc(nc, input);
-        vector_push(tokenss, new_token(TOKEN_GREATER));
-      }
-    } else if (c == '.') {
-      vector_push(tokenss, new_token(TOKEN_DOT));
-    } else if (c == '|') {
-      char nc = getc(input);
-      if (nc == '|') {
-        vector_push(tokenss, new_token(TOKEN_LOR));
-      } else {
-        error("unsupporte | token in currently.");
-      }
-    } else if (c == '&') {
-      char nc = getc(input);
-      if (nc == '&') {
-        vector_push(tokenss, new_token(TOKEN_LAND));
-      } else {
-        ungetc(nc, input);
-        vector_push(tokenss, new_token(TOKEN_AND));
-      }
-    } else if (c == '=') {
-      char nc = getc(input);
-      if (nc == '=') {
-        vector_push(tokenss, new_token(TOKEN_EQ));
-      } else {
-        ungetc(nc, input);
-        vector_push(tokenss, new_token(TOKEN_ASSIGN));
-      }
-    } else if (c == '!') {
-      vector_push(tokenss, new_token(TOKEN_NOT));
-    } else if (c == '(') {
-      vector_push(tokenss, new_token(TOKEN_LPAREN));
-    } else if (c == ')') {
-      vector_push(tokenss, new_token(TOKEN_RPAREN));
-    } else if (c == '[') {
-      vector_push(tokenss, new_token(TOKEN_LBRACKET));
-    } else if (c == ']') {
-      vector_push(tokenss, new_token(TOKEN_RBRACKET));
-    } else if (c == '{') {
-      vector_push(tokenss, new_token(TOKEN_LBRACE));
-    } else if (c == '}') {
-      vector_push(tokenss, new_token(TOKEN_RBRACE));
-    } else if (c == ',') {
-      vector_push(tokenss, new_token(TOKEN_COMMA));
-    } else if (c == ';') {
-      vector_push(tokenss, new_token(TOKEN_SEMICOLON));
-    } else if (c == ' ') {
-      continue;
-    } else if (c == '\n') {
-      continue;
-    } else if (isident(c)) { // identifier
-      char identbuf[256] = {};
-      identbuf[0] = c;
-      for (int i=1; ; i++) {
-        if (i >= 256) error("long length (>256) identifer is unsupported in currently."); // FIXME: long length identifer support.
-        char nc = getc(input);
-        if (!isidenttail(nc)) {
-          ungetc(nc, input);
-          vector_push(tokenss, new_ident(identbuf));
-          break;
-        }
-        identbuf[i] = nc;
-      }
-    } else {
-      error("unexpected token %c.", c);
-    }
+    bool cont = single_token_lexer(tokenss);
+    if (!cont) break;
   }
   return tokenss;
 }

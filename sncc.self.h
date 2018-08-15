@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 typedef struct _vector {
   void** data;
   int cap;
@@ -21,11 +25,6 @@ typedef struct _mappair {
 typedef struct _map {
   vector* vector;
 } map;
-
-// stdlib.h
-void* malloc(int size);
-// string.h
-int strcmp(char* a, char* b);
 
 // vector.c
 vector* new_vector_cap(int cap);

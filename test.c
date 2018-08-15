@@ -119,6 +119,14 @@ void if_test() {
   test(if_test_impl4(), 1);
 }
 
+void while_test() {
+  int i = 0;
+  while (i<10) {
+    i++;
+  }
+  test(i, 10);
+}
+
 int for_test_impl() {
   for (int i=0; i<10; i++) {
     if (i == 5) return i;
@@ -356,8 +364,9 @@ void typedef_vector_test() {
 }
 
 typedef int bool;
-bool true = 1;
-bool false = 0;
+#define true 1
+#define false 0
+
 void typedef_bool_test() {
   bool t = true;
   bool f = false;
@@ -372,6 +381,8 @@ int main() {
   return_test();
   call_test();
   if_test();
+  while_test();
+  for_test();
   addr_test();
   pointer_arithmetic_test();
   fib_test();

@@ -45,6 +45,7 @@ typedef enum {
   TOKEN_LOR,
   TOKEN_INC,
   TOKEN_EQ,
+  TOKEN_NOTEQ,
   TOKEN_NOT,
   TOKEN_DOT,
   TOKEN_ALLOW,
@@ -227,6 +228,7 @@ void map_insert(map* m, char* name, void* value);
 
 // lexer.c
 void init_lexer();
+bool single_token_lexer(vector* tokenss);
 vector* lexer();
 char* token_to_kindstr(token* token);
 char* token_to_str(token* token);
