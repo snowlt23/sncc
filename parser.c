@@ -76,6 +76,10 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_POSTINC";
   } else if (ast->kind == AST_EQ) {
     return "AST_EQ";
+  } else if (ast->kind == AST_SIZEOF_EXPR) {
+    return "AST_SIZEOF_EXPR";
+  } else if (ast->kind == AST_SIZEOF_TYPE) {
+    return "AST_SIZEOF_TYPE";
   } else if (ast->kind == AST_ADDR) {
     return "AST_ADDR";
   } else if (ast->kind == AST_DEREF) {
@@ -252,18 +256,60 @@ astree* callexpr(tokenstream* ts) {
   return ast;
 }
 
+astree* prefix_op(tokenstream* ts) {
+  token* t = get_token(ts);
+  if (eq_ident(get_token(ts), "sizeof")) {
+    next_token(ts);
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_LPAREN) next_token(ts);
+    astree* ast;
+    typenode* typ = parse_type(ts);
+    if (typ == NULL) {
+      ast = new_ast(AST_SIZEOF_EXPR);
+      ast->value = expression(ts);
+    } else {
+      ast = new_ast(AST_SIZEOF_TYPE);
+      ast->typedesc = typ;
+    }
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_RPAREN) next_token(ts);
+    return ast;
+  } else if (t != NULL && t->kind == TOKEN_SUB) {
+    next_token(ts);
+    astree* value = prefix_op(ts);
+    return new_ast_prefix(AST_MINUS, value);
+  } else if (t != NULL && t->kind == TOKEN_MUL) {
+    next_token(ts);
+    astree* value = prefix_op(ts);
+    return new_ast_prefix(AST_DEREF, value);
+  } else if (t != NULL && t->kind == TOKEN_INC) {
+    next_token(ts);
+    astree* value = prefix_op(ts);
+    return new_ast_prefix(AST_PREINC, value);
+  } else if (t != NULL && t->kind == TOKEN_AND) {
+    next_token(ts);
+    astree* value = prefix_op(ts);
+    return new_ast_prefix(AST_ADDR, value);
+  } else if (t != NULL && t->kind == TOKEN_NOT) {
+    next_token(ts);
+    astree* value = prefix_op(ts);
+    return new_ast_infix(AST_EQ, value, new_ast_intlit(0));
+  } else {
+    return callexpr(ts);
+  }
+}
+
+
 astree* infix_muldiv(tokenstream* ts) {
-  astree* left = callexpr(ts);
+  astree* left = prefix_op(ts);
   for (;;) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_MUL) {
       next_token(ts);
-      astree* right = callexpr(ts);
+      astree* right = prefix_op(ts);
       left = new_ast_infix(AST_MUL, left, right);
     } else if (t->kind == TOKEN_DIV) {
       next_token(ts);
-      astree* right = callexpr(ts);
+      astree* right = prefix_op(ts);
       left = new_ast_infix(AST_DIV, left, right);
     } else {
       break;
@@ -292,61 +338,14 @@ astree* infix_addsub(tokenstream* ts) {
   return left;
 }
 
-astree* prefix_addsub_deref(tokenstream* ts) {
-  token* t = get_token(ts);
-  if (t != NULL && t->kind == TOKEN_SUB) {
-    next_token(ts);
-    astree* value = prefix_addsub_deref(ts);
-    return new_ast_prefix(AST_MINUS, value);
-  } else if (t != NULL && t->kind == TOKEN_MUL) {
-    next_token(ts);
-    astree* value = prefix_addsub_deref(ts);
-    return new_ast_prefix(AST_DEREF, value);
-  } else if (t != NULL && t->kind == TOKEN_INC) {
-    next_token(ts);
-    astree* value = prefix_addsub_deref(ts);
-    return new_ast_prefix(AST_PREINC, value);
-  } else if (t != NULL && t->kind == TOKEN_AND) {
-    next_token(ts);
-    astree* value = prefix_addsub_deref(ts);
-    return new_ast_prefix(AST_ADDR, value);
-  } else if (t != NULL && t->kind == TOKEN_NOT) {
-    next_token(ts);
-    astree* value = prefix_addsub_deref(ts);
-    return new_ast_infix(AST_EQ, value, new_ast_intlit(0));
-  } else {
-    return infix_addsub(ts);
-  }
-}
-
-astree* prefix_sizeof(tokenstream* ts) {
-  if (eq_ident(get_token(ts), "sizeof")) {
-    next_token(ts);
-    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_LPAREN) next_token(ts);
-    astree* ast;
-    typenode* typ = parse_type(ts);
-    if (typ == NULL) {
-      ast = new_ast(AST_SIZEOF_EXPR);
-      ast->value = expression(ts);
-    } else {
-      ast = new_ast(AST_SIZEOF_TYPE);
-      ast->typedesc = typ;
-    }
-    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_RPAREN) next_token(ts);
-    return ast;
-  } else {
-    return prefix_addsub_deref(ts);
-  }
-}
-
 astree* infix_eq(tokenstream* ts) {
-  astree* left = prefix_sizeof(ts);
+  astree* left = infix_addsub(ts);
   for (;;) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_EQ) {
       next_token(ts);
-      astree* right = prefix_sizeof(ts);
+      astree* right = infix_addsub(ts);
       left = new_ast_infix(AST_EQ, left, right);
     } else {
       break;
@@ -610,9 +609,13 @@ toplevel parse_toplevel(tokenstream* ts) {
     top.fdecl.fdecl = pt;
     top.fdecl.argdecls = parse_paramtype_list(ts);
     expect_token(get_token(ts), TOKEN_RPAREN); next_token(ts);
-    expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
-    top.fdecl.body = parse_statements(ts);
-    expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) {
+      top.fdecl.body = NULL;
+    } else {
+      expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
+      top.fdecl.body = parse_statements(ts);
+      expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
+    }
   } else {
     top.kind = TOP_GLOBALVAR;
     top.vdecl = pt;

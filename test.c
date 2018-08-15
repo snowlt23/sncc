@@ -214,6 +214,17 @@ int globalinit_test() {
   test(GS[0], 121);
 }
 
+int* malloc(int size);
+
+int malloc_test() {
+  int* p = malloc(sizeof(int)*4);
+  p[0] = 1;
+  p[1] = 2;
+  p[2] = 3;
+  p[3] = 4;
+  test(p[0] + p[1] + p[2] + p[3], 10);
+}
+
 int main() {
   infix_test();
   op_test();
@@ -230,6 +241,7 @@ int main() {
   string_test();
   aoj0030();
   globalinit_test();
+  malloc_test();
 
   printf("[OK]");
   return 0;

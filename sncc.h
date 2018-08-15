@@ -98,7 +98,8 @@ typedef enum {
   TYPE_INT,
   TYPE_CHAR,
   TYPE_PTR,
-  TYPE_ARRAY
+  TYPE_ARRAY,
+  TYPE_STRUCT
 } typekind;
 
 typedef struct _typenode {
@@ -106,6 +107,7 @@ typedef struct _typenode {
   struct _typenode* ptrof;
   size_t arraysize;
   struct _typenode* truetype;
+  vector* fields;
 } typenode;
 
 typedef struct {

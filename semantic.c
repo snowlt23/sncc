@@ -184,10 +184,12 @@ void semantic_analysis_toplevel(toplevel* top) {
       argparam->offset = varpos;
       map_insert(varmap, argparam->name, new_varinfo(argparam->typ, varpos));
     }
-    for (int i=0; i<top->fdecl.body->len; i++) {
-      semantic_analysis(vector_get(top->fdecl.body, i));
+    if (top->fdecl.body != NULL) {
+      for (int i=0; i<top->fdecl.body->len; i++) {
+        semantic_analysis(vector_get(top->fdecl.body, i));
+      }
+      top->fdecl.stacksize = varpos;
     }
-    top->fdecl.stacksize = varpos;
   } else if (top->kind == TOP_GLOBALVAR) {
     map_insert(globalvarmap, top->vdecl->name, top->vdecl->typ);
     if (top->vinit != NULL) {
