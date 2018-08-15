@@ -91,13 +91,13 @@ int if_test() {
 }
 
 int for_test_impl() {
-  for (int i=0; i<10; i=i+1) {
+  for (int i=0; i<10; i++) {
     if (i == 5) return i;
   }
 }
 
 int for_test() {
-  for (int i=0; i<10; i=i+1) {
+  for (int i=0; i<10; i++) {
   }
   test(i, 10);
   test(for_test_impl(), 5);
