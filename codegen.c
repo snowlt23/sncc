@@ -189,6 +189,38 @@ void codegen(astree* ast) {
     emit_asm("sete %%al");
     emit_asm("movzbl %%al, %%eax");
     emit_push("%rax");
+  } else if (ast->kind == AST_LAND) {
+    char* falsel = gen_label();
+    char* endl = gen_label();
+    codegen(ast->left);
+    emit_pop("%rax");
+    emit_asm("cmpq $0, %%rax");
+    emit_asm("je %s", falsel);
+    codegen(ast->right);
+    emit_pop("%rax");
+    emit_asm("cmpq $0, %%rax");
+    emit_asm("setne %%al");
+    emit_push("%rax");
+    emit_asm("jmp %s", endl);
+    emit_label(falsel);
+    emit_push("$0");
+    emit_label(endl);
+  } else if (ast->kind == AST_LOR) {
+    char* truel = gen_label();
+    char* endl = gen_label();
+    codegen(ast->left);
+    emit_pop("%rax");
+    emit_asm("cmpq $0, %%rax");
+    emit_asm("jne %s", truel);
+    codegen(ast->right);
+    emit_pop("%rax");
+    emit_asm("cmpq $0, %%rax");
+    emit_asm("setne %%al");
+    emit_push("%rax");
+    emit_asm("jmp %s", endl);
+    emit_label(truel);
+    emit_push("$1");
+    emit_label(endl);
   } else if (ast->kind == AST_MINUS) {
     codegen(ast->value);
     emit_pop("%rax");

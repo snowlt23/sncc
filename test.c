@@ -25,6 +25,16 @@ void infix_test() {
   test(!10, 0);
   test(2 <= 5-2, 1);
   test(10 <= 5-2, 0);
+
+  test(1 && 1, 1);
+  test(1 && 0, 0);
+  test(0 && 0, 0);
+  test(0 || 1, 1);
+  test(1 || 0, 1);
+  test(0 || 0, 0);
+  test(0 || 0 || 0 || 1, 1);
+  test(1 && 1 && 1 && 0, 0);
+  test(1 && 1 && 1 && 1, 1);
 }
 
 void op_test() {

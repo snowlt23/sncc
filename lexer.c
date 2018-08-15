@@ -68,6 +68,10 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_ADDASSIGN";
   } else if (token->kind == TOKEN_MULASSIGN) {
     return "TOKEN_MULASSIGN";
+  } else if (token->kind == TOKEN_LAND) {
+    return "TOKEN_LAND";
+  } else if (token->kind == TOKEN_LOR) {
+    return "TOKEN_LOR";
   } else if (token->kind == TOKEN_INC) {
     return "TOKEN_INC";
   } else if (token->kind == TOKEN_EQ) {
@@ -129,6 +133,10 @@ char* token_to_str(token* token) {
     return "+=";
   } else if (token->kind == TOKEN_MULASSIGN) {
     return "*=";
+  } else if (token->kind == TOKEN_LAND) {
+    return "&&";
+  } else if (token->kind == TOKEN_LOR) {
+    return "||";
   } else if (token->kind == TOKEN_INC) {
     return "++";
   } else if (token->kind == TOKEN_EQ) {
@@ -293,8 +301,21 @@ vector* lexer() {
       }
     } else if (c == '.') {
       vector_push(tokenss, new_token(TOKEN_DOT));
+    } else if (c == '|') {
+      char nc = getc(input);
+      if (nc == '|') {
+        vector_push(tokenss, new_token(TOKEN_LOR));
+      } else {
+        error("unsupporte | token in currently.");
+      }
     } else if (c == '&') {
-      vector_push(tokenss, new_token(TOKEN_AND));
+      char nc = getc(input);
+      if (nc == '&') {
+        vector_push(tokenss, new_token(TOKEN_LAND));
+      } else {
+        ungetc(nc, input);
+        vector_push(tokenss, new_token(TOKEN_AND));
+      }
     } else if (c == '=') {
       char nc = getc(input);
       if (nc == '=') {

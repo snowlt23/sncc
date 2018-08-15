@@ -439,8 +439,40 @@ astree* infix_lge(tokenstream* ts) {
   return left;
 }
 
-astree* infix_assign(tokenstream* ts) {
+astree* infix_logic_and(tokenstream* ts) {
   astree* left = infix_lge(ts);
+  for (;;) {
+    token* t = get_token(ts);
+    if (t == NULL) break;
+    if (t->kind == TOKEN_LAND) {
+      next_token(ts);
+      astree* right = infix_lge(ts);
+      left = new_ast_infix(AST_LAND, left, right);
+    } else {
+      break;
+    }
+  }
+  return left;
+}
+
+astree* infix_logic_or(tokenstream* ts) {
+  astree* left = infix_logic_and(ts);
+  for (;;) {
+    token* t = get_token(ts);
+    if (t == NULL) break;
+    if (t->kind == TOKEN_LOR) {
+      next_token(ts);
+      astree* right = infix_logic_and(ts);
+      left = new_ast_infix(AST_LOR, left, right);
+    } else {
+      break;
+    }
+  }
+  return left;
+}
+
+astree* infix_assign(tokenstream* ts) {
+  astree* left = infix_logic_or(ts);
   for (;;) {
     token* t = get_token(ts);
     if (t == NULL) break;

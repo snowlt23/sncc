@@ -158,7 +158,7 @@ void semantic_analysis(astree* ast) {
     astree* convast = new_ast_infix(AST_SUB, new_ast_prefix(AST_PREINC, ast->value), new_ast_intlit(1));
     semantic_analysis(convast);
     *ast = *convast;
-  } else if (ast->kind == AST_EQ) {
+  } else if (ast->kind == AST_EQ || ast->kind == AST_LAND || ast->kind == AST_LOR) {
     semantic_analysis(ast->left);
     semantic_analysis(ast->right);
   } else if (ast->kind == AST_DOT) {
