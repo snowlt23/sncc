@@ -410,7 +410,9 @@ void codegen_strlits() {
 }
 
 void codegen_toplevel(toplevel top) {
-  if (top.kind == TOP_FUNCDECL) {
+  if (top.kind == TOP_NONE) {
+    // discard
+  } else if (top.kind == TOP_FUNCDECL) {
     printf(".text\n");
     codegen_funcdecl(top.fdecl);
   } else if (top.kind == TOP_GLOBALVAR) {

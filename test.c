@@ -343,6 +343,16 @@ void typedef_vector_test() {
   v->data[2] = &c;
 }
 
+typedef int bool;
+bool true = 1;
+bool false = 0;
+void typedef_bool_test() {
+  bool t = true;
+  bool f = false;
+  test(t, 1);
+  test(f, 0);
+}
+
 int main() {
   infix_test();
   op_test();
@@ -365,6 +375,7 @@ int main() {
   struct_allow_test();
   struct_incomplete_test();
   typedef_vector_test();
+  typedef_bool_test();
 
   printf("[OK]");
   return 0;

@@ -233,7 +233,9 @@ void semantic_analysis(astree* ast) {
 
 void semantic_analysis_toplevel(toplevel* top) {
   init_fn_semantic();
-  if (top->kind == TOP_FUNCDECL) {
+  if (top->kind == TOP_NONE) {
+    // discard
+  } else if (top->kind == TOP_FUNCDECL) {
     map_insert(fnmap, top->fdecl.fdecl->name, top->fdecl.fdecl->typ);
     for (int i=0; i<top->fdecl.argdecls->len; i++) {
       paramtype* argparam = vector_get(top->fdecl.argdecls, i);

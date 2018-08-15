@@ -701,6 +701,8 @@ toplevel parse_toplevel(tokenstream* ts) {
       } else {
         map_insert(structmap, top.structtype->tname, top.structtype);
       }
+    } else {
+      top.kind = TOP_NONE;
     }
     expect_token(get_token(ts), TOKEN_IDENT);
     char* typedefname = get_token(ts)->ident; next_token(ts);

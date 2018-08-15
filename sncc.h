@@ -129,6 +129,7 @@ typedef struct {
 } paramtype;
 
 typedef enum {
+  TOP_NONE,
   TOP_FUNCDECL,
   TOP_GLOBALVAR,
   TOP_STRUCT
