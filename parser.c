@@ -166,6 +166,20 @@ typenode* parse_type(tokenstream* ts) {
   } else if (eq_ident(get_token(ts), "char")) {
     next_token(ts);
     tn = new_typenode(TYPE_CHAR);
+  } else if (eq_ident(get_token(ts), "struct")) {
+    next_token(ts);
+    tn = new_typenode(TYPE_STRUCT);
+    expect_token(get_token(ts), TOKEN_IDENT);
+    tn->tname = get_token(ts)->ident; next_token(ts);
+    expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
+    tn->fields = new_vector();
+    for (;;) {
+      paramtype* field = parse_paramtype(ts);
+      if (field == NULL) break;
+      vector_push(tn->fields, field);
+      expect_token(get_token(ts), TOKEN_SEMICOLON); next_token(ts);
+    }
+    expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
   } else {
     return NULL;
   }
@@ -559,6 +573,12 @@ astree* parse_compound(tokenstream* ts) {
 paramtype* parse_paramtype(tokenstream* ts) {
   typenode* tn = parse_type(ts);
   if (tn == NULL) return NULL;
+  if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_IDENT) {
+    paramtype* pt = malloc(sizeof(paramtype));
+    pt->typ = tn;
+    pt->name = NULL;
+    return pt;
+  }
   token* t = get_token(ts); next_token(ts);
   if (t->kind != TOKEN_IDENT) error("expected identifier in parameter.");
   for (;;) { // array declaration
@@ -616,7 +636,7 @@ toplevel parse_toplevel(tokenstream* ts) {
       top.fdecl.body = parse_statements(ts);
       expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
     }
-  } else {
+  } else if (pt->name != NULL) {
     top.kind = TOP_GLOBALVAR;
     top.vdecl = pt;
     if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_ASSIGN) {
@@ -625,6 +645,9 @@ toplevel parse_toplevel(tokenstream* ts) {
     } else {
       top.vinit = NULL;
     }
+  } else {
+    top.kind = TOP_STRUCT;
+    top.structtype = pt->typ;
   }
 
   if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) next_token(ts);

@@ -107,6 +107,7 @@ typedef struct _typenode {
   struct _typenode* ptrof;
   size_t arraysize;
   struct _typenode* truetype;
+  char* tname;
   vector* fields;
 } typenode;
 
@@ -118,7 +119,8 @@ typedef struct {
 
 typedef enum {
   TOP_FUNCDECL,
-  TOP_GLOBALVAR
+  TOP_GLOBALVAR,
+  TOP_STRUCT
 } toplevelkind;
 
 typedef struct {
@@ -136,6 +138,7 @@ typedef struct {
       paramtype* vdecl;
       struct _astree* vinit;
     };
+    typenode* structtype;
   };
 } toplevel;
 

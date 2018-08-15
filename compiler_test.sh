@@ -119,5 +119,7 @@ funcdecltest "int* malloc(int size);" "malloc size"
 funcdecltest "int main() {}" "main"
 funcdecltest "int fib(int n) {n;}" "fib n"
 funcdecltest "int padd(int* a, int* b) {int* c; c = a + b;}" "padd a b"
+funcdecltest "struct myint { int x; int y; };" "myint x y"
+funcdecltest "struct myptr { int* p; };" "myptr p"
 
 echo "[OK]"
