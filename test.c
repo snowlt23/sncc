@@ -31,6 +31,10 @@ void op_test() {
   test(a, 1);
   test(++a, 2);
   test(a, 2);
+  a += 2;
+  test(a, 4);
+  a *= 2;
+  test(a, 8);
 
   int i = 0;
   test(i++, 0);

@@ -448,6 +448,14 @@ astree* infix_assign(tokenstream* ts) {
       next_token(ts);
       astree* right = expression(ts);
       left = new_ast_infix(AST_ASSIGN, left, right);
+    } else if (t->kind == TOKEN_ADDASSIGN) {
+      next_token(ts);
+      astree* right = expression(ts);
+      left = new_ast_infix(AST_ADDASSIGN, left, right);
+    } else if (t->kind == TOKEN_MULASSIGN) {
+      next_token(ts);
+      astree* right = expression(ts);
+      left = new_ast_infix(AST_MULASSIGN, left, right);
     } else {
       break;
     }

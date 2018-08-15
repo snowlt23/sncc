@@ -2,6 +2,8 @@
 #include <assert.h>
 #include "sncc.h"
 
+void* malloc(int size);
+
 vector* new_vector_cap(int cap) {
   vector* v = malloc(sizeof(vector));
   v->data = malloc(cap*sizeof(void*));
@@ -21,16 +23,13 @@ void vector_extend(vector* v) {
 }
 
 void* vector_get(vector* v, int index) {
-  assert(0 <= index && index < v->len);
   return v->data[index];
 }
 void vector_set(vector* v, int index, void* elem) {
-  assert(0 <= index && index < v->len);
   v->data[index] = elem;
 }
 
 void vector_push(vector* v, void* elem) {
   vector_extend(v);
-  v->len += 1;
-  vector_set(v, v->len-1, elem);
+  vector_set(v, v->len++, elem);
 }

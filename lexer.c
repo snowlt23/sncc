@@ -58,6 +58,10 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_GREATEREQ";
   } else if (token->kind == TOKEN_ASSIGN) {
     return "TOKEN_ASSIGN";
+  } else if (token->kind == TOKEN_ADDASSIGN) {
+    return "TOKEN_ADDASSIGN";
+  } else if (token->kind == TOKEN_MULASSIGN) {
+    return "TOKEN_MULASSIGN";
   } else if (token->kind == TOKEN_INC) {
     return "TOKEN_INC";
   } else if (token->kind == TOKEN_EQ) {
@@ -115,6 +119,10 @@ char* token_to_str(token* token) {
     return ">=";
   } else if (token->kind == TOKEN_ASSIGN) {
     return "=";
+  } else if (token->kind == TOKEN_ADDASSIGN) {
+    return "+=";
+  } else if (token->kind == TOKEN_MULASSIGN) {
+    return "*=";
   } else if (token->kind == TOKEN_INC) {
     return "++";
   } else if (token->kind == TOKEN_EQ) {
@@ -188,6 +196,8 @@ vector* lexer() {
       char nc = getc(stdin);
       if (nc == '+') {
         vector_push(tokenss, new_token(TOKEN_INC));
+      } else if (nc == '=') {
+        vector_push(tokenss, new_token(TOKEN_ADDASSIGN));
       } else {
         ungetc(nc, stdin);
         vector_push(tokenss, new_token(TOKEN_ADD));
@@ -201,7 +211,13 @@ vector* lexer() {
         vector_push(tokenss, new_token(TOKEN_SUB));
       }
     } else if (c == '*') {
-      vector_push(tokenss, new_token(TOKEN_MUL));
+      char nc = getc(stdin);
+      if (nc == '=') {
+        vector_push(tokenss, new_token(TOKEN_MULASSIGN));
+      } else {
+        ungetc(nc, stdin);
+        vector_push(tokenss, new_token(TOKEN_MUL));
+      }
     } else if (c == '/') {
       vector_push(tokenss, new_token(TOKEN_DIV));
     } else if (c == '<') {

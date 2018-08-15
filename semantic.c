@@ -147,7 +147,7 @@ void semantic_analysis(astree* ast) {
   } else if (ast->kind == AST_MINUS) {
     semantic_analysis(ast->value);
     ast->typ = ast->value->typ;
-  } else if (ast->kind == AST_ASSIGN) {
+  } else if (ast->kind == AST_ASSIGN || ast->kind == AST_ADDASSIGN || ast->kind == AST_MULASSIGN) {
     semantic_analysis(ast->left);
     semantic_analysis(ast->right);
     ast->typ = new_typenode(TYPE_INT);

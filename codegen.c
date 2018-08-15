@@ -203,6 +203,33 @@ void codegen(astree* ast) {
     emit_pop("%rcx");
     emit_pop("%rax");
     codegen_movereg(ast->left->typ, "%cl", "%ecx", "%rcx");
+  } else if (ast->kind == AST_ADDASSIGN) {
+    codegen_lvalue(ast->left);
+    emit_pop("%rax");
+    emit_push("%rax");
+    emit_push("%rax");
+    codegen_movevalue(ast->left->typ);
+    codegen(ast->right);
+    codegen_add(ast->left->typ);
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    codegen_movereg(ast->value->typ, "%cl", "%ecx", "%rcx");
+    emit_push("%rcx");
+  } else if (ast->kind == AST_MULASSIGN) {
+    codegen_lvalue(ast->left);
+    emit_pop("%rax");
+    emit_push("%rax");
+    emit_push("%rax");
+    codegen_movevalue(ast->left->typ);
+    codegen(ast->right);
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    emit_asm("imulq %%rcx");
+    emit_push("%rax");
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    codegen_movereg(ast->value->typ, "%cl", "%ecx", "%rcx");
+    emit_push("%rcx");
   } else if (ast->kind == AST_PREINC) {
     codegen_lvalue(ast->value);
     emit_pop("%rax");
