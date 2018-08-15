@@ -292,6 +292,20 @@ int struct_allow_test() {
   test(mpp->mic.c + mpp->mic.x, 9);
 }
 
+struct incom {
+  int x;
+  struct incom* next;
+};
+
+int struct_incomplete_test() {
+  test(sizeof(struct incom), 16);
+  struct incom ic;
+  struct incom icnext;
+  ic.next = &icnext;
+  ic.next->x = 9;
+  test(icnext.x, 9);
+}
+
 int main() {
   infix_test();
   op_test();
@@ -312,6 +326,7 @@ int main() {
   struct_sizeof_test();
   struct_dot_test();
   struct_allow_test();
+  struct_incomplete_test();
 
   printf("[OK]");
   return 0;

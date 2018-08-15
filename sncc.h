@@ -102,7 +102,8 @@ typedef enum {
   TYPE_CHAR,
   TYPE_PTR,
   TYPE_ARRAY,
-  TYPE_STRUCT
+  TYPE_STRUCT,
+  TYPE_INCOMPLETE_STRUCT
 } typekind;
 
 typedef struct _typenode {

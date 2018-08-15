@@ -69,6 +69,8 @@ int typesize(typenode* typ) {
     return typesize(typ->truetype);
   }
 
+  if (typ->kind == TYPE_INCOMPLETE_STRUCT) error("%s type is incomplete type.", typ->tname);
+
   if (typ->kind == TYPE_INT) {
     return 4;
   } else if (typ->kind == TYPE_CHAR) {

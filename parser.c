@@ -178,10 +178,15 @@ typenode* parse_type(tokenstream* ts) {
     next_token(ts);
     tn = new_typenode(TYPE_STRUCT);
     expect_token(get_token(ts), TOKEN_IDENT);
-    tn->tname = get_token(ts)->ident; next_token(ts);
+    char* tname = get_token(ts)->ident; next_token(ts);
+    tn->tname = tname;
     if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_LBRACE) {
       tn = map_get(structmap, tn->tname);
-      if (tn == NULL) error("undeclared %s struct.", tn->tname);
+      if (tn == NULL) {
+        tn = new_typenode(TYPE_INCOMPLETE_STRUCT);
+        tn->tname = tname;
+        map_insert(structmap, tname, tn);
+      }
     } else {
       expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
       tn->fields = new_vector();
@@ -675,7 +680,13 @@ toplevel parse_toplevel(tokenstream* ts) {
   } else {
     top.kind = TOP_STRUCT;
     top.structtype = pt->typ;
-    map_insert(structmap, top.structtype->tname, top.structtype);
+    typenode* alreadystruct = map_get(structmap, top.structtype->tname);
+    if (alreadystruct != NULL) {
+      *alreadystruct = *top.structtype;
+      top.structtype = alreadystruct;
+    } else {
+      map_insert(structmap, top.structtype->tname, top.structtype);
+    }
   }
 
   if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) next_token(ts);
