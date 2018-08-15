@@ -17,13 +17,15 @@ int main(int argc, char **argv) {
  
     FILE* fp = fopen(file_name, "r");
     if (fp == NULL) {
-       printf("%s: No such file or directory\n", file_name);
-       return 1;
+      printf("%s: No such file or directory\n", file_name);
+      return 1;
     }
  
-    while (!feof(fp)) {
-      char c = fgetc(fp);
+    char c = fgetc(fp);
+    char eof = EOF;
+    while (c != eof) {
       putchar(c);
+      c = fgetc(fp);
     }
     fclose(fp);
   }

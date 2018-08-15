@@ -1,5 +1,6 @@
 typedef void FILE;
 
+#define EOF (-1)
 #define EXIT_FAILURE 1
 
 FILE* fopen(char* filename, char* mode);
