@@ -278,6 +278,20 @@ int struct_dot_test() {
   test(mp.mic.c + mp.mic.x, 9);
 }
 
+int struct_allow_test() {
+  struct mychar mc;
+  struct mychar* mcp = &mc;
+  mcp->a = 1;
+  mcp->b = 2;
+  test(mcp->a + mcp->b, 3);
+
+  struct myptr mp;
+  struct myptr* mpp = &mp;
+  mpp->mic.c = 4;
+  mpp->mic.x = 5;
+  test(mpp->mic.c + mpp->mic.x, 9);
+}
+
 int main() {
   infix_test();
   op_test();

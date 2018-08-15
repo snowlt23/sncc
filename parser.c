@@ -181,17 +181,18 @@ typenode* parse_type(tokenstream* ts) {
     tn->tname = get_token(ts)->ident; next_token(ts);
     if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_LBRACE) {
       tn = map_get(structmap, tn->tname);
-      return tn;
+      if (tn == NULL) error("undeclared %s struct.", tn->tname);
+    } else {
+      expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
+      tn->fields = new_vector();
+      for (;;) {
+        paramtype* field = parse_paramtype(ts);
+        if (field == NULL) break;
+        vector_push(tn->fields, field);
+        expect_token(get_token(ts), TOKEN_SEMICOLON); next_token(ts);
+      }
+      expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
     }
-    expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
-    tn->fields = new_vector();
-    for (;;) {
-      paramtype* field = parse_paramtype(ts);
-      if (field == NULL) break;
-      vector_push(tn->fields, field);
-      expect_token(get_token(ts), TOKEN_SEMICOLON); next_token(ts);
-    }
-    expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
   } else {
     return NULL;
   }
@@ -252,6 +253,13 @@ astree* postfix_op(tokenstream* ts) {
       next_token(ts);
       astree* newast = new_ast(AST_DOT);
       newast->structvalue = value;
+      expect_token(get_token(ts), TOKEN_IDENT);
+      newast->fieldname = get_token(ts)->ident; next_token(ts);
+      value = newast;
+    } else if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_ALLOW) {
+      next_token(ts);
+      astree* newast = new_ast(AST_DOT);
+      newast->structvalue = new_ast_prefix(AST_DEREF, value);
       expect_token(get_token(ts), TOKEN_IDENT);
       newast->fieldname = get_token(ts)->ident; next_token(ts);
       value = newast;

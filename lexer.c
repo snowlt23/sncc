@@ -66,6 +66,8 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_NOT";
   } else if (token->kind == TOKEN_DOT) {
     return "TOKEN_DOT";
+  } else if (token->kind == TOKEN_ALLOW) {
+    return "TOKEN_ALLOW";
   } else if (token->kind == TOKEN_AND) {
     return "TOKEN_AND";
   } else if (token->kind == TOKEN_INTLIT) {
@@ -119,6 +121,10 @@ char* token_to_str(token* token) {
     return "==";
   } else if (token->kind == TOKEN_NOT) {
     return "!";
+  } else if (token->kind == TOKEN_DOT) {
+    return ".";
+  } else if (token->kind == TOKEN_ALLOW) {
+    return "->";
   } else if (token->kind == TOKEN_AND) {
     return "&";
   } else if (token->kind == TOKEN_LPAREN) {
@@ -187,7 +193,13 @@ vector* lexer() {
         vector_push(tokenss, new_token(TOKEN_ADD));
       }
     } else if (c == '-') {
-      vector_push(tokenss, new_token(TOKEN_SUB));
+      char nc = getc(stdin);
+      if (nc == '>') {
+        vector_push(tokenss, new_token(TOKEN_ALLOW));
+      } else {
+        ungetc(nc, stdin);
+        vector_push(tokenss, new_token(TOKEN_SUB));
+      }
     } else if (c == '*') {
       vector_push(tokenss, new_token(TOKEN_MUL));
     } else if (c == '/') {

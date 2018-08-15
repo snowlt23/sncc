@@ -43,6 +43,7 @@ typedef enum {
   TOKEN_EQ,
   TOKEN_NOT,
   TOKEN_DOT,
+  TOKEN_ALLOW,
   TOKEN_AND,
   TOKEN_INTLIT,
   TOKEN_STRLIT,
