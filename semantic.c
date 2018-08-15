@@ -205,6 +205,12 @@ void semantic_analysis(astree* ast) {
   } else if (ast->kind == AST_IF) {
     semantic_analysis(ast->ifcond);
     semantic_analysis(ast->ifbody);
+    for (int i=0; i<ast->elifconds->len; i++) {
+      astree* cond = vector_get(ast->elifconds, i);
+      astree* body = vector_get(ast->elifbodies, i);
+      semantic_analysis(cond);
+      semantic_analysis(body);
+    }
     if (ast->elsebody != NULL) {
       semantic_analysis(ast->elsebody);
     }

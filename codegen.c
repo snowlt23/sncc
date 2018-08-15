@@ -324,14 +324,26 @@ void codegen(astree* ast) {
     emit_asm("ret");
   } else if (ast->kind == AST_IF) {
     codegen(ast->ifcond);
-    char* elsel = gen_label();
     char* endl = gen_label();
+    char* nextl = gen_label();
     emit_asm("pop %%rax");
     emit_asm("cmpq $0, %%rax");
-    emit_asm("je %s", elsel);
+    emit_asm("je %s", nextl);
     codegen(ast->ifbody);
     emit_asm("jmp %s", endl);
-    emit_label(elsel);
+    for (int i=0; i<ast->elifconds->len; i++) {
+      astree* cond = vector_get(ast->elifconds, i);
+      astree* body = vector_get(ast->elifbodies, i);
+      emit_label(nextl);
+      codegen(cond);
+      emit_asm("pop %%rax");
+      emit_asm("cmpq $0, %%rax");
+      nextl = gen_label();
+      emit_asm("je %s", nextl);
+      codegen(body);
+      emit_asm("jmp %s", endl);
+    }
+    emit_label(nextl);
     if (ast->elsebody != NULL) {
       codegen(ast->elsebody);
     }

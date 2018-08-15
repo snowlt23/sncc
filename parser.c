@@ -494,10 +494,21 @@ astree* parse_if(tokenstream* ts) {
   expect_token(get_token(ts), TOKEN_RPAREN); next_token(ts);
   ast->ifbody = parse_compound(ts);
 
+  ast->elifconds = new_vector();
+  ast->elifbodies = new_vector();
   ast->elsebody = NULL;
-  if (eq_ident(get_token(ts), "else")) {
+  for (;;) {
+    if (!eq_ident(get_token(ts), "else")) break;
     next_token(ts);
-    ast->elsebody = parse_compound(ts);
+    if (eq_ident(get_token(ts), "if")) {
+      next_token(ts);
+      expect_token(get_token(ts), TOKEN_LPAREN); next_token(ts);
+      vector_push(ast->elifconds, expression(ts));
+      expect_token(get_token(ts), TOKEN_RPAREN); next_token(ts);
+      vector_push(ast->elifbodies, parse_compound(ts));
+    } else {
+      ast->elsebody = parse_compound(ts);
+    }
   }
 
   return ast;

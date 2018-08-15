@@ -88,10 +88,23 @@ int if_test_impl3() {
   }
 }
 
+int if_test_impl4() {
+  if (0) {
+    return 0;
+  } else if (0) {
+    return 0;
+  } else if (1) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 void if_test() {
   test(if_test_impl1(), 9);
   test(if_test_impl2(), 5);
   test(if_test_impl3(), 5);
+  test(if_test_impl4(), 1);
 }
 
 int for_test_impl() {

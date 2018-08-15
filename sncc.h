@@ -184,6 +184,8 @@ typedef struct _astree {
     struct {
       struct _astree* ifcond;
       struct _astree* ifbody;
+      vector* elifconds;
+      vector* elifbodies;
       struct _astree* elsebody;
     };
     struct {
