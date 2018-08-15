@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_FILE_NAME_CHARS 255
+#define MAX_FILENAME_LEN 255
 
 int main(int argc, char **argv) {
-  char file_name[MAX_FILE_NAME_CHARS]; 
+  char filename[MAX_FILENAME_LEN]; 
  
   if (argc <= 1) {
     printf("Usage cat <filename> \n");
@@ -13,11 +13,11 @@ int main(int argc, char **argv) {
   }
  
   for (int i=1; i<argc; i++){
-    strncpy(file_name, argv[i], MAX_FILE_NAME_CHARS);
+    strncpy(filename, argv[i], MAX_FILENAME_LEN);
  
-    FILE* fp = fopen(file_name, "r");
+    FILE* fp = fopen(filename, "r");
     if (fp == NULL) {
-      printf("%s: No such file or directory\n", file_name);
+      printf("%s: No such file or directory\n", filename);
       return 1;
     }
  
