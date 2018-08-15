@@ -304,6 +304,28 @@ void struct_incomplete_test() {
   test(icnext.x, 9);
 }
 
+typedef struct _vector {
+  void** data;
+  int cap;
+} vector;
+
+vector* new_vector_cap(int cap) {
+  vector* v = malloc(sizeof(vector));
+  v->data = malloc(sizeof(void*)*cap);
+  v->cap = cap;
+  return v;
+}
+
+void typedef_vector_test() {
+  vector* v = new_vector_cap(10);
+  int a;
+  int b;
+  int c;
+  v->data[0] = &a;
+  v->data[1] = &b;
+  v->data[2] = &c;
+}
+
 int main() {
   infix_test();
   op_test();
@@ -325,6 +347,7 @@ int main() {
   struct_dot_test();
   struct_allow_test();
   struct_incomplete_test();
+  typedef_vector_test();
 
   printf("[OK]");
   return 0;

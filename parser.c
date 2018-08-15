@@ -4,9 +4,11 @@
 #include "sncc.h"
 
 map* structmap;
+map* typedefmap;
 
 void init_parser() {
   structmap = new_map();
+  typedefmap = new_map();
 }
 
 bool eq_ident(token* id, char* s) {
@@ -202,7 +204,12 @@ typenode* parse_type(tokenstream* ts) {
       expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
     }
   } else {
-    return NULL;
+    if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_IDENT) return NULL;
+    char* tname = get_token(ts)->ident;
+    typenode* searched = map_get(typedefmap, tname);
+    if (searched == NULL) return NULL;
+    next_token(ts);
+    tn = searched;
   }
   for (;;) {
     if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_MUL) {
@@ -656,6 +663,27 @@ vector* parse_paramtype_list(tokenstream* ts) {
 
 toplevel parse_toplevel(tokenstream* ts) {
   toplevel top;
+
+  if (eq_ident(get_token(ts), "typedef")) {
+    next_token(ts);
+    typenode* typ = parse_type(ts);
+    if (typ->kind == TYPE_STRUCT) {
+      top.kind = TOP_STRUCT;
+      top.structtype = typ;
+      typenode* alreadystruct = map_get(structmap, top.structtype->tname);
+      if (alreadystruct != NULL) {
+        *alreadystruct = *top.structtype;
+        top.structtype = alreadystruct;
+      } else {
+        map_insert(structmap, top.structtype->tname, top.structtype);
+      }
+    }
+    expect_token(get_token(ts), TOKEN_IDENT);
+    char* typedefname = get_token(ts)->ident; next_token(ts);
+    map_insert(typedefmap, typedefname, typ);
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) next_token(ts);
+    return top;
+  }
 
   paramtype* pt = parse_paramtype(ts);
   if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_LPAREN) {
