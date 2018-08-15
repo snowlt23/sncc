@@ -311,6 +311,7 @@ int main() {
   malloc_test();
   struct_sizeof_test();
   struct_dot_test();
+  struct_allow_test();
 
   printf("[OK]");
   return 0;
