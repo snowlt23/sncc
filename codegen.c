@@ -316,8 +316,10 @@ void codegen(astree* ast) {
       codegen(e);
     }
   } else if (ast->kind == AST_RETURN) {
-    codegen(ast->value);
-    emit_pop("%rax");
+    if (ast->value != NULL){
+      codegen(ast->value);
+      emit_pop("%rax");
+    }
     emit_epilogue();
     emit_asm("ret");
   } else if (ast->kind == AST_IF) {

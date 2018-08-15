@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall
 
 SNCC_LIBS = vector.o map.o lexer.o parser.o semantic.o codegen.o
-SELF_LIBS = vector.self.o map.o lexer.o parser.o semantic.o codegen.o
+SELF_LIBS = vector.self.o map.self.o lexer.o parser.o semantic.o codegen.o
 
 build: sncc ;
 

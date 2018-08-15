@@ -199,7 +199,9 @@ void semantic_analysis(astree* ast) {
       semantic_analysis(e);
     }
   } else if (ast->kind == AST_RETURN) {
-    semantic_analysis(ast->value);
+    if (ast->value != NULL) {
+      semantic_analysis(ast->value);
+    }
   } else if (ast->kind == AST_IF) {
     semantic_analysis(ast->ifcond);
     semantic_analysis(ast->ifbody);

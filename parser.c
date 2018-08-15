@@ -472,6 +472,11 @@ astree* parse_return(tokenstream* ts) {
   next_token(ts);
 
   astree* ast = new_ast(AST_RETURN);
+  if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) {
+    next_token(ts);
+    ast->value = NULL;
+    return ast;
+  }
   ast->value = expression(ts);
   expect_token(get_token(ts), TOKEN_SEMICOLON); next_token(ts);
 
