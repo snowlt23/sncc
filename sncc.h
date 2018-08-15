@@ -109,6 +109,8 @@ typedef struct _typenode {
   struct _typenode* truetype;
   char* tname;
   vector* fields;
+  int structsize;
+  int maxalign;
 } typenode;
 
 typedef struct {
@@ -209,6 +211,7 @@ char* token_to_kindstr(token* token);
 char* token_to_str(token* token);
 
 // parser.c
+void init_parser();
 // ast
 astree* new_ast(astkind kind);
 astree* new_ast_ident(char* ident);

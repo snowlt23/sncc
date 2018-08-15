@@ -3,6 +3,12 @@
 #include <assert.h>
 #include "sncc.h"
 
+map* structmap;
+
+void init_parser() {
+  structmap = new_map();
+}
+
 bool eq_ident(token* id, char* s) {
   return id != NULL && id->kind == TOKEN_IDENT && strcmp(id->ident, s) == 0;
 }
@@ -171,6 +177,10 @@ typenode* parse_type(tokenstream* ts) {
     tn = new_typenode(TYPE_STRUCT);
     expect_token(get_token(ts), TOKEN_IDENT);
     tn->tname = get_token(ts)->ident; next_token(ts);
+    if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_LBRACE) {
+      tn = map_get(structmap, tn->tname);
+      return tn;
+    }
     expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
     tn->fields = new_vector();
     for (;;) {
@@ -648,6 +658,7 @@ toplevel parse_toplevel(tokenstream* ts) {
   } else {
     top.kind = TOP_STRUCT;
     top.structtype = pt->typ;
+    map_insert(structmap, top.structtype->tname, top.structtype);
   }
 
   if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) next_token(ts);

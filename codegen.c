@@ -374,6 +374,8 @@ void codegen_toplevel(toplevel top) {
     } else {
       emit_asm(".zero %d", typesize(top.vdecl->typ));
     }
+  } else if (top.kind == TOP_STRUCT) {
+    // discard
   } else {
     assert(false);
   }

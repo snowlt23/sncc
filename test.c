@@ -225,6 +225,42 @@ int malloc_test() {
   test(p[0] + p[1] + p[2] + p[3], 10);
 }
 
+struct mychar {
+  char a;
+  char b;
+};
+struct mychar3 {
+  char a;
+  char b;
+  char c;
+};
+struct mycharptr {
+  char a;
+  char b;
+  int* p;
+};
+struct myintc {
+  char c;
+  int x;
+};
+struct mycwrap {
+  struct mychar mc;
+  int x;
+};
+struct myptr {
+  int* p;
+  struct myintc mic;
+};
+
+int struct_sizeof_test() {
+  test(sizeof(struct mychar), 2);
+  test(sizeof(struct mychar3), 3);
+  test(sizeof(struct mycharptr), 16);
+  test(sizeof(struct myintc), 8);
+  test(sizeof(struct mycwrap), 8);
+  test(sizeof(struct myptr), 16);
+}
+
 int main() {
   infix_test();
   op_test();
@@ -242,6 +278,7 @@ int main() {
   aoj0030();
   globalinit_test();
   malloc_test();
+  struct_sizeof_test();
 
   printf("[OK]");
   return 0;

@@ -43,6 +43,27 @@ void init_fn_semantic() {
   strlits = new_vector();
 }
 
+int getalign(typenode* typ) {
+  if (typ->truetype != NULL) {
+    return getalign(typ->truetype);
+  }
+
+  if (typ->kind == TYPE_INT) {
+    return 4;
+  } else if (typ->kind == TYPE_CHAR) {
+    return 1;
+  } else if (typ->kind == TYPE_PTR) {
+    return 8;
+  } else if (typ->kind == TYPE_ARRAY) {
+    return getalign(typ->ptrof) * typ->arraysize;
+  } else if (typ->kind == TYPE_STRUCT) {
+    if (typ->maxalign == -1) error("%s is imcomplete type.", typ->tname);
+    return typ->maxalign;
+  } else {
+    assert(false);
+  }
+}
+
 int typesize(typenode* typ) {
   if (typ->truetype != NULL) {
     return typesize(typ->truetype);
@@ -56,6 +77,9 @@ int typesize(typenode* typ) {
     return 8;
   } else if (typ->kind == TYPE_ARRAY) {
     return typesize(typ->ptrof) * typ->arraysize;
+  } else if (typ->kind == TYPE_STRUCT) {
+    if (typ->structsize == -1) error("%s is imcomplete type.", typ->tname);
+    return typ->structsize;
   } else {
     assert(false);
   }
@@ -202,6 +226,32 @@ void semantic_analysis_toplevel(toplevel* top) {
         top->vdecl->typ->truetype->arraysize = strlen(top->vinit->strval) + 1;
       }
     }
+  } else if (top->kind == TOP_STRUCT) {
+    // decide typesize
+    int maxalign = 0;
+    for (int i=0; i<top->structtype->fields->len; i++) {
+      paramtype* field = vector_get(top->structtype->fields, i);
+      if (maxalign < getalign(field->typ)) {
+        maxalign = getalign(field->typ);
+      }
+    }
+    int alignsize = 0;
+    int structsize = 0;
+    for (int i=0; i<top->structtype->fields->len; i++) {
+      paramtype* field = vector_get(top->structtype->fields, i);
+      if (alignsize+typesize(field->typ) == maxalign) {
+        alignsize = 0;
+      } else if (alignsize+typesize(field->typ) > maxalign) {
+        if (alignsize != maxalign) {
+          structsize += maxalign - alignsize % maxalign;
+        }
+        alignsize = 0;
+      }
+      structsize += typesize(field->typ);
+      alignsize += typesize(field->typ);
+    }
+    top->structtype->structsize = structsize;
+    top->structtype->maxalign = maxalign;
   } else {
     assert(false);
   }
