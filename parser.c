@@ -605,6 +605,12 @@ toplevel parse_toplevel(tokenstream* ts) {
   } else {
     top.kind = TOP_GLOBALVAR;
     top.vdecl = pt;
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_ASSIGN) {
+      next_token(ts);
+      top.vinit = expression(ts);
+    } else {
+      top.vinit = NULL;
+    }
   }
 
   if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) next_token(ts);

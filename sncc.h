@@ -127,7 +127,10 @@ typedef struct {
   toplevelkind kind;
   union {
     funcdecl fdecl;
-    paramtype* vdecl;
+    struct {
+      paramtype* vdecl;
+      struct _astree* vinit;
+    };
   };
 } toplevel;
 

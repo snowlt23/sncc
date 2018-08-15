@@ -193,6 +193,13 @@ int aoj0030() {
   test(dfs(0, 0, 0), 3);
 }
 
+int GI = 9;
+char* GS = "yukaia";
+int globalinit_test() {
+  test(GI, 9);
+  test(GS[0], 121);
+}
+
 int main() {
   infix_test();
   variable_test();
@@ -207,6 +214,7 @@ int main() {
   globalvar_test();
   string_test();
   aoj0030();
+  globalinit_test();
 
   printf("[OK]");
   return 0;

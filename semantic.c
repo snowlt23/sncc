@@ -183,6 +183,16 @@ void semantic_analysis_toplevel(toplevel* top) {
     top->fdecl.stacksize = varpos;
   } else if (top->kind == TOP_GLOBALVAR) {
     map_insert(globalvarmap, top->vdecl->name, top->vdecl->typ);
+    if (top->vinit != NULL) {
+      if (top->vinit->kind != AST_INTLIT && top->vinit->kind != AST_STRLIT) {
+        error("global variable expected constant expression.");
+      }
+      if (top->vinit->kind == AST_STRLIT) {
+        top->vdecl->typ->truetype = new_typenode(TYPE_ARRAY);
+        top->vdecl->typ->truetype->ptrof = new_typenode(TYPE_CHAR);
+        top->vdecl->typ->truetype->arraysize = strlen(top->vinit->strval) + 1;
+      }
+    }
   } else {
     assert(false);
   }

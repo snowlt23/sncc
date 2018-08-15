@@ -347,7 +347,15 @@ void codegen_toplevel(toplevel top) {
   } else if (top.kind == TOP_GLOBALVAR) {
     printf(".data\n");
     emit_label(top.vdecl->name);
-    emit_asm(".zero %d", typesize(top.vdecl->typ));
+    if (top.vinit != NULL) {
+      if (top.vinit->kind == AST_INTLIT) {
+        emit_asm(".int %d", top.vinit->intval);
+      } else if (top.vinit->kind == AST_STRLIT) {
+        emit_asm(".ascii \"%s\\0\"", top.vinit->strval);
+      }
+    } else {
+      emit_asm(".zero %d", typesize(top.vdecl->typ));
+    }
   } else {
     assert(false);
   }
