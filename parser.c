@@ -174,6 +174,9 @@ typenode* parse_type(tokenstream* ts) {
   } else if (eq_ident(get_token(ts), "char")) {
     next_token(ts);
     tn = new_typenode(TYPE_CHAR);
+  } else if (eq_ident(get_token(ts), "void")) {
+    next_token(ts);
+    tn = new_typenode(TYPE_VOID);
   } else if (eq_ident(get_token(ts), "struct")) {
     next_token(ts);
     tn = new_typenode(TYPE_STRUCT);

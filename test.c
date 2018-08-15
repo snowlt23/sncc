@@ -1,14 +1,14 @@
 
 #define test(x, expect) test_impl(x, expect, #x, __LINE__)
 
-int test_impl(int x, int expect, char* s, int line) {
+void test_impl(int x, int expect, char* s, int line) {
   if (!(x == expect)) {
     printf("[ERROR] L%d %s: expect %d, but got %d", line, s, expect, x);
     exit(1);
   }
 }
 
-int infix_test() {
+void infix_test() {
   test(1+2, 3);
   test(2-1, 1);
   test(1+10-2, 9);
@@ -25,7 +25,7 @@ int infix_test() {
   test(10 <= 5-2, 0);
 }
 
-int op_test() {
+void op_test() {
   int a = 0;
   test(++a, 1);
   test(a, 1);
@@ -39,7 +39,7 @@ int op_test() {
   test(i, 2);
 }
 
-int variable_test() {
+void variable_test() {
   int a = 9;
   int b = 8;
   test(a + b, 17);
@@ -48,7 +48,7 @@ int variable_test() {
 int return_test_impl() {
   return 1+3*3;
 }
-int return_test() {
+void return_test() {
   test(return_test_impl(), 10);
 }
 
@@ -60,7 +60,7 @@ int add8(int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8) {
   return a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8;
 }
 
-int call_test() {
+void call_test() {
   test(add(4, 5), 9);
   test(add8(1, 1, 1, 1, 1, 1, 1, 1), 8);
 }
@@ -84,7 +84,7 @@ int if_test_impl3() {
   }
 }
 
-int if_test() {
+void if_test() {
   test(if_test_impl1(), 9);
   test(if_test_impl2(), 5);
   test(if_test_impl3(), 5);
@@ -96,14 +96,14 @@ int for_test_impl() {
   }
 }
 
-int for_test() {
+void for_test() {
   for (int i=0; i<10; i++) {
   }
   test(i, 10);
   test(for_test_impl(), 5);
 }
 
-int addr_test() {
+void addr_test() {
   int x;
   int* p = &x;
   *p = 9;
@@ -114,7 +114,7 @@ int addr_test() {
   test(x, 555);
 }
 
-int pointer_arithmetic_test() {
+void pointer_arithmetic_test() {
   int arr[10];
   int* p = arr;
   *(p+0) = 1;
@@ -132,11 +132,11 @@ int fib(int n) {
   }
 }
 
-int fib_test() {
+void fib_test() {
   test(fib(10), 55);
 }
 
-int sizeof_test() {
+void sizeof_test() {
   test(sizeof(int), 4);
   test(sizeof(int*), 8);
   test(sizeof int, 4);
@@ -147,9 +147,7 @@ int sizeof_test() {
   test(sizeof parr, 80);
 }
 
-
-
-int array_test() {
+void array_test() {
   int arr[10];
   arr[0] = 1;
   arr[1] = 2;
@@ -163,7 +161,7 @@ int array_test() {
 
 int gx;
 int garr[10];
-int globalvar_test() {
+void globalvar_test() {
   gx = 9;
   test(gx, 9);
   int* p = &gx;
@@ -175,7 +173,7 @@ int globalvar_test() {
   test(garr[0] + garr[1], 10);
 }
 
-int string_test() {
+void string_test() {
   char cc[3];
   cc[0] = 9;
   test(cc[0], 9);
@@ -201,7 +199,7 @@ int dfs(int i, int sum, int cnt) {
   return acc;
 }
 
-int aoj0030() {
+void aoj0030() {
   N = 3;
   S = 6;
   test(dfs(0, 0, 0), 3);
@@ -209,14 +207,14 @@ int aoj0030() {
 
 int GI = 9;
 char* GS = "yukaia";
-int globalinit_test() {
+void globalinit_test() {
   test(GI, 9);
   test(GS[0], 121);
 }
 
-int* malloc(int size);
+void* malloc(int size);
 
-int malloc_test() {
+void malloc_test() {
   int* p = malloc(sizeof(int)*4);
   p[0] = 1;
   p[1] = 2;
@@ -256,7 +254,7 @@ struct myptr {
   struct myintc mic;
 };
 
-int struct_sizeof_test() {
+void struct_sizeof_test() {
   test(sizeof(struct mychar), 2);
   test(sizeof(struct mychar3), 3);
   test(sizeof(struct mycharptr), 16);
@@ -266,7 +264,7 @@ int struct_sizeof_test() {
   test(sizeof(struct myptr), 16);
 }
 
-int struct_dot_test() {
+void struct_dot_test() {
   struct mychar mc;
   mc.a = 1;
   mc.b = 2;
@@ -278,7 +276,7 @@ int struct_dot_test() {
   test(mp.mic.c + mp.mic.x, 9);
 }
 
-int struct_allow_test() {
+void struct_allow_test() {
   struct mychar mc;
   struct mychar* mcp = &mc;
   mcp->a = 1;
@@ -297,7 +295,7 @@ struct incom {
   struct incom* next;
 };
 
-int struct_incomplete_test() {
+void struct_incomplete_test() {
   test(sizeof(struct incom), 16);
   struct incom ic;
   struct incom icnext;

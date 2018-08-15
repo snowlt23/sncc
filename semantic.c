@@ -52,6 +52,8 @@ int getalign(typenode* typ) {
     return 4;
   } else if (typ->kind == TYPE_CHAR) {
     return 1;
+  } else if (typ->kind == TYPE_VOID) {
+    error("void type hasn't align.");
   } else if (typ->kind == TYPE_PTR) {
     return 8;
   } else if (typ->kind == TYPE_ARRAY) {
@@ -75,6 +77,8 @@ int typesize(typenode* typ) {
     return 4;
   } else if (typ->kind == TYPE_CHAR) {
     return 1;
+  } else if (typ->kind == TYPE_VOID) {
+    error("void type hasn't align.");
   } else if (typ->kind == TYPE_PTR) {
     return 8;
   } else if (typ->kind == TYPE_ARRAY) {
