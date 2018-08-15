@@ -1,11 +1,4 @@
-
-typedef struct _vector {
-  void** data;
-  int cap;
-  int len;
-} vector;
-
-void* malloc(int size);
+#include "sncc.self.h"
 
 vector* new_vector_cap(int cap) {
   vector* v = malloc(sizeof(vector));

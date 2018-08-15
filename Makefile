@@ -8,7 +8,7 @@ build: sncc ;
 
 %.o: %.c sncc.h
 	$(CC) -c $(CFLAGS) $<
-%.self.o: %.self.c sncc.h
+%.self.o: %.self.c sncc.self.h
 	./sncc < $< > $(basename $<).s
 	$(CC) -c $(basename $<).s
 

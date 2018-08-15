@@ -1,21 +1,4 @@
-
-typedef struct _vector {
-  void** data;
-  int cap;
-  int len;
-} vector;
-
-typedef struct _mappair {
-  char* name;
-  void* value;
-} mappair;
-
-typedef struct _map {
-  vector* vector;
-} map;
-
-void* malloc(int size);
-int strcmp(char* a, char* b);
+#include "sncc.self.h"
 
 map* new_map_cap(int cap) {
   map* m = malloc(sizeof(map));

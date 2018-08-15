@@ -222,6 +222,7 @@ void* map_get(map* m, char* name);
 void map_insert(map* m, char* name, void* value);
 
 // lexer.c
+void init_lexer();
 vector* lexer();
 char* token_to_kindstr(token* token);
 char* token_to_str(token* token);

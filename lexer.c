@@ -5,6 +5,12 @@
 #include <string.h>
 #include "sncc.h"
 
+FILE* input;
+
+void init_lexer() {
+  input = stdin;
+}
+
 token* new_token(tokenkind kind) {
   token* t = (token*)malloc(sizeof(token));
   t->kind = kind;
@@ -166,7 +172,7 @@ vector* lexer() {
   vector* tokenss = new_vector();
 
   for (;;) {
-    char c = getc(stdin);
+    char c = getc(input);
     if (c == EOF) {
       break;
     } else if (isdigit(c)) { // int literal
@@ -174,75 +180,115 @@ vector* lexer() {
       digitbuf[0] = c;
       for (int i=1; ; i++) {
         assert(i < 256);
-        char nc = getc(stdin);
+        char nc = getc(input);
         if (!isdigit(nc)) {
-          ungetc(nc, stdin);
+          ungetc(nc, input);
           vector_push(tokenss, new_intlit(atoi(digitbuf)));
           break;
         }
         digitbuf[i] = nc;
       }
+    } else if (c == '#') { // preprocessor
+      char identbuf[256] = {};
+      for (int i=0; ; i++) {
+        if (i >= 256) assert(false);
+        char nc = getc(input);
+        if (!isidenttail(nc)) {
+          ungetc(nc, input);
+          break;
+        }
+        identbuf[i] = nc;
+      }
+      if (strcmp(identbuf, "include") == 0) {
+        for (;;) {
+          char nc = getc(input);
+          if (nc != ' ') {
+            ungetc(nc, input);
+            break;
+          }
+        }
+        if (getc(stdin) != '"') error("include expect string literal.");
+        char strbuf[1024] = {};
+        for (int i=0; ; i++) {
+          assert(i < 1024);
+          char nc = getc(input);
+          if (nc == '"') break;
+          if (nc == EOF) error("expect end of string literal.");
+          strbuf[i] = nc;
+        }
+        fprintf(stderr, "%s", strbuf);
+        FILE* tmpf = input;
+        input = fopen(strbuf, "r");
+        vector* includetokens = lexer();
+        for (int i=0; i<includetokens->len; i++) {
+          vector_push(tokenss, vector_get(includetokens, i));
+        }
+        fclose(input);
+        input = tmpf;
+      } else {
+        error("unsupported %s preprocessor.", identbuf);
+      }
     } else if (c == '"') { // string literal
       char strbuf[1024] = {};
       for (int i=0; ; i++) {
         assert(i < 1024);
-        char nc = getc(stdin);
+        char nc = getc(input);
         if (nc == '"') break;
         if (nc == EOF) error("expect end of string literal.");
         strbuf[i] = nc;
       }
       vector_push(tokenss, new_strlit(strdup(strbuf)));
     } else if (c == '+') {
-      char nc = getc(stdin);
+      char nc = getc(input);
       if (nc == '+') {
         vector_push(tokenss, new_token(TOKEN_INC));
       } else if (nc == '=') {
         vector_push(tokenss, new_token(TOKEN_ADDASSIGN));
       } else {
-        ungetc(nc, stdin);
+        ungetc(nc, input);
         vector_push(tokenss, new_token(TOKEN_ADD));
       }
     } else if (c == '-') {
-      char nc = getc(stdin);
+      char nc = getc(input);
       if (nc == '>') {
         vector_push(tokenss, new_token(TOKEN_ALLOW));
       } else {
-        ungetc(nc, stdin);
+        ungetc(nc, input);
         vector_push(tokenss, new_token(TOKEN_SUB));
       }
     } else if (c == '*') {
-      char nc = getc(stdin);
+      char nc = getc(input);
       if (nc == '=') {
         vector_push(tokenss, new_token(TOKEN_MULASSIGN));
       } else {
-        ungetc(nc, stdin);
+        ungetc(nc, input);
         vector_push(tokenss, new_token(TOKEN_MUL));
       }
     } else if (c == '/') {
-      char nc = getc(stdin);
+      char nc = getc(input);
       if (nc == '/') {
         for (;;) {
-          nc = getc(stdin);
+          nc = getc(input);
           if (nc == EOF || nc == '\n') break;
         }
       } else {
-        ungetc(nc, stdin);
+        ungetc(nc, input);
         vector_push(tokenss, new_token(TOKEN_DIV));
       }
     } else if (c == '<') {
-      char nc = getc(stdin);
+      char nc = getc(input);
       if (nc == '=') {
         vector_push(tokenss, new_token(TOKEN_LESSEREQ));
       } else {
-        ungetc(nc, stdin);
+        ungetc(nc, input);
         vector_push(tokenss, new_token(TOKEN_LESSER));
       }
     } else if (c == '>') {
-      char nc = getc(stdin);
+      char nc = getc(input);
       if (nc == '=') {
         vector_push(tokenss, new_token(TOKEN_GREATEREQ));
       } else {
-        ungetc(nc, stdin);
+        ungetc(nc, input);
         vector_push(tokenss, new_token(TOKEN_GREATER));
       }
     } else if (c == '.') {
@@ -250,11 +296,11 @@ vector* lexer() {
     } else if (c == '&') {
       vector_push(tokenss, new_token(TOKEN_AND));
     } else if (c == '=') {
-      char nc = getc(stdin);
+      char nc = getc(input);
       if (nc == '=') {
         vector_push(tokenss, new_token(TOKEN_EQ));
       } else {
-        ungetc(nc, stdin);
+        ungetc(nc, input);
         vector_push(tokenss, new_token(TOKEN_ASSIGN));
       }
     } else if (c == '!') {
@@ -284,9 +330,9 @@ vector* lexer() {
       identbuf[0] = c;
       for (int i=1; ; i++) {
         if (i >= 256) error("long length (>256) identifer is unsupported in currently."); // FIXME: long length identifer support.
-        char nc = getc(stdin);
+        char nc = getc(input);
         if (!isidenttail(nc)) {
-          ungetc(nc, stdin);
+          ungetc(nc, input);
           vector_push(tokenss, new_ident(identbuf));
           break;
         }

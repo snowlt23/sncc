@@ -4,6 +4,7 @@
 #include "../sncc.h"
 
 int main() {
+  init_lexer();
   init_parser();
   vector* tokenss = lexer();
   tokenstream* ts = new_tokenstream(tokenss);
