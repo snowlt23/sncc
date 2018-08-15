@@ -270,6 +270,9 @@ void semantic_analysis_toplevel(toplevel* top) {
       structsize += typesize(field->typ);
       alignsize += typesize(field->typ);
     }
+    if (alignsize != maxalign) {
+      structsize += maxalign - alignsize % maxalign;
+    }
     top->structtype->structsize = structsize;
     top->structtype->maxalign = maxalign;
   } else {

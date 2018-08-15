@@ -243,6 +243,10 @@ struct myintc {
   char c;
   int x;
 };
+struct mychari {
+  int x;
+  char c;
+};
 struct mycwrap {
   struct mychar mc;
   int x;
@@ -257,6 +261,7 @@ int struct_sizeof_test() {
   test(sizeof(struct mychar3), 3);
   test(sizeof(struct mycharptr), 16);
   test(sizeof(struct myintc), 8);
+  test(sizeof(struct mychari), 8);
   test(sizeof(struct mycwrap), 8);
   test(sizeof(struct myptr), 16);
 }
