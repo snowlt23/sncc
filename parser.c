@@ -86,6 +86,8 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_SIZEOF_EXPR";
   } else if (ast->kind == AST_SIZEOF_TYPE) {
     return "AST_SIZEOF_TYPE";
+  } else if (ast->kind == AST_DOT) {
+    return "AST_DOT";
   } else if (ast->kind == AST_ADDR) {
     return "AST_ADDR";
   } else if (ast->kind == AST_DEREF) {
@@ -235,7 +237,7 @@ astree* gen_ptrderef(astree* value, astree* index) {
   return new_ast_prefix(AST_DEREF, new_ast_infix(AST_ADD, value, index));
 }
 
-astree* arrayref_inc(tokenstream* ts) {
+astree* postfix_op(tokenstream* ts) {
   astree* value = factor(ts);
   for (;;) {
     if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_LBRACKET) {
@@ -246,6 +248,13 @@ astree* arrayref_inc(tokenstream* ts) {
     } else if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_INC) {
       next_token(ts);
       value = new_ast_prefix(AST_POSTINC, value);
+    } else if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_DOT) {
+      next_token(ts);
+      astree* newast = new_ast(AST_DOT);
+      newast->structvalue = value;
+      expect_token(get_token(ts), TOKEN_IDENT);
+      newast->fieldname = get_token(ts)->ident; next_token(ts);
+      value = newast;
     } else {
       break;
     }
@@ -254,7 +263,7 @@ astree* arrayref_inc(tokenstream* ts) {
 }
 
 astree* callexpr(tokenstream* ts) {
-  astree* call = arrayref_inc(ts);
+  astree* call = postfix_op(ts);
   token* lparen = get_token(ts);
   if (lparen == NULL) return call;
   if (lparen->kind != TOKEN_LPAREN) return call;

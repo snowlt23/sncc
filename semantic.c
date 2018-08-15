@@ -85,6 +85,20 @@ int typesize(typenode* typ) {
   }
 }
 
+paramtype* get_field(typenode* typ, char* fieldname) {
+  for (int i=0; i<typ->fields->len; i++) {
+    paramtype* field = vector_get(typ->fields, i);
+    if (strcmp(field->name, fieldname) == 0) {
+      return field;
+    }
+  }
+  error("%s hasn't %s field.", typ->tname, fieldname);
+}
+
+bool is_implicit_int(typenode* typ) {
+  return typ->kind == TYPE_INT || typ->kind == TYPE_CHAR;
+}
+
 void semantic_analysis(astree* ast) {
   if (ast->kind == AST_IDENT) {
     varinfo* info = map_get(varmap, ast->ident);
@@ -111,7 +125,7 @@ void semantic_analysis(astree* ast) {
     semantic_analysis(ast->right);
     if (ast->left->typ->kind == TYPE_PTR && ast->right->typ->kind == TYPE_INT) {
       ast->typ = ast->left->typ;
-    } else if (ast->left->typ->kind == TYPE_INT && ast->right->typ->kind == TYPE_INT) {
+    } else if (is_implicit_int(ast->left->typ) && is_implicit_int(ast->right->typ)) {
       ast->typ = new_typenode(TYPE_INT);;
     } else {
       error("illegal add arithmetic.");
@@ -119,8 +133,8 @@ void semantic_analysis(astree* ast) {
   } else if (ast->kind == AST_MUL || ast->kind == AST_DIV || ast->kind == AST_LESSER || ast->kind == AST_LESSEREQ) {
     semantic_analysis(ast->left);
     semantic_analysis(ast->right);
-    if (ast->left->typ->kind == TYPE_INT && ast->right->typ->kind == TYPE_INT) {
-      ast->typ = new_typenode(TYPE_INT);
+    if (is_implicit_int(ast->left->typ) && is_implicit_int(ast->right->typ)) {
+      ast->typ = new_typenode(TYPE_INT);;
     } else {
       error("illegal add arithmetic.");
     }
@@ -141,6 +155,11 @@ void semantic_analysis(astree* ast) {
   } else if (ast->kind == AST_EQ) {
     semantic_analysis(ast->left);
     semantic_analysis(ast->right);
+  } else if (ast->kind == AST_DOT) {
+    semantic_analysis(ast->structvalue);
+    if (ast->structvalue->typ->kind != TYPE_STRUCT) error("dot left expect struct value.");
+    paramtype* field = get_field(ast->structvalue->typ, ast->fieldname);
+    ast->typ = field->typ;
   } else if (ast->kind == AST_ADDR) {
     semantic_analysis(ast->value);
     ast->typ = new_ptrnode(ast->value->typ);
@@ -239,6 +258,7 @@ void semantic_analysis_toplevel(toplevel* top) {
     int structsize = 0;
     for (int i=0; i<top->structtype->fields->len; i++) {
       paramtype* field = vector_get(top->structtype->fields, i);
+      field->offset = structsize;
       if (alignsize+typesize(field->typ) == maxalign) {
         alignsize = 0;
       } else if (alignsize+typesize(field->typ) > maxalign) {

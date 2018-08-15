@@ -42,6 +42,7 @@ typedef enum {
   TOKEN_INC,
   TOKEN_EQ,
   TOKEN_NOT,
+  TOKEN_DOT,
   TOKEN_AND,
   TOKEN_INTLIT,
   TOKEN_STRLIT,
@@ -77,6 +78,7 @@ typedef enum {
   AST_PREINC,
   AST_POSTINC,
   AST_EQ,
+  AST_DOT,
   AST_ADDR,
   AST_DEREF,
   AST_VARDECL,
@@ -151,6 +153,10 @@ typedef struct _astree {
     struct {
       struct _astree* left;
       struct _astree* right;
+    };
+    struct {
+      struct _astree* structvalue;
+      char* fieldname;
     };
     struct {
       paramtype* vardecl;
@@ -238,6 +244,7 @@ toplevel parse_toplevel(tokenstream* ts);
 
 // semantic.c
 int typesize(typenode* tn);
+paramtype* get_field(typenode* typ, char* fieldname);
 char* gen_label();
 void init_semantic();
 void semantic_analysis(astree* ast);

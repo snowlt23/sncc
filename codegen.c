@@ -67,6 +67,12 @@ void codegen_lvalue(astree* ast) {
     emit_push("%rax");
   } else if (ast->kind == AST_DEREF) {
     codegen(ast->value);
+  } else if (ast->kind == AST_DOT) {
+    paramtype* field = get_field(ast->structvalue->typ, ast->fieldname);
+    codegen_lvalue(ast->structvalue);
+    emit_pop("%rax");
+    emit_asm("addq $%d, %%rax", field->offset);
+    emit_push("%rax");
   } else {
     error("%s isn't lvalue.", ast_to_kindstr(ast));
   }
@@ -188,6 +194,9 @@ void codegen(astree* ast) {
     emit_pop("%rax");
     emit_asm("negq %%rax");
     emit_push("%rax");
+  } else if (ast->kind == AST_DOT) {
+    codegen_lvalue(ast);
+    codegen_movevalue(ast->typ);
   } else if (ast->kind == AST_ASSIGN) {
     codegen_lvalue(ast->left);
     codegen(ast->right);

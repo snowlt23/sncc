@@ -261,6 +261,18 @@ int struct_sizeof_test() {
   test(sizeof(struct myptr), 16);
 }
 
+int struct_dot_test() {
+  struct mychar mc;
+  mc.a = 1;
+  mc.b = 2;
+  test(mc.a + mc.b, 3);
+
+  struct myptr mp;
+  mp.mic.c = 4;
+  mp.mic.x = 5;
+  test(mp.mic.c + mp.mic.x, 9);
+}
+
 int main() {
   infix_test();
   op_test();
@@ -279,6 +291,7 @@ int main() {
   globalinit_test();
   malloc_test();
   struct_sizeof_test();
+  struct_dot_test();
 
   printf("[OK]");
   return 0;

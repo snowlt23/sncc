@@ -103,6 +103,8 @@ exprtest "i+1++" "AST_ADD"
 exprtest "++i" "AST_PREINC"
 exprtest "++i++" "AST_PREINC"
 exprtest "sizeof(int)*4" "AST_MUL"
+exprtest "struc.a" "AST_DOT"
+exprtest "struc.a + struc.b" "AST_ADD"
 
 stmttest "1; 2; 3;" "3 AST_INTLIT AST_INTLIT AST_INTLIT"
 stmttest "1 + 1; 2 - 2; 3 * 3;" "3 AST_ADD AST_SUB AST_MUL"
