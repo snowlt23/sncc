@@ -219,7 +219,16 @@ vector* lexer() {
         vector_push(tokenss, new_token(TOKEN_MUL));
       }
     } else if (c == '/') {
-      vector_push(tokenss, new_token(TOKEN_DIV));
+      char nc = getc(stdin);
+      if (nc == '/') {
+        for (;;) {
+          nc = getc(stdin);
+          if (nc == EOF || nc == '\n') break;
+        }
+      } else {
+        ungetc(nc, stdin);
+        vector_push(tokenss, new_token(TOKEN_DIV));
+      }
     } else if (c == '<') {
       char nc = getc(stdin);
       if (nc == '=') {

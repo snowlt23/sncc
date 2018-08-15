@@ -1,6 +1,8 @@
 
 #define test(x, expect) test_impl(x, expect, #x, __LINE__)
 
+// test
+
 void test_impl(int x, int expect, char* s, int line) {
   if (!(x == expect)) {
     printf("[ERROR] L%d %s: expect %d, but got %d", line, s, expect, x);
