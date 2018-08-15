@@ -103,6 +103,19 @@ void codegen_movereg(typenode* typ, char* reg8, char* reg32, char* reg64) {
   }
 }
 
+void codegen_add(typenode* typ) {
+  if (typ->kind == TYPE_PTR) { // pointer arithmetic
+    emit_pop("%rax");
+    emit_asm("movq $%d, %%rcx", typesize(typ->ptrof));
+    emit_asm("imulq %%rcx");
+    emit_push("%rax");
+  }
+  emit_pop("%rcx");
+  emit_pop("%rax");
+  emit_add("%rcx", "%rax");
+  emit_push("%rax");
+}
+
 void codegen(astree* ast) {
   if (ast->kind == AST_IDENT) {
     codegen_lvalue(ast);
@@ -115,16 +128,7 @@ void codegen(astree* ast) {
   } else if (ast->kind == AST_ADD) {
     codegen(ast->left);
     codegen(ast->right);
-    if (ast->left->typ->kind == TYPE_PTR) { // pointer arithmetic
-      emit_pop("%rax");
-      emit_asm("movq $%d, %%rcx", typesize(ast->left->typ->ptrof));
-      emit_asm("imulq %%rcx");
-      emit_push("%rax");
-    }
-    emit_pop("%rcx");
-    emit_pop("%rax");
-    emit_add("%rcx", "%rax");
-    emit_push("%rax");
+    codegen_add(ast->left->typ);
   } else if (ast->kind == AST_SUB) {
     codegen(ast->left);
     codegen(ast->right);
@@ -190,6 +194,18 @@ void codegen(astree* ast) {
     emit_pop("%rcx");
     emit_pop("%rax");
     codegen_movereg(ast->left->typ, "%cl", "%ecx", "%rcx");
+  } else if (ast->kind == AST_PREINC) {
+    codegen_lvalue(ast->value);
+    emit_pop("%rax");
+    emit_push("%rax");
+    emit_push("%rax");
+    codegen_movevalue(ast->value->typ);
+    emit_push("$1");
+    codegen_add(ast->value->typ);
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    codegen_movereg(ast->value->typ, "%cl", "%ecx", "%rcx");
+    emit_push("%rcx");
   } else if (ast->kind == AST_ADDR) {
     codegen_lvalue(ast->value);
   } else if (ast->kind == AST_DEREF) {

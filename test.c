@@ -25,6 +25,20 @@ int infix_test() {
   test(10 <= 5-2, 0);
 }
 
+int op_test() {
+  int a = 0;
+  test(++a, 1);
+  test(a, 1);
+  test(++a, 2);
+  test(a, 2);
+
+  int i = 0;
+  test(i++, 0);
+  test(i, 1);
+  test(i++, 1);
+  test(i, 2);
+}
+
 int variable_test() {
   int a = 9;
   int b = 8;
@@ -202,6 +216,7 @@ int globalinit_test() {
 
 int main() {
   infix_test();
+  op_test();
   variable_test();
   return_test();
   call_test();

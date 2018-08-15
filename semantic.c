@@ -107,6 +107,13 @@ void semantic_analysis(astree* ast) {
     semantic_analysis(ast->left);
     semantic_analysis(ast->right);
     ast->typ = new_typenode(TYPE_INT);
+  } else if (ast->kind == AST_PREINC) {
+    semantic_analysis(ast->value);
+    ast->typ = ast->value->typ;
+  } else if (ast->kind == AST_POSTINC) {
+    astree* convast = new_ast_infix(AST_SUB, new_ast_prefix(AST_PREINC, ast->value), new_ast_intlit(1));
+    semantic_analysis(convast);
+    *ast = *convast;
   } else if (ast->kind == AST_EQ) {
     semantic_analysis(ast->left);
     semantic_analysis(ast->right);

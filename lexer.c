@@ -58,6 +58,8 @@ char* token_to_kindstr(token* token) {
     return "TOKEN_GREATEREQ";
   } else if (token->kind == TOKEN_ASSIGN) {
     return "TOKEN_ASSIGN";
+  } else if (token->kind == TOKEN_INC) {
+    return "TOKEN_INC";
   } else if (token->kind == TOKEN_EQ) {
     return "TOKEN_EQ";
   } else if (token->kind == TOKEN_NOT) {
@@ -109,6 +111,8 @@ char* token_to_str(token* token) {
     return ">=";
   } else if (token->kind == TOKEN_ASSIGN) {
     return "=";
+  } else if (token->kind == TOKEN_INC) {
+    return "++";
   } else if (token->kind == TOKEN_EQ) {
     return "==";
   } else if (token->kind == TOKEN_NOT) {
@@ -173,7 +177,13 @@ vector* lexer() {
       }
       vector_push(tokenss, new_strlit(strdup(strbuf)));
     } else if (c == '+') {
-      vector_push(tokenss, new_token(TOKEN_ADD));
+      char nc = getc(stdin);
+      if (nc == '+') {
+        vector_push(tokenss, new_token(TOKEN_INC));
+      } else {
+        ungetc(nc, stdin);
+        vector_push(tokenss, new_token(TOKEN_ADD));
+      }
     } else if (c == '-') {
       vector_push(tokenss, new_token(TOKEN_SUB));
     } else if (c == '*') {

@@ -70,6 +70,10 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_LESSEREQ";
   } else if (ast->kind == AST_ASSIGN) {
     return "AST_ASSIGN";
+  } else if (ast->kind == AST_PREINC) {
+    return "AST_PREINC";
+  } else if (ast->kind == AST_POSTINC) {
+    return "AST_POSTINC";
   } else if (ast->kind == AST_EQ) {
     return "AST_EQ";
   } else if (ast->kind == AST_ADDR) {
@@ -203,7 +207,7 @@ astree* gen_ptrderef(astree* value, astree* index) {
   return new_ast_prefix(AST_DEREF, new_ast_infix(AST_ADD, value, index));
 }
 
-astree* arrayref(tokenstream* ts) {
+astree* arrayref_inc(tokenstream* ts) {
   astree* value = factor(ts);
   for (;;) {
     if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_LBRACKET) {
@@ -211,6 +215,9 @@ astree* arrayref(tokenstream* ts) {
       astree* index = expression(ts);
       value = gen_ptrderef(value, index);
       expect_token(get_token(ts), TOKEN_RBRACKET); next_token(ts);
+    } else if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_INC) {
+      next_token(ts);
+      value = new_ast_prefix(AST_POSTINC, value);
     } else {
       break;
     }
@@ -219,7 +226,7 @@ astree* arrayref(tokenstream* ts) {
 }
 
 astree* callexpr(tokenstream* ts) {
-  astree* call = arrayref(ts);
+  astree* call = arrayref_inc(ts);
   token* lparen = get_token(ts);
   if (lparen == NULL) return call;
   if (lparen->kind != TOKEN_LPAREN) return call;
@@ -295,6 +302,10 @@ astree* prefix_addsub_deref(tokenstream* ts) {
     next_token(ts);
     astree* value = prefix_addsub_deref(ts);
     return new_ast_prefix(AST_DEREF, value);
+  } else if (t != NULL && t->kind == TOKEN_INC) {
+    next_token(ts);
+    astree* value = prefix_addsub_deref(ts);
+    return new_ast_prefix(AST_PREINC, value);
   } else if (t != NULL && t->kind == TOKEN_AND) {
     next_token(ts);
     astree* value = prefix_addsub_deref(ts);

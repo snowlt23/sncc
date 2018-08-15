@@ -39,6 +39,7 @@ typedef enum {
   TOKEN_LESSEREQ,
   TOKEN_GREATEREQ,
   TOKEN_ASSIGN,
+  TOKEN_INC,
   TOKEN_EQ,
   TOKEN_NOT,
   TOKEN_AND,
@@ -73,6 +74,8 @@ typedef enum {
   AST_LESSEREQ,
   AST_MINUS,
   AST_ASSIGN,
+  AST_PREINC,
+  AST_POSTINC,
   AST_EQ,
   AST_ADDR,
   AST_DEREF,
@@ -204,6 +207,9 @@ char* token_to_str(token* token);
 // ast
 astree* new_ast(astkind kind);
 astree* new_ast_ident(char* ident);
+astree* new_ast_intlit(int x);
+astree* new_ast_prefix(astkind kind, astree* value);
+astree* new_ast_infix(astkind kind, astree* left, astree* right);
 char* ast_to_kindstr(astree* ast);
 // type
 typenode* new_typenode(typekind kind);
