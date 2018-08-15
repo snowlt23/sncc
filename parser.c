@@ -444,13 +444,9 @@ astree* parse_for(tokenstream* ts) {
 
   expect_token(get_token(ts), TOKEN_LPAREN); next_token(ts);
 
-  astree* forinit = expression(ts);
-  expect_token(get_token(ts), TOKEN_SEMICOLON); next_token(ts);
-
-  astree* forcond = expression(ts);
-  expect_token(get_token(ts), TOKEN_SEMICOLON); next_token(ts);
-
-  astree* fornext = expression(ts);
+  astree* forinit = parse_statement(ts);
+  astree* forcond = parse_statement(ts);
+  astree* fornext = parse_statement(ts);
 
   expect_token(get_token(ts), TOKEN_RPAREN); next_token(ts);
 
@@ -509,6 +505,7 @@ astree* parse_statement(tokenstream* ts) {
 
   astree* declast = parse_vardecl(ts);
   if (declast != NULL) {
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) next_token(ts);
     return declast;
   }
 

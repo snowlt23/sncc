@@ -213,6 +213,7 @@ void next_token(tokenstream* ts);
 astree* expression(tokenstream* ts);
 // statement
 paramtype* parse_paramtype(tokenstream* ts);
+astree* parse_statement(tokenstream* ts);
 vector* parse_statements(tokenstream* ts);
 astree* parse_compound(tokenstream* ts);
 // toplevel
