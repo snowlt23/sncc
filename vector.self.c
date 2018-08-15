@@ -1,6 +1,9 @@
-#include <stdlib.h>
-#include <assert.h>
-#include "sncc.h"
+
+typedef struct _vector {
+  void** data;
+  int cap;
+  int len;
+} vector;
 
 void* malloc(int size);
 

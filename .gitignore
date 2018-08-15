@@ -1,6 +1,7 @@
 *.exe
 *.out
 sncc
+self
 test.pp.c
 /*.s
 *.o

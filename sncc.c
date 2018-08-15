@@ -7,7 +7,6 @@ int main() {
   tokenstream* ts = new_tokenstream(tokenss);
 
   init_semantic();
-  emit_global("main");
   for (;;) {
     if (get_token(ts) == NULL) break;
     toplevel top = parse_toplevel(ts);

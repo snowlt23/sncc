@@ -2,11 +2,15 @@ CC = gcc
 CFLAGS = -Wall
 
 SNCC_LIBS = vector.o map.o lexer.o parser.o semantic.o codegen.o
+SELF_LIBS = vector.self.o map.o lexer.o parser.o semantic.o codegen.o
 
 build: sncc ;
 
 %.o: %.c sncc.h
 	$(CC) -c $(CFLAGS) $<
+%.self.o: %.self.c sncc.h
+	./sncc < $< > $(basename $<).s
+	$(CC) -c $(basename $<).s
 
 lexer.out: $(SNCC_LIBS) sncc.h test/lexer_test.c
 	$(CC) $(CFLAGS) -olexer.out $(SNCC_LIBS) test/lexer_test.c
@@ -26,6 +30,13 @@ test.pp.c: test.c
 	gcc -P -E test.c > test.pp.c
 test: compiler-test sncc test.pp.c
 	./sncc < test.pp.c > test.s
+	gcc test.s
+	./a.out
+
+self: sncc $(SELF_LIBS) sncc.c
+	$(CC) $(CFLAGS) -oself $(SELF_LIBS) sncc.c
+self-test: self test.pp.c
+	./self < test.pp.c > test.s
 	gcc test.s
 	./a.out
 

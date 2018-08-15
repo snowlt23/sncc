@@ -353,6 +353,7 @@ void codegen(astree* ast) {
 void codegen_funcdecl(funcdecl fdecl) {
   if (fdecl.body == NULL) return;
 
+  emit_global(fdecl.fdecl->name);
   emit_label(fdecl.fdecl->name);
   emit_prologue(fdecl.stacksize);
   int argpos = 0;
