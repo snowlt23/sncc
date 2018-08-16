@@ -30,10 +30,6 @@ void emit_asm2(char* fmt, char* a, char* b) {
   printf(fmt, a, b);
   printf("\n");
 }
-void error(char* fmt) {
-  printf(fmt);
-  exit(1);
-}
 
 void emit_label(char* label) {
   printf("%s:\n", label);

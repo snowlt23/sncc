@@ -480,6 +480,14 @@ void exfn_test() {
 
 extern int a;
 
+void charlit_test() {
+  test('0', 48);
+  test('a', 97);
+  test('\'', 39);
+  test('"', 34);
+  test('(', 40);
+}
+
 int main() {
   infix_test();
   op_test();
@@ -508,6 +516,7 @@ int main() {
   typedef_vector_test();
   typedef_bool_test();
   exfn_test();
+  charlit_test();
 
   printf("[OK]\n");
   return 0;

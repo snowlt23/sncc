@@ -5,8 +5,8 @@
 #include <string.h>
 #include "sncc.h"
 
-#define error(...) {fprintf(stderr, __VA_ARGS__); exit(1);}
-#define warning(...) {fprintf(stderr, "warning: "); fprintf(stderr, __VA_ARGS__);}
+// #define error(...) {fprintf(stderr, __VA_ARGS__); exit(1);}
+// #define warning(...) {fprintf(stderr, "warning: "); fprintf(stderr, __VA_ARGS__);}
 
 FILE* input;
 map* definemap;
@@ -329,6 +329,15 @@ bool single_token_lexer(vector* tokenss) {
     preprocessor(tokenss, prename);
   } else if (c == '"') { // string literal
     vector_push(tokenss, new_strlit(read_strlit()));
+  } else if (c == '\'') {
+    char c = getc(input);
+    if (c == '\\') {
+      c = getc(input);
+    }
+    if (getc(input) != '\'') {
+      error("expect end of char literal.w");
+    }
+    vector_push(tokenss, new_intlit(c));
   } else if (c == '+') {
     char nc = getc(input);
     if (nc == '+') {
