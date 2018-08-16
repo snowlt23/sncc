@@ -314,6 +314,23 @@ struct myptr {
   int* p;
   struct myintc mic;
 };
+struct icci {
+  int a;
+  char b;
+  char c;
+  int d;
+};
+
+typedef struct _ptrint {
+  int kind;
+  void* fdecl;
+  void* argdecls;
+  void* body;
+  int stacksize;
+  void* vdecl;
+  void* vinit;
+  void* structtype;
+} ptrint;
 
 void struct_sizeof_test() {
   test(sizeof(struct mychar), 2);
@@ -323,6 +340,8 @@ void struct_sizeof_test() {
   test(sizeof(struct mychari), 8);
   test(sizeof(struct mycwrap), 8);
   test(sizeof(struct myptr), 16);
+  test(sizeof(struct icci), 12);
+  test(sizeof(ptrint), 64);
 }
 
 void struct_dot_test() {
@@ -335,6 +354,10 @@ void struct_dot_test() {
   mp.mic.c = 4;
   mp.mic.x = 5;
   test(mp.mic.c + mp.mic.x, 9);
+
+  ptrint pi;
+  pi.stacksize = 555;
+  test(pi_stacksize(&pi), 555);
 }
 
 void struct_allow_test() {
@@ -363,6 +386,9 @@ void struct_incomplete_test() {
   ic.next = &icnext;
   ic.next->x = 9;
   test(icnext.x, 9);
+
+  struct incom* ic2 = new_incom();
+  test(ic2->next->x, 9);
 }
 
 enum tokenkind {
@@ -375,6 +401,23 @@ typedef enum _astkind {
   AST_INTLIT,
   AST_STRLIT
 } astkind;
+
+typedef struct _ast {
+  astkind kind;
+  char* ident;
+} astree;
+
+astree* parse_ast() {
+  astree* ast = malloc(sizeof(astree));
+  ast->kind = AST_IDENT;
+  ast->ident = "yukari";
+  return ast;
+}
+
+void parse_test() {
+  astree* ast = parse_ast();
+  test(strcmp(ast->ident, "yukari"), 0);
+}
 
 void enum_test() {
   enum tokenkind tk1 = TOKEN_IDENT;
@@ -420,6 +463,23 @@ void typedef_bool_test() {
   test(f, 0);
 }
 
+void exfn_test() {
+  int x = 4;
+  int y = 5;
+  test(addpp(&x, &y), 9);
+
+  int x = 4;
+  char y = 5;
+  test(addic(x, y), 9);
+
+  int x = 4;
+  char y = 5;
+  int* p = padd(x, y);
+  test(*p, 9);
+}
+
+extern int a;
+
 int main() {
   infix_test();
   op_test();
@@ -443,9 +503,11 @@ int main() {
   struct_dot_test();
   struct_allow_test();
   struct_incomplete_test();
+  parse_test();
   enum_test();
   typedef_vector_test();
   typedef_bool_test();
+  exfn_test();
 
   printf("[OK]\n");
   return 0;

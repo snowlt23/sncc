@@ -208,12 +208,40 @@ char* read_ident() {
 char* read_strlit() {
   skip_spaces();
   char strbuf[1024] = {};
+  bool inesc = false;
   for (int i=0; ; i++) {
     assert(i < 1024);
     char nc = getc(input);
-    if (nc == '"') break;
-    if (nc == EOF) error("expect end of string literal.");
-    strbuf[i] = nc;
+    if (inesc && nc == '"') {
+      strbuf[i] = '\\';
+      strbuf[i+1] = '"';
+      inesc = false;
+      i++;
+    } else if (inesc && nc == 'n') {
+      strbuf[i] = '\\';
+      strbuf[i+1] = 'n';
+      inesc = false;
+      i++;
+    } else if (inesc && nc == '\\') {
+      strbuf[i] = '\\';
+      strbuf[i+1] = '\\';
+      inesc = false;
+      i++;
+    } else if (inesc) {
+      strbuf[i] = '\\';
+      strbuf[i+1] = nc;
+      inesc = false;
+      i++;
+    } else if (nc == '\\') {
+      inesc = true;
+      i--;
+    } else if (nc == '"') {
+      break;
+    } else if (nc == EOF) {
+      error("expect end of string literal.");
+    } else {
+      strbuf[i] = nc;
+    }
   }
   return strdup(strbuf);
 }

@@ -189,6 +189,7 @@ void semantic_analysis(astree* ast) {
     }
     typenode* rettyp = map_get(fnmap, ast->call->ident);
     if (rettyp == NULL){
+      warning("undeclared %s function.", ast->call->ident);
       ast->typ = new_typenode(TYPE_INT);
     } else {
       ast->typ = rettyp;
@@ -243,19 +244,23 @@ void semantic_analysis_toplevel(toplevel* top) {
   if (top->kind == TOP_NONE) {
     // discard
   } else if (top->kind == TOP_FUNCDECL) {
-    map_insert(fnmap, top->fdecl.fdecl->name, top->fdecl.fdecl->typ);
-    for (int i=0; i<top->fdecl.argdecls->len; i++) {
-      paramtype* argparam = vector_get(top->fdecl.argdecls, i);
+    // fprintf(stderr, "%s\n", top->fdecl->name); // FIXME:
+    map_insert(fnmap, top->fdecl->name, top->fdecl->typ);
+    // fprintf(stderr, "%s\n", top->fdecl->name);
+    for (int i=0; i<top->argdecls->len; i++) {
+      paramtype* argparam = vector_get(top->argdecls, i);
       varpos += typesize(argparam->typ);
       argparam->offset = varpos;
       map_insert(varmap, argparam->name, new_varinfo(argparam->typ, varpos));
     }
-    if (top->fdecl.body != NULL) {
-      for (int i=0; i<top->fdecl.body->len; i++) {
-        semantic_analysis(vector_get(top->fdecl.body, i));
+    if (top->body != NULL) {
+      for (int i=0; i<top->body->len; i++) {
+        semantic_analysis(vector_get(top->body, i));
       }
-      top->fdecl.stacksize = varpos;
+      top->stacksize = varpos;
     }
+  } else if (top->kind == TOP_EXTERN) {
+    map_insert(globalvarmap, top->vdecl->name, top->vdecl->typ);
   } else if (top->kind == TOP_GLOBALVAR) {
     map_insert(globalvarmap, top->vdecl->name, top->vdecl->typ);
     if (top->vinit != NULL) {
@@ -281,7 +286,6 @@ void semantic_analysis_toplevel(toplevel* top) {
     int structsize = 0;
     for (int i=0; i<top->structtype->fields->len; i++) {
       paramtype* field = vector_get(top->structtype->fields, i);
-      field->offset = structsize;
       if (alignsize+typesize(field->typ) == maxalign) {
         alignsize = 0;
       } else if (alignsize+typesize(field->typ) > maxalign) {
@@ -290,6 +294,7 @@ void semantic_analysis_toplevel(toplevel* top) {
         }
         alignsize = 0;
       }
+      field->offset = structsize;
       structsize += typesize(field->typ);
       alignsize += typesize(field->typ);
     }

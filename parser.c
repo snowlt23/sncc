@@ -12,7 +12,8 @@ void init_parser() {
   structmap = new_map();
   enummap = new_map();
   typedefmap = new_map();
-  constmap = new_map(); }
+  constmap = new_map();
+}
 
 bool eq_ident(token* id, char* s) {
   return id != NULL && id->kind == TOKEN_IDENT && strcmp(id->ident, s) == 0;
@@ -27,7 +28,7 @@ void expect_token(token* t, tokenkind kind) {
 //
 
 astree* new_ast(astkind kind) {
-  astree* ast = (astree*)malloc(sizeof(astree));
+  astree* ast = malloc(sizeof(astree));
   ast->kind = kind;
   ast->typ = NULL;
   return ast;
@@ -144,7 +145,7 @@ typenode* new_ptrnode(typenode* typ) {
   return tn;
 }
 
-typenode* new_arraynode(typenode* typ, size_t size) {
+typenode* new_arraynode(typenode* typ, int size) {
   typenode* tn = new_typenode(TYPE_PTR);
   tn->ptrof = typ;
   tn->truetype = new_typenode(TYPE_ARRAY);
@@ -750,24 +751,24 @@ vector* parse_paramtype_list(tokenstream* ts) {
   return ptlist;
 }
 
-toplevel parse_toplevel(tokenstream* ts) {
-  toplevel top;
+toplevel* parse_toplevel(tokenstream* ts) {
+  toplevel* top = malloc(sizeof(toplevel));
 
   if (eq_ident(get_token(ts), "typedef")) {
     next_token(ts);
     typenode* typ = parse_type(ts);
     if (typ->kind == TYPE_STRUCT) {
-      top.kind = TOP_STRUCT;
-      top.structtype = typ;
-      typenode* alreadystruct = map_get(structmap, top.structtype->tname);
+      top->kind = TOP_STRUCT;
+      top->structtype = typ;
+      typenode* alreadystruct = map_get(structmap, top->structtype->tname);
       if (alreadystruct != NULL) {
-        *alreadystruct = *top.structtype;
-        top.structtype = alreadystruct;
+        *alreadystruct = *top->structtype;
+        top->structtype = alreadystruct;
       } else {
-        map_insert(structmap, top.structtype->tname, top.structtype);
+        map_insert(structmap, top->structtype->tname, top->structtype);
       }
     } else {
-      top.kind = TOP_NONE;
+      top->kind = TOP_NONE;
     }
     expect_token(get_token(ts), TOKEN_IDENT);
     char* typedefname = get_token(ts)->ident; next_token(ts);
@@ -776,42 +777,51 @@ toplevel parse_toplevel(tokenstream* ts) {
     return top;
   }
 
+  if (eq_ident(get_token(ts), "extern")) {
+    next_token(ts);
+    paramtype* pt = parse_paramtype(ts);
+    top->kind = TOP_EXTERN;
+    top->vdecl = pt;
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) next_token(ts);
+    return top;
+  }
+
   paramtype* pt = parse_paramtype(ts);
   if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_LPAREN) {
     next_token(ts);
-    top.kind = TOP_FUNCDECL;
-    top.fdecl.fdecl = pt;
-    top.fdecl.argdecls = parse_paramtype_list(ts);
+    top->kind = TOP_FUNCDECL;
+    top->fdecl = pt;
+    top->argdecls = parse_paramtype_list(ts);
     expect_token(get_token(ts), TOKEN_RPAREN); next_token(ts);
     if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) {
-      top.fdecl.body = NULL;
+      top->body = NULL;
     } else {
       expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
-      top.fdecl.body = parse_statements(ts);
+      top->body = parse_statements(ts);
       expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
     }
   } else if (pt->name != NULL) {
-    top.kind = TOP_GLOBALVAR;
-    top.vdecl = pt;
+    top->kind = TOP_GLOBALVAR;
+    top->vdecl = pt;
     if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_ASSIGN) {
       next_token(ts);
-      top.vinit = expression(ts);
+      top->vinit = expression(ts);
     } else {
-      top.vinit = NULL;
+      top->vinit = NULL;
     }
   } else {
     if (pt->typ->kind == TYPE_STRUCT) {
-      top.kind = TOP_STRUCT;
-      top.structtype = pt->typ;
-      typenode* alreadystruct = map_get(structmap, top.structtype->tname);
+      top->kind = TOP_STRUCT;
+      top->structtype = pt->typ;
+      typenode* alreadystruct = map_get(structmap, top->structtype->tname);
       if (alreadystruct != NULL) {
-        *alreadystruct = *top.structtype;
-        top.structtype = alreadystruct;
+        *alreadystruct = *top->structtype;
+        top->structtype = alreadystruct;
       } else {
-        map_insert(structmap, top.structtype->tname, top.structtype);
+        map_insert(structmap, top->structtype->tname, top->structtype);
       }
     } else {
-      top.kind = TOP_NONE;
+      top->kind = TOP_NONE;
     }
   }
 

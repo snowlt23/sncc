@@ -5,31 +5,31 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-typedef struct {
+typedef struct _vector {
   void** data;
   int cap;
   int len;
 } vector;
 
-typedef struct {
+typedef struct _varinfo {
   struct _typenode* typ;
   int offset;
 } varinfo;
 
-typedef struct {
+typedef struct _strlitinfo {
   char* label;
   char* strval;
 } strlitinfo;
 
-typedef struct {
+typedef struct _mappair {
   char* name;
   void* value;
 } mappair;
-typedef struct {
+typedef struct _map {
   vector* vector;
 } map;
 
-typedef enum {
+typedef enum _tokenkind {
   TOKEN_ADD,
   TOKEN_SUB,
   TOKEN_MUL,
@@ -63,16 +63,14 @@ typedef enum {
   TOKEN_IDENT
 } tokenkind;
 
-typedef struct {
+typedef struct _token {
   tokenkind kind;
-  union {
-    int intval;
-    char* strval;
-    char* ident;
-  };
+  int intval;
+  char* strval;
+  char* ident;
 } token;
 
-typedef enum {
+typedef enum _astkind {
   AST_ADD,
   AST_SUB,
   AST_MUL,
@@ -109,7 +107,7 @@ typedef enum {
   AST_SIZEOF_TYPE
 } astkind;
 
-typedef enum {
+typedef enum _typekind {
   TYPE_INT,
   TYPE_CHAR,
   TYPE_VOID,
@@ -122,7 +120,7 @@ typedef enum {
 typedef struct _typenode {
   typekind kind;
   struct _typenode* ptrof;
-  size_t arraysize;
+  int arraysize;
   struct _typenode* truetype;
   char* tname;
   vector* fields;
@@ -130,85 +128,60 @@ typedef struct _typenode {
   int maxalign;
 } typenode;
 
-typedef struct {
+typedef struct _paramtype {
   typenode* typ;
   char* name;
   int offset;
 } paramtype;
 
-typedef enum {
+typedef enum _toplevelkind {
   TOP_NONE,
   TOP_FUNCDECL,
   TOP_GLOBALVAR,
+  TOP_EXTERN,
   TOP_STRUCT
 } toplevelkind;
 
 typedef struct {
+  toplevelkind kind;
   paramtype* fdecl;
   vector* argdecls;
   vector* body;
   int stacksize;
-} funcdecl;
-
-typedef struct {
-  toplevelkind kind;
-  union {
-    funcdecl fdecl;
-    struct {
-      paramtype* vdecl;
-      struct _astree* vinit;
-    };
-    typenode* structtype;
-  };
+  paramtype* vdecl;
+  struct _astree* vinit;
+  typenode* structtype;
 } toplevel;
 
 typedef struct _astree {
   astkind kind;
   typenode* typ;
-  union {
-    struct {
-      struct _astree* left;
-      struct _astree* right;
-    };
-    struct {
-      struct _astree* structvalue;
-      char* fieldname;
-    };
-    struct {
-      paramtype* vardecl;
-      struct _astree* varinit;
-    };
-    struct _astree* value;
-    typenode* typedesc;
-    int intval;
-    char* strval;
-    struct {
-      char* ident;
-      int offset;
-    };
-    struct {
-      struct _astree* call;
-      vector* arguments;
-    };
-    struct {
-      struct _astree* ifcond;
-      struct _astree* ifbody;
-      vector* elifconds;
-      vector* elifbodies;
-      struct _astree* elsebody;
-    };
-    struct {
-      struct _astree* whilecond;
-      struct _astree* whilebody;
-    };
-    struct {
-      struct _astree* forinit;
-      struct _astree* forcond;
-      struct _astree* fornext;
-      struct _astree* forbody;
-    };
-    vector* stmt;
-  };
+  struct _astree* left;
+  struct _astree* right;
+  struct _astree* structvalue;
+  char* fieldname;
+  paramtype* vardecl;
+  struct _astree* varinit;
+  struct _astree* value;
+  typenode* typedesc;
+  int intval;
+  char* strval;
+  char* ident;
+  int offset;
+  struct _astree* call;
+  vector* arguments;
+  struct _astree* ifcond;
+  struct _astree* ifbody;
+  vector* elifconds;
+  vector* elifbodies;
+  struct _astree* elsebody;
+  struct _astree* whilecond;
+  struct _astree* whilebody;
+  struct _astree* forinit;
+  struct _astree* forcond;
+  struct _astree* fornext;
+  struct _astree* forbody;
+  vector* stmt;
 } astree;
 
 typedef struct {
@@ -221,6 +194,7 @@ extern vector* strlits;
 
 // utilities
 #define error(...) {fprintf(stderr, __VA_ARGS__); exit(1);}
+#define warning(...) {fprintf(stderr, "warning: "); fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n");}
 
 // vector.c
 vector* new_vector_cap(int cap);
@@ -254,7 +228,7 @@ char* ast_to_kindstr(astree* ast);
 // type
 typenode* new_typenode(typekind kind);
 typenode* new_ptrnode(typenode* typ);
-typenode* new_arraynode(typenode* typ, size_t size);
+typenode* new_arraynode(typenode* typ, int size);
 // tokenstream
 tokenstream* new_tokenstream(vector* tokens);
 token* get_token(tokenstream* ts);
@@ -266,7 +240,7 @@ astree* parse_statement(tokenstream* ts);
 vector* parse_statements(tokenstream* ts);
 astree* parse_compound(tokenstream* ts);
 // toplevel
-toplevel parse_toplevel(tokenstream* ts);
+toplevel* parse_toplevel(tokenstream* ts);
 
 // semantic.c
 int typesize(typenode* tn);
@@ -279,7 +253,7 @@ void semantic_analysis_toplevel(toplevel* top);
 // codegen.c
 void codegen_strlits();
 void codegen(astree* ast);
-void codegen_toplevel(toplevel top);
+void codegen_toplevel(toplevel* top);
 // emit
 void emit_global(char* name);
 void emit_label(char* label);
