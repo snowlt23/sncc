@@ -8,7 +8,7 @@ int main() {
   tokenstream* ts = new_tokenstream(tokenss);
 
   init_semantic();
-  for (;;) {
+  while (true) {
     if (get_token(ts) == NULL) break;
     toplevel* top = parse_toplevel(ts);
     semantic_analysis_toplevel(top);

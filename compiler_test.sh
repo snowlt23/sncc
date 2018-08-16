@@ -44,8 +44,8 @@ funcdecltest() {
   fi
 }
 
-unittest "test/vector_test.c"
-unittest "test/map_test.c"
+# unittest "test/vector_test.c"
+# unittest "test/map_test.c"
 
 lexertest "9" "TOKEN_INTLIT:9"
 lexertest "12345" "TOKEN_INTLIT:12345"

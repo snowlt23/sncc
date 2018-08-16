@@ -1,6 +1,3 @@
-#ifndef _SNCC_H_
-#define _SNCC_H_
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -142,7 +139,7 @@ typedef enum _toplevelkind {
   TOP_STRUCT
 } toplevelkind;
 
-typedef struct {
+typedef struct _toplevel {
   toplevelkind kind;
   paramtype* fdecl;
   vector* argdecls;
@@ -184,17 +181,13 @@ typedef struct _astree {
   vector* stmt;
 } astree;
 
-typedef struct {
+typedef struct _tokenstream {
   vector* tokens;
   int pos;
 } tokenstream;
 
 // globals
 extern vector* strlits;
-
-// utilities
-#define error(...) {fprintf(stderr, __VA_ARGS__); exit(1);}
-#define warning(...) {fprintf(stderr, "warning: "); fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n");}
 
 // vector.c
 vector* new_vector_cap(int cap);
@@ -261,5 +254,3 @@ void emit_pop(char* s);
 void emit_return();
 void emit_prologue(int localsize);
 void emit_epilogue();
-
-#endif

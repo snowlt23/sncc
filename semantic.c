@@ -3,6 +3,9 @@
 #include <string.h>
 #include "sncc.h"
 
+#define error(...) {fprintf(stderr, __VA_ARGS__); exit(1);}
+#define warning(...) {fprintf(stderr, "warning: "); fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n");}
+
 map* varmap;
 int varpos;
 map* fnmap;
