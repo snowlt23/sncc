@@ -33,8 +33,8 @@ test: compiler-test sncc test.pp.c
 	gcc test.s sncclib.c
 	./a.out
 
-self: sncc $(SELF_LIBS) sncc.c
-	$(CC) $(CFLAGS) -oself $(SELF_LIBS) sncc.c
+self: sncc $(SELF_LIBS) sncc.self.o
+	$(CC) $(CFLAGS) -oself $(SELF_LIBS) sncc.self.o
 self-test: self test.pp.c
 	./self < test.pp.c > test.s
 	gcc test.s sncclib.c
