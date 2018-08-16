@@ -365,6 +365,28 @@ void struct_incomplete_test() {
   test(icnext.x, 9);
 }
 
+enum tokenkind {
+  TOKEN_IDENT,
+  TOKEN_INTLIT,
+  TOKEN_STRLIT
+};
+typedef enum _astkind {
+  AST_IDENT,
+  AST_INTLIT,
+  AST_STRLIT
+} astkind;
+
+void enum_test() {
+  enum tokenkind tk1 = TOKEN_IDENT;
+  enum tokenkind tk2 = TOKEN_STRLIT;
+  test(tk1, 0);
+  test(tk2, 2);
+  astkind ak1 = AST_IDENT;
+  astkind ak2 = AST_STRLIT;
+  test(ak1, 0);
+  test(ak2, 2);
+}
+
 typedef struct _vector {
   void** data;
   int cap;
@@ -421,6 +443,7 @@ int main() {
   struct_dot_test();
   struct_allow_test();
   struct_incomplete_test();
+  enum_test();
   typedef_vector_test();
   typedef_bool_test();
 

@@ -4,12 +4,15 @@
 #include "sncc.h"
 
 map* structmap;
+map* enummap;
 map* typedefmap;
+map* constmap;
 
 void init_parser() {
   structmap = new_map();
+  enummap = new_map();
   typedefmap = new_map();
-}
+  constmap = new_map(); }
 
 bool eq_ident(token* id, char* s) {
   return id != NULL && id->kind == TOKEN_IDENT && strcmp(id->ident, s) == 0;
@@ -209,6 +212,26 @@ typenode* parse_type(tokenstream* ts) {
       }
       expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
     }
+  } else if (eq_ident(get_token(ts), "enum")) {
+    next_token(ts);
+    expect_token(get_token(ts), TOKEN_IDENT);
+    // char* tname = get_token(ts)->ident; next_token(ts);
+    next_token(ts);
+    if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_LBRACE) {
+      tn = new_typenode(TYPE_INT);
+    } else {
+      tn = new_typenode(TYPE_INT);
+      expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
+      for (int i=0; ; i++) {
+        if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_IDENT) break;
+        char* constname = get_token(ts)->ident; next_token(ts);
+        int* constint = malloc(sizeof(int));
+        *constint = i;
+        map_insert(constmap, constname, constint);
+        if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_COMMA) next_token(ts);
+      }
+      expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
+    }
   } else {
     if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_IDENT) return NULL;
     char* tname = get_token(ts)->ident;
@@ -249,7 +272,12 @@ astree* factor(tokenstream* ts) {
     return new_ast_strlit(t->strval);
   } else if (t->kind == TOKEN_IDENT) {
     next_token(ts);
-    return new_ast_ident(t->ident);
+    int* constint = map_get(constmap, t->ident);
+    if (constint == NULL) {
+      return new_ast_ident(t->ident);
+    } else {
+      return new_ast_intlit(*constint);
+    }
   } else {
     return expression(ts);
   }
@@ -772,14 +800,18 @@ toplevel parse_toplevel(tokenstream* ts) {
       top.vinit = NULL;
     }
   } else {
-    top.kind = TOP_STRUCT;
-    top.structtype = pt->typ;
-    typenode* alreadystruct = map_get(structmap, top.structtype->tname);
-    if (alreadystruct != NULL) {
-      *alreadystruct = *top.structtype;
-      top.structtype = alreadystruct;
+    if (pt->typ->kind == TYPE_STRUCT) {
+      top.kind = TOP_STRUCT;
+      top.structtype = pt->typ;
+      typenode* alreadystruct = map_get(structmap, top.structtype->tname);
+      if (alreadystruct != NULL) {
+        *alreadystruct = *top.structtype;
+        top.structtype = alreadystruct;
+      } else {
+        map_insert(structmap, top.structtype->tname, top.structtype);
+      }
     } else {
-      map_insert(structmap, top.structtype->tname, top.structtype);
+      top.kind = TOP_NONE;
     }
   }
 
