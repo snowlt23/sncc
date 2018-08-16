@@ -186,6 +186,10 @@ typedef struct _tokenstream {
   int pos;
 } tokenstream;
 
+// utils.c
+void error(char* s);
+void warning(char* s);
+
 // globals
 extern vector* strlits;
 

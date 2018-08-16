@@ -105,7 +105,7 @@ paramtype* get_field(typenode* typ, char* fieldname) {
 }
 
 bool is_implicit_int(typenode* typ) {
-  return typ->kind == TYPE_INT || typ->kind == TYPE_CHAR;
+  return typ->kind == TYPE_INT || typ->kind == TYPE_CHAR || typ->kind == TYPE_PTR;
 }
 
 void semantic_analysis(astree* ast) {
@@ -267,7 +267,7 @@ void semantic_analysis_toplevel(toplevel* top) {
   } else if (top->kind == TOP_GLOBALVAR) {
     map_insert(globalvarmap, top->vdecl->name, top->vdecl->typ);
     if (top->vinit != NULL) {
-      if (top->vinit->kind != AST_INTLIT && top->vinit->kind != AST_STRLIT) {
+      if (top->vinit->kind != AST_INTLIT && top->vinit->kind != AST_STRLIT && !(top->vinit->kind == AST_MINUS && top->vinit->value->kind == AST_INTLIT)) {
         error("global variable expected constant expression.");
       }
       if (top->vinit->kind == AST_STRLIT) {
@@ -289,12 +289,10 @@ void semantic_analysis_toplevel(toplevel* top) {
     int structsize = 0;
     for (int i=0; i<top->structtype->fields->len; i++) {
       paramtype* field = vector_get(top->structtype->fields, i);
-      if (alignsize+typesize(field->typ) == maxalign) {
+      if (alignsize == maxalign) {
         alignsize = 0;
       } else if (alignsize+typesize(field->typ) > maxalign) {
-        if (alignsize != maxalign) {
-          structsize += maxalign - alignsize % maxalign;
-        }
+        structsize += maxalign - alignsize % maxalign;
         alignsize = 0;
       }
       field->offset = structsize;

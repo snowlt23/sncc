@@ -3,6 +3,10 @@
 
 // test
 
+void printf(char* fmt);
+void exit(int x);
+int strcmp(char* a, char* b);
+
 void test_impl(int x, int expect, char* s, int line) {
   if (!(x == expect)) {
     printf("[ERROR] L%d %s: expect %d, but got %d", line, s, expect, x);
@@ -332,6 +336,20 @@ typedef struct _ptrint {
   void* structtype;
 } ptrint;
 
+typedef enum _tokenkind {
+  TOKEN_ADD,
+  TOKEN_SUB,
+  TOKEN_MUL,
+  TOKEN_DIV,
+} tokenkind;
+
+typedef struct _token {
+  tokenkind kind;
+  int intval;
+  char* strval;
+  char* ident;
+} token;
+
 void struct_sizeof_test() {
   test(sizeof(struct mychar), 2);
   test(sizeof(struct mychar3), 3);
@@ -342,7 +360,10 @@ void struct_sizeof_test() {
   test(sizeof(struct myptr), 16);
   test(sizeof(struct icci), 12);
   test(sizeof(ptrint), 64);
+  test(sizeof(token), 24);
 }
+
+int pi_stacksize(ptrint* pi);
 
 void struct_dot_test() {
   struct mychar mc;
@@ -378,6 +399,8 @@ struct incom {
   int x;
   struct incom* next;
 };
+
+struct incom* new_incom();
 
 void struct_incomplete_test() {
   test(sizeof(struct incom), 16);
@@ -463,6 +486,10 @@ void typedef_bool_test() {
   test(f, 0);
 }
 
+int addpp(int* a, int* b);
+int addic(int a, char b);
+int* padd(int a, char b);
+
 void exfn_test() {
   int x = 4;
   int y = 5;
@@ -484,8 +511,10 @@ void charlit_test() {
   test('0', 48);
   test('a', 97);
   test('\'', 39);
+  test('\\', 92);
   test('"', 34);
   test('(', 40);
+  test(' ', 32);
 }
 
 int main() {

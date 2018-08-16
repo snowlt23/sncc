@@ -22,8 +22,7 @@ int main(int argc, char **argv) {
     }
  
     char c = fgetc(fp);
-    char eof = EOF;
-    while (c != eof) {
+    while (c != EOF) {
       putchar(c);
       c = fgetc(fp);
     }
@@ -31,3 +30,4 @@ int main(int argc, char **argv) {
   }
   return 0;
 }
+

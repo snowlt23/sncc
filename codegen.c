@@ -136,8 +136,8 @@ void codegen_movereg(typenode* typ, char* reg8, char* reg32, char* reg64) {
   }
 }
 
-void codegen_add(typenode* typ) {
-  if (typ->kind == TYPE_PTR) { // pointer arithmetic
+void codegen_add(typenode* typ, typenode* right) {
+  if (typ->kind == TYPE_PTR && right->kind == TYPE_INT) { // pointer arithmetic
     emit_pop("%rax");
     emit_asm_int("movq $%d, %%rcx", typesize(typ->ptrof));
     emit_asm("imulq %%rcx");
@@ -161,14 +161,15 @@ void codegen(astree* ast) {
   } else if (ast->kind == AST_ADD) {
     codegen(ast->left);
     codegen(ast->right);
-    codegen_add(ast->left->typ);
+    codegen_add(ast->left->typ, ast->right->typ);
   } else if (ast->kind == AST_SUB) {
     codegen(ast->left);
     codegen(ast->right);
     assert(ast->left->typ != NULL);
-    if (ast->left->typ->kind == TYPE_PTR) { // pointer arithmetic
+    if (ast->left->typ->kind == TYPE_PTR && ast->right->typ->kind == TYPE_INT) { // pointer arithmetic
       emit_pop("%rax");
-      emit_asm_int("imulq $%d", typesize(ast->left->typ->ptrof));
+      emit_asm_int("movq $%d, %%rcx", typesize(ast->left->typ->ptrof));
+      emit_asm("imulq %%rcx");
       emit_push("%rax");
     }
     emit_pop("%rcx");
@@ -269,7 +270,7 @@ void codegen(astree* ast) {
     emit_push("%rax");
     codegen_movevalue(ast->left->typ);
     codegen(ast->right);
-    codegen_add(ast->left->typ);
+    codegen_add(ast->left->typ, ast->right->typ);
     emit_pop("%rcx");
     emit_pop("%rax");
     codegen_movereg(ast->left->typ, "%cl", "%ecx", "%rcx");
@@ -296,7 +297,7 @@ void codegen(astree* ast) {
     emit_push("%rax");
     codegen_movevalue(ast->value->typ);
     emit_push("$1");
-    codegen_add(ast->value->typ);
+    codegen_add(ast->value->typ, new_typenode(TYPE_INT));
     emit_pop("%rcx");
     emit_pop("%rax");
     codegen_movereg(ast->value->typ, "%cl", "%ecx", "%rcx");
@@ -512,10 +513,13 @@ void codegen_toplevel(toplevel* top) {
     emit_global(top->vdecl->name);
   } else if (top->kind == TOP_GLOBALVAR) {
     printf(".data\n");
+    emit_global(top->vdecl->name);
     emit_label(top->vdecl->name);
     if (top->vinit != NULL) {
       if (top->vinit->kind == AST_INTLIT) {
         emit_asm_int(".int %d", top->vinit->intval);
+      } else if (top->vinit->kind == AST_MINUS) {
+        emit_asm_int(".int -%d", top->vinit->value->intval);
       } else if (top->vinit->kind == AST_STRLIT) {
         emit_asm1(".ascii \"%s\\0\"", top->vinit->strval);
       }

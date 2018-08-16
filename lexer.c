@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <assert.h>
 #include <string.h>
+#include <ctype.h>
 #include "sncc.h"
 
 // #define error(...) {fprintf(stderr, __VA_ARGS__); exit(1);}
@@ -17,7 +17,7 @@ void init_lexer() {
 }
 
 token* new_token(tokenkind kind) {
-  token* t = (token*)malloc(sizeof(token));
+  token* t = malloc(sizeof(token));
   t->kind = kind;
   return t;
 }
@@ -39,7 +39,7 @@ token* new_ident(char* s) {
 }
 
 char* int_to_str(int x) {
-  char* buf = (char*)malloc(6+1);
+  char* buf = malloc(6+1);
   snprintf(buf, 6, "%d", x);
   return buf;
 }
@@ -196,7 +196,8 @@ void skip_spaces() {
 char* read_ident() {
   skip_spaces();
   char identbuf[256];
-  for (int i=0; ; i++) {
+  int i = 0;
+  while (true) {
     if (i >= 256) assert(false);
     char nc = getc(input);
     if (!isidenttail(nc)) {
@@ -205,6 +206,7 @@ char* read_ident() {
       break;
     }
     identbuf[i] = nc;
+    i++;
   }
   return strdup(identbuf);
 }
@@ -213,7 +215,8 @@ char* read_strlit() {
   skip_spaces();
   char strbuf[1024];
   bool inesc = false;
-  for (int i=0; ; i++) {
+  int i = 0;
+  while (true) {
     assert(i < 1024);
     char nc = getc(input);
     if (inesc && nc == '"') {
@@ -238,7 +241,7 @@ char* read_strlit() {
       i++;
     } else if (nc == '\\') {
       inesc = true;
-      i--;
+      i = i-1;
     } else if (nc == '"') {
       strbuf[i] = 0;
       break;
@@ -247,6 +250,7 @@ char* read_strlit() {
     } else {
       strbuf[i] = nc;
     }
+    i++;
   }
   return strdup(strbuf);
 }
@@ -254,7 +258,8 @@ char* read_strlit() {
 char* read_strlit_angled() {
   skip_spaces();
   char strbuf[1024];
-  for (int i=0; ; i++) {
+  int i = 0;
+  while (true) {
     assert(i < 1024);
     char nc = getc(input);
     if (nc == '>') {
@@ -263,6 +268,7 @@ char* read_strlit_angled() {
     }
     if (nc == EOF) error("expect end of string literal.");
     strbuf[i] = nc;
+    i++;
   }
   return strdup(strbuf);
 }
@@ -283,6 +289,9 @@ void preprocessor(vector* tokenss, char* prename) {
     }
     FILE* tmpf = input;
     input = fopen(includename, "r");
+    if (input == NULL) { fprintf(stderr, "%s: No such file", includename);
+      exit(1);
+    }
     vector* includetokens = lexer();
     for (int i=0; i<includetokens->len; i++) {
       vector_push(tokenss, vector_get(includetokens, i));
@@ -302,27 +311,30 @@ void preprocessor(vector* tokenss, char* prename) {
     }
     map_insert(definemap, definename, definetokens);
   } else {
-    error("unsupported %s preprocessor.", prename);
+    error("unsupported preprocessor.");
   }
 }
 
 bool single_token_lexer(vector* tokenss) {
   char c = getc(input);
+
   if (c == EOF) {
     return false;
   } else if (isdigit(c)) { // int literal
     char digitbuf[256];
     digitbuf[0] = c;
-    for (int i=1; ; i++) {
+    int i=1;
+    while (true) {
       assert(i < 256);
       char nc = getc(input);
       if (!isdigit(nc)) {
-        digitbuf[i] = 0;
         ungetc(nc, input);
+        digitbuf[i] = 0;
         vector_push(tokenss, new_intlit(atoi(digitbuf)));
         break;
       }
       digitbuf[i] = nc;
+      i++;
     }
   } else if (c == '#') { // preprocessor
     char* prename = read_ident();
@@ -330,14 +342,17 @@ bool single_token_lexer(vector* tokenss) {
   } else if (c == '"') { // string literal
     vector_push(tokenss, new_strlit(read_strlit()));
   } else if (c == '\'') {
-    char c = getc(input);
-    if (c == '\\') {
-      c = getc(input);
+    char nc = getc(input);
+    if (nc == '\\') {
+      nc = getc(input);
+      if (nc == 'n') {
+        nc = '\n';
+      }
     }
     if (getc(input) != '\'') {
-      error("expect end of char literal.w");
+      error("expect end of char literal.");
     }
-    vector_push(tokenss, new_intlit(c));
+    vector_push(tokenss, new_intlit(nc));
   } else if (c == '+') {
     char nc = getc(input);
     if (nc == '+') {
@@ -398,7 +413,7 @@ bool single_token_lexer(vector* tokenss) {
     if (nc == '|') {
       vector_push(tokenss, new_token(TOKEN_LOR));
     } else {
-      error("unsupporte | token in currently.");
+      error("unsupported | token in currently.");
     }
   } else if (c == '&') {
     char nc = getc(input);
@@ -456,7 +471,9 @@ bool single_token_lexer(vector* tokenss) {
       vector_push(tokenss, new_ident(id));
     }
   } else {
-    error("unexpected token %c.", c);
+    fprintf(stderr, "%d", c);
+    fprintf(stderr, "unexpected token '%c'\n", c);
+    exit(1);
   }
   return true;
 }

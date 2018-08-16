@@ -1,8 +1,8 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g3
+CFLAGS = -Wall -Wextra
 
 SNCC_LIBS = vector.o map.o lexer.o parser.o semantic.o codegen.o utils.o
-SELF_LIBS = vector.self.o map.self.o lexer.o parser.o semantic.o codegen.self.o utils.self.o
+SELF_LIBS = vector.self.o map.self.o lexer.self.o parser.o semantic.o codegen.self.o utils.self.o selflib.self.o
 
 build: sncc ;
 
