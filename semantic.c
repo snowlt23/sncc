@@ -3,9 +3,6 @@
 #include <string.h>
 #include "sncc.h"
 
-#define error(...) {fprintf(stderr, __VA_ARGS__); exit(1);}
-#define warning(...) {fprintf(stderr, "warning: "); fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n");}
-
 map* varmap;
 int varpos;
 map* fnmap;
@@ -16,7 +13,7 @@ int labelcnt = 0;
 
 char* gen_label() {
   labelcnt++;
-  char labelbuf[256] = {};
+  char labelbuf[256];
   snprintf(labelbuf, 256, ".L%d", labelcnt);
   return strdup(labelbuf);
 }
@@ -62,7 +59,7 @@ int getalign(typenode* typ) {
   } else if (typ->kind == TYPE_ARRAY) {
     return getalign(typ->ptrof) * typ->arraysize;
   } else if (typ->kind == TYPE_STRUCT) {
-    if (typ->maxalign == -1) error("%s is imcomplete type.", typ->tname);
+    if (typ->maxalign == -1) error_s("%s is imcomplete type.", typ->tname);
     return typ->maxalign;
   } else {
     assert(false);
@@ -74,7 +71,7 @@ int typesize(typenode* typ) {
     return typesize(typ->truetype);
   }
 
-  if (typ->kind == TYPE_INCOMPLETE_STRUCT) error("%s type is incomplete type.", typ->tname);
+  if (typ->kind == TYPE_INCOMPLETE_STRUCT) error_s("%s type is incomplete type.", typ->tname);
 
   if (typ->kind == TYPE_INT) {
     return 4;
@@ -87,7 +84,7 @@ int typesize(typenode* typ) {
   } else if (typ->kind == TYPE_ARRAY) {
     return typesize(typ->ptrof) * typ->arraysize;
   } else if (typ->kind == TYPE_STRUCT) {
-    if (typ->structsize == -1) error("%s is imcomplete type.", typ->tname);
+    if (typ->structsize == -1) error_s("%s is imcomplete type.", typ->tname);
     return typ->structsize;
   } else {
     assert(false);
@@ -101,7 +98,7 @@ paramtype* get_field(typenode* typ, char* fieldname) {
       return field;
     }
   }
-  error("%s hasn't %s field.", typ->tname, fieldname);
+  error_ss("%s hasn't %s field.", typ->tname, fieldname);
 }
 
 bool is_implicit_int(typenode* typ) {
@@ -113,7 +110,7 @@ void semantic_analysis(astree* ast) {
     varinfo* info = map_get(varmap, ast->ident);
     if (info == NULL) { // lookup global variable
       typenode* typ = map_get(globalvarmap, ast->ident);
-      if (typ == NULL) error("undeclared %s variable.", ast->ident);
+      if (typ == NULL) error_s("undeclared %s variable.", ast->ident);
       ast->kind = AST_GLOBALREF;
       ast->typ = typ;
     } else {
@@ -139,7 +136,7 @@ void semantic_analysis(astree* ast) {
     } else {
       error("illegal add arithmetic.");
     }
-  } else if (ast->kind == AST_MUL || ast->kind == AST_DIV || ast->kind == AST_LESSER || ast->kind == AST_LESSEREQ) {
+  } else if (ast->kind == AST_MUL || ast->kind == AST_DIV || ast->kind == AST_MOD || ast->kind == AST_LESSER || ast->kind == AST_LESSEREQ) {
     semantic_analysis(ast->left);
     semantic_analysis(ast->right);
     if (is_implicit_int(ast->left->typ) && is_implicit_int(ast->right->typ)) {
@@ -158,9 +155,10 @@ void semantic_analysis(astree* ast) {
     semantic_analysis(ast->value);
     ast->typ = ast->value->typ;
   } else if (ast->kind == AST_POSTINC) {
-    astree* convast = new_ast_infix(AST_SUB, new_ast_prefix(AST_PREINC, ast->value), new_ast_intlit(1));
-    semantic_analysis(convast);
-    *ast = *convast;
+    ast->kind = AST_SUB;
+    ast->left = new_ast_prefix(AST_PREINC, ast->value);
+    ast->right = new_ast_intlit(1);
+    semantic_analysis(ast);
   } else if (ast->kind == AST_EQ || ast->kind == AST_LAND || ast->kind == AST_LOR) {
     semantic_analysis(ast->left);
     semantic_analysis(ast->right);
@@ -180,11 +178,10 @@ void semantic_analysis(astree* ast) {
     varpos += typesize(ast->vardecl->typ);
     map_insert(varmap, ast->vardecl->name, new_varinfo(ast->vardecl->typ, varpos));
     if (ast->varinit != NULL) {
-      astree* assignast = new_ast(AST_ASSIGN);
-      assignast->left = new_ast_ident(ast->vardecl->name);
-      assignast->right = ast->varinit;
-      semantic_analysis(assignast);
-      *ast = *assignast;
+      ast->kind = AST_ASSIGN;
+      ast->left = new_ast_ident(ast->vardecl->name);
+      ast->right = ast->varinit;
+      semantic_analysis(ast);
     }
   } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {
     for (int i=0; i<ast->arguments->len; i++) {
@@ -192,7 +189,7 @@ void semantic_analysis(astree* ast) {
     }
     typenode* rettyp = map_get(fnmap, ast->call->ident);
     if (rettyp == NULL){
-      warning("undeclared %s function.", ast->call->ident);
+      warning_s("undeclared %s function.", ast->call->ident);
       ast->typ = new_typenode(TYPE_INT);
     } else {
       ast->typ = rettyp;
@@ -238,7 +235,7 @@ void semantic_analysis(astree* ast) {
     ast->intval = typesize(ast->typedesc);
     ast->typ = new_typenode(TYPE_INT);
   } else {
-    error("unsupported %d kind in semantic", ast->kind);
+    error("unsupported kind in semantic");
   }
 }
 
@@ -247,9 +244,7 @@ void semantic_analysis_toplevel(toplevel* top) {
   if (top->kind == TOP_NONE) {
     // discard
   } else if (top->kind == TOP_FUNCDECL) {
-    // fprintf(stderr, "%s\n", top->fdecl->name); // FIXME:
     map_insert(fnmap, top->fdecl->name, top->fdecl->typ);
-    // fprintf(stderr, "%s\n", top->fdecl->name);
     for (int i=0; i<top->argdecls->len; i++) {
       paramtype* argparam = vector_get(top->argdecls, i);
       varpos += typesize(argparam->typ);

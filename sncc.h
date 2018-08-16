@@ -31,6 +31,7 @@ typedef enum _tokenkind {
   TOKEN_SUB,
   TOKEN_MUL,
   TOKEN_DIV,
+  TOKEN_MOD,
   TOKEN_LESSER,
   TOKEN_GREATER,
   TOKEN_LESSEREQ,
@@ -72,6 +73,7 @@ typedef enum _astkind {
   AST_SUB,
   AST_MUL,
   AST_DIV,
+  AST_MOD,
   AST_LESSER,
   AST_LESSEREQ,
   AST_MINUS,
@@ -188,7 +190,10 @@ typedef struct _tokenstream {
 
 // utils.c
 void error(char* s);
+void error_s(char* fmt, char* s);
+void error_ss(char* fmt, char* s1, char* s2);
 void warning(char* s);
+void warning_s(char* fmt, char* s);
 
 // globals
 extern vector* strlits;

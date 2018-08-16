@@ -22,6 +22,9 @@ void infix_test() {
   test(7+2/2, 8);
   test((1+1)*2, 4);
   test((1+1)/2, 1);
+  test(4 % 4, 0);
+  test(4 % 5, 4);
+  test(5 % 4, 1);
   test(9 == 9, 1);
   test(9 == 8, 0);
   test(!0, 1);

@@ -190,6 +190,13 @@ void codegen(astree* ast) {
     emit_pop("%rax");
     emit_div("%rcx");
     emit_push("%rax");
+  } else if (ast->kind == AST_MOD) {
+    codegen(ast->left);
+    codegen(ast->right);
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    emit_div("%rcx");
+    emit_push("%rdx");
   } else if (ast->kind == AST_LESSER) {
     codegen(ast->left);
     codegen(ast->right);

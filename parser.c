@@ -405,6 +405,10 @@ astree* infix_muldiv(tokenstream* ts) {
       next_token(ts);
       astree* right = prefix_op(ts);
       left = new_ast_infix(AST_DIV, left, right);
+    } else if (t->kind == TOKEN_MOD) {
+      next_token(ts);
+      astree* right = prefix_op(ts);
+      left = new_ast_infix(AST_MOD, left, right);
     } else {
       break;
     }

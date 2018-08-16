@@ -390,6 +390,8 @@ bool single_token_lexer(vector* tokenss) {
       ungetc(nc, input);
       vector_push(tokenss, new_token(TOKEN_DIV));
     }
+  } else if (c == '%') {
+    vector_push(tokenss, new_token(TOKEN_MOD));
   } else if (c == '<') {
     char nc = getc(input);
     if (nc == '=') {
