@@ -143,8 +143,7 @@ void codegen_movereg(typenode* typ, char* reg8, char* reg32, char* reg64) {
 void codegen_add(typenode* typ) {
   if (typ->kind == TYPE_PTR) { // pointer arithmetic
     emit_pop("%rax");
-    int ts = typesize(typ->ptrof);
-    emit_asm_int("movq $%d, %%rcx", ts); // FIXME:
+    emit_asm_int("movq $%d, %%rcx", typesize(typ->ptrof));
     emit_asm("imulq %%rcx");
     emit_push("%rax");
   }
@@ -314,12 +313,12 @@ void codegen(astree* ast) {
   } else if (ast->kind == AST_VARDECL) {
     // discard
   } else if (ast->kind == AST_CALL && ast->call->kind == AST_IDENT) {
-    // emit_push("%rdi");
-    // emit_push("%rsi");
-    // emit_push("%rdx");
-    // emit_push("%rcx");
-    // emit_push("%r8");
-    // emit_push("%r9");
+    emit_push("%rdi");
+    emit_push("%rsi");
+    emit_push("%rdx");
+    emit_push("%rcx");
+    emit_push("%r8");
+    emit_push("%r9");
 
     if (ast->arguments->len > 0) {
       codegen(vector_get(ast->arguments, 0));
@@ -366,12 +365,12 @@ void codegen(astree* ast) {
       emit_asm_int("addq $%d, %%rsp", (ast->arguments->len-6)*8);
     }
 
-    // emit_pop("%r9");
-    // emit_pop("%r8");
-    // emit_pop("%rcx");
-    // emit_pop("%rdx");
-    // emit_pop("%rsi");
-    // emit_pop("%rdi");
+    emit_pop("%r9");
+    emit_pop("%r8");
+    emit_pop("%rcx");
+    emit_pop("%rdx");
+    emit_pop("%rsi");
+    emit_pop("%rdi");
     
     emit_push("%rax");
   } else if (ast->kind == AST_STATEMENT) {
