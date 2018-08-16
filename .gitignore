@@ -2,6 +2,7 @@
 *.out
 sncc
 self
+self2
 test.pp.c
 /*.s
 *.o
