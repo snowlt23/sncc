@@ -3,9 +3,6 @@
 #include <assert.h>
 #include "sncc.h"
 
-#define error(...) {fprintf(stderr, __VA_ARGS__); exit(1);}
-#define warning(...) {fprintf(stderr, "warning: "); fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n");}
-
 map* structmap;
 map* enummap;
 map* typedefmap;
@@ -23,7 +20,7 @@ bool eq_ident(token* id, char* s) {
 }
 
 void expect_token(token* t, tokenkind kind) {
-  if (t == NULL || t->kind != kind) error("expected %d token.", kind);
+  if (t == NULL || t->kind != kind) error("unexpected token.");
 }
 
 //
@@ -31,7 +28,7 @@ void expect_token(token* t, tokenkind kind) {
 //
 
 astree* new_ast(astkind kind) {
-  astree* ast = malloc(sizeof(astree));
+  astree* ast = malloc(sizeof(struct _astree));
   ast->kind = kind;
   ast->typ = NULL;
   return ast;
@@ -135,7 +132,7 @@ char* ast_to_kindstr(astree* ast) {
 //
 
 typenode* new_typenode(typekind kind) {
-  typenode* tn = malloc(sizeof(typenode));
+  typenode* tn = malloc(sizeof(struct _typenode));
   tn->kind = kind;
   tn->ptrof = NULL;
   tn->truetype = NULL;
@@ -162,7 +159,7 @@ typenode* new_arraynode(typenode* typ, int size) {
 //
 
 tokenstream* new_tokenstream(vector* tokens) {
-  tokenstream* ts = (tokenstream*)malloc(sizeof(tokenstream));
+  tokenstream* ts = malloc(sizeof(struct _tokenstream));
   ts->tokens = tokens;
   ts->pos = 0;
   return ts;
@@ -171,7 +168,7 @@ token* get_token(tokenstream* ts) {
   if (ts->pos >= ts->tokens->len) {
     return NULL;
   }
-  return (token*)vector_get(ts->tokens, ts->pos);
+  return vector_get(ts->tokens, ts->pos);
 }
 void next_token(tokenstream* ts) {
   ts->pos++;
@@ -208,7 +205,7 @@ typenode* parse_type(tokenstream* ts) {
     } else {
       expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
       tn->fields = new_vector();
-      for (;;) {
+      while (true) {
         paramtype* field = parse_paramtype(ts);
         if (field == NULL) break;
         vector_push(tn->fields, field);
@@ -226,13 +223,15 @@ typenode* parse_type(tokenstream* ts) {
     } else {
       tn = new_typenode(TYPE_INT);
       expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
-      for (int i=0; ; i++) {
+      int i = 0;
+      while (true) {
         if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_IDENT) break;
         char* constname = get_token(ts)->ident; next_token(ts);
         int* constint = malloc(sizeof(int));
         *constint = i;
         map_insert(constmap, constname, constint);
         if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_COMMA) next_token(ts);
+        i++;
       }
       expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
     }
@@ -244,7 +243,7 @@ typenode* parse_type(tokenstream* ts) {
     next_token(ts);
     tn = searched;
   }
-  for (;;) {
+  while (true) {
     if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_MUL) {
       next_token(ts);
       tn = new_ptrnode(tn);
@@ -255,7 +254,9 @@ typenode* parse_type(tokenstream* ts) {
   return tn;
 }
 
-astree* parser_top(tokenstream* ts);
+astree* gen_ptrderef(astree* value, astree* index) {
+  return new_ast_prefix(AST_DEREF, new_ast_infix(AST_ADD, value, index));
+}
 
 astree* factor(tokenstream* ts) {
   token* t = get_token(ts);
@@ -264,8 +265,8 @@ astree* factor(tokenstream* ts) {
   if (t->kind == TOKEN_LPAREN) {
     next_token(ts);
     astree* ret = expression(ts);
-    token* t = get_token(ts);
-    if (t == NULL || t->kind != TOKEN_RPAREN) error("\"(\" should be ended by \")\".");
+    token* newt = get_token(ts);
+    if (newt == NULL || newt->kind != TOKEN_RPAREN) error("\"(\" should be ended by \")\".");
     next_token(ts);
     return ret;
   } else if (t->kind == TOKEN_INTLIT) {
@@ -287,13 +288,36 @@ astree* factor(tokenstream* ts) {
   }
 }
 
-astree* gen_ptrderef(astree* value, astree* index) {
-  return new_ast_prefix(AST_DEREF, new_ast_infix(AST_ADD, value, index));
+astree* callexpr(tokenstream* ts) {
+  astree* call = factor(ts);
+  token* lparen = get_token(ts);
+  if (lparen == NULL) return call;
+  if (lparen->kind != TOKEN_LPAREN) return call;
+  next_token(ts);
+
+  vector* args = new_vector();
+  if (get_token(ts)-> kind != TOKEN_RPAREN) {
+    vector_push(args, expression(ts));
+    while (true) {
+      if (get_token(ts)->kind == TOKEN_RPAREN) break;
+      token* t = get_token(ts); next_token(ts);
+      if (t->kind != TOKEN_COMMA) error("expected comma by call");
+      vector_push(args, expression(ts));
+    }
+  }
+
+  token* rparen = get_token(ts); next_token(ts);
+  if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("function call expected )rparen.");
+
+  astree* ast = new_ast(AST_CALL);
+  ast->call = call;
+  ast->arguments = args;
+  return ast;
 }
 
 astree* postfix_op(tokenstream* ts) {
-  astree* value = factor(ts);
-  for (;;) {
+  astree* value = callexpr(ts);
+  while (true) {
     if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_LBRACKET) {
       next_token(ts);
       astree* index = expression(ts);
@@ -321,33 +345,6 @@ astree* postfix_op(tokenstream* ts) {
     }
   }
   return value;
-}
-
-astree* callexpr(tokenstream* ts) {
-  astree* call = postfix_op(ts);
-  token* lparen = get_token(ts);
-  if (lparen == NULL) return call;
-  if (lparen->kind != TOKEN_LPAREN) return call;
-  next_token(ts);
-
-  vector* args = new_vector();
-  if (get_token(ts)-> kind != TOKEN_RPAREN) {
-    vector_push(args, expression(ts));
-    for (;;) {
-      if (get_token(ts)->kind == TOKEN_RPAREN) break;
-      token* t = get_token(ts); next_token(ts);
-      if (t->kind != TOKEN_COMMA) error("expected comma by call, but got %s", token_to_str(t));
-      vector_push(args, expression(ts));
-    }
-  }
-
-  token* rparen = get_token(ts); next_token(ts);
-  if (rparen == NULL || rparen->kind != TOKEN_RPAREN) error("function call expected )rparen.");
-
-  astree* ast = new_ast(AST_CALL);
-  ast->call = call;
-  ast->arguments = args;
-  return ast;
 }
 
 astree* prefix_op(tokenstream* ts) {
@@ -387,14 +384,13 @@ astree* prefix_op(tokenstream* ts) {
     astree* value = prefix_op(ts);
     return new_ast_infix(AST_EQ, value, new_ast_intlit(0));
   } else {
-    return callexpr(ts);
+    return postfix_op(ts);
   }
 }
 
-
 astree* infix_muldiv(tokenstream* ts) {
   astree* left = prefix_op(ts);
-  for (;;) {
+  while (true) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_MUL) {
@@ -418,7 +414,7 @@ astree* infix_muldiv(tokenstream* ts) {
 
 astree* infix_addsub(tokenstream* ts) {
   astree* left = infix_muldiv(ts);
-  for (;;) {
+  while (true) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_ADD) {
@@ -438,7 +434,7 @@ astree* infix_addsub(tokenstream* ts) {
 
 astree* infix_eq(tokenstream* ts) {
   astree* left = infix_addsub(ts);
-  for (;;) {
+  while (true) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_EQ) {
@@ -459,7 +455,7 @@ astree* infix_eq(tokenstream* ts) {
 // infix parser for lesser, greater, and lesser/greater equal.
 astree* infix_lge(tokenstream* ts) {
   astree* left = infix_eq(ts);
-  for (;;) {
+  while (true) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_LESSER) {
@@ -487,7 +483,7 @@ astree* infix_lge(tokenstream* ts) {
 
 astree* infix_logic_and(tokenstream* ts) {
   astree* left = infix_lge(ts);
-  for (;;) {
+  while (true) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_LAND) {
@@ -503,7 +499,7 @@ astree* infix_logic_and(tokenstream* ts) {
 
 astree* infix_logic_or(tokenstream* ts) {
   astree* left = infix_logic_and(ts);
-  for (;;) {
+  while (true) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_LOR) {
@@ -519,7 +515,7 @@ astree* infix_logic_or(tokenstream* ts) {
 
 astree* infix_assign(tokenstream* ts) {
   astree* left = infix_logic_or(ts);
-  for (;;) {
+  while (true) {
     token* t = get_token(ts);
     if (t == NULL) break;
     if (t->kind == TOKEN_ASSIGN) {
@@ -575,7 +571,7 @@ astree* parse_if(tokenstream* ts) {
   ast->elifconds = new_vector();
   ast->elifbodies = new_vector();
   ast->elsebody = NULL;
-  for (;;) {
+  while (true) {
     if (!eq_ident(get_token(ts), "else")) break;
     next_token(ts);
     if (eq_ident(get_token(ts), "if")) {
@@ -679,14 +675,13 @@ astree* parse_statement(tokenstream* ts) {
 
 vector* parse_statements(tokenstream* ts) {
   vector* v = new_vector();
-  for (;;) {
+  while (true) {
     if (get_token(ts) == NULL || get_token(ts)->kind == TOKEN_RBRACE) break;
     if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_SEMICOLON) {
       next_token(ts);
       continue;
     }
-    vector_push(v, (void*)parse_statement(ts));
-    // vector_push(v, (void*)parse_compound(ts));
+    vector_push(v, parse_statement(ts));
   }
   return v;
 }
@@ -720,7 +715,7 @@ paramtype* parse_paramtype(tokenstream* ts) {
   }
   token* t = get_token(ts); next_token(ts);
   if (t->kind != TOKEN_IDENT) error("expected identifier in parameter.");
-  for (;;) { // array declaration
+  while (true) { // array declaration
     if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_LBRACKET) {
       next_token(ts);
       expect_token(get_token(ts), TOKEN_INTLIT);
@@ -744,12 +739,12 @@ paramtype* parse_paramtype(tokenstream* ts) {
 
 vector* parse_paramtype_list(tokenstream* ts) {
   vector* ptlist = new_vector();
-  for (;;) {
+  while (true) {
     if (get_token(ts) == NULL) break;
     if (get_token(ts)->kind != TOKEN_IDENT) break;
     paramtype* pt = parse_paramtype(ts);
     if (pt == NULL) error("expect type declaration in parameters.");
-    vector_push(ptlist, (void*)pt);
+    vector_push(ptlist, pt);
     token* t = get_token(ts);
     if (t == NULL) error("require more token.");
     if (t->kind != TOKEN_COMMA) break;
@@ -757,6 +752,9 @@ vector* parse_paramtype_list(tokenstream* ts) {
   }
   return ptlist;
 }
+
+paramtype* parse_paramtype(tokenstream* ts);
+vector* parse_paramtype_list(tokenstream* ts);
 
 toplevel* parse_toplevel(tokenstream* ts) {
   toplevel* top = malloc(sizeof(toplevel));
@@ -769,7 +767,11 @@ toplevel* parse_toplevel(tokenstream* ts) {
       top->structtype = typ;
       typenode* alreadystruct = map_get(structmap, top->structtype->tname);
       if (alreadystruct != NULL) {
-        *alreadystruct = *top->structtype;
+        alreadystruct->kind = top->structtype->kind;
+        alreadystruct->tname = top->structtype->tname;
+        alreadystruct->fields = top->structtype->fields;
+        alreadystruct->structsize = top->structtype->structsize;
+        alreadystruct->maxalign = top->structtype->maxalign;
         top->structtype = alreadystruct;
       } else {
         map_insert(structmap, top->structtype->tname, top->structtype);
@@ -822,7 +824,11 @@ toplevel* parse_toplevel(tokenstream* ts) {
       top->structtype = pt->typ;
       typenode* alreadystruct = map_get(structmap, top->structtype->tname);
       if (alreadystruct != NULL) {
-        *alreadystruct = *top->structtype;
+        alreadystruct->kind = top->structtype->kind;
+        alreadystruct->tname = top->structtype->tname;
+        alreadystruct->fields = top->structtype->fields;
+        alreadystruct->structsize = top->structtype->structsize;
+        alreadystruct->maxalign = top->structtype->maxalign;
         top->structtype = alreadystruct;
       } else {
         map_insert(structmap, top->structtype->tname, top->structtype);

@@ -415,6 +415,7 @@ void struct_incomplete_test() {
 
   struct incom* ic2 = new_incom();
   test(ic2->next->x, 9);
+  test(new_incom()->next->x, 9);
 }
 
 enum tokenkind {
