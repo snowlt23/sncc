@@ -55,4 +55,4 @@ test: sncc-test self-test self2-test ;
 
 .PHONY: clean
 clean:
-	@rm -rf *.o *.s *.out sncc
+	@rm -rf *.o *.s *.out sncc self self2 test.pp.c
