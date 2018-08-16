@@ -217,6 +217,13 @@ void semantic_analysis(astree* ast) {
   } else if (ast->kind == AST_WHILE) {
     semantic_analysis(ast->whilecond);
     semantic_analysis(ast->whilebody);
+  } else if (ast->kind == AST_FOR) {
+    semantic_analysis(ast->forinit);
+    semantic_analysis(ast->forcond);
+    semantic_analysis(ast->fornext);
+    semantic_analysis(ast->forbody);
+  } else if (ast->kind == AST_BREAK || ast->kind == AST_CONTINUE) {
+    // discard
   } else if (ast->kind == AST_SIZEOF_EXPR) {
     semantic_analysis(ast->value);
     ast->kind = AST_INTLIT;
@@ -227,7 +234,7 @@ void semantic_analysis(astree* ast) {
     ast->intval = typesize(ast->typedesc);
     ast->typ = new_typenode(TYPE_INT);
   } else {
-    error("unsupported %d kind in codegen", ast->kind);
+    error("unsupported %d kind in semantic", ast->kind);
   }
 }
 

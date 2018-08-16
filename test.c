@@ -125,6 +125,21 @@ void while_test() {
     i++;
   }
   test(i, 10);
+  i = 0;
+  while (i<10) {
+    if (i == 5) break;
+    i++;
+  }
+  test(i, 5);
+  i = 0;
+  while (i<10) {
+    if (i < 5) {
+      i++;
+      continue;
+    }
+    break;
+  }
+  test(i, 5);
 }
 
 int for_test_impl() {
@@ -138,6 +153,15 @@ void for_test() {
   }
   test(i, 10);
   test(for_test_impl(), 5);
+  for (int i=0; i<10; i++) {
+    if (i == 5) break;
+  }
+  test(i, 5);
+  for (int i=0; i<10; i++) {
+    if (i < 9) continue;
+    break;
+  }
+  test(i, 9);
 }
 
 void addr_test() {

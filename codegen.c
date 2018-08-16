@@ -4,6 +4,9 @@
 
 #define emit_asm(...) {printf("  "); printf(__VA_ARGS__); printf("\n");}
 
+char* breaklabel;
+char* contlabel;
+
 void emit_label(char* label) {
   printf("%s:\n", label);
 }
@@ -383,6 +386,10 @@ void codegen(astree* ast) {
   } else if (ast->kind == AST_WHILE) {
     char* startl = gen_label();
     char* endl = gen_label();
+    char* prevcont = contlabel;
+    char* prevbreak = breaklabel;
+    contlabel = startl;
+    breaklabel = endl;
     emit_label(startl);
     codegen(ast->whilecond);
     emit_asm("pop %%rax");
@@ -391,6 +398,33 @@ void codegen(astree* ast) {
     codegen(ast->whilebody);
     emit_asm("jmp %s", startl);
     emit_label(endl);
+    contlabel = prevcont;
+    breaklabel = prevbreak;
+  } else if (ast->kind == AST_FOR) {
+    char* startl = gen_label();
+    char* nextl = gen_label();
+    char* endl = gen_label();
+    char* prevcont = contlabel;
+    char* prevbreak = breaklabel;
+    contlabel = nextl;
+    breaklabel = endl;
+    codegen(ast->forinit);
+    emit_label(startl);
+    codegen(ast->forcond);
+    emit_asm("pop %%rax");
+    emit_asm("cmpq $0, %%rax");
+    emit_asm("je %s", endl);
+    codegen(ast->forbody);
+    emit_label(nextl);
+    codegen(ast->fornext);
+    emit_asm("jmp %s", startl);
+    emit_label(endl);
+    contlabel = prevcont;
+    breaklabel = prevbreak;
+  } else if (ast->kind == AST_BREAK) {
+    emit_asm("jmp %s", breaklabel);
+  } else if (ast->kind == AST_CONTINUE) {
+    emit_asm("jmp %s", contlabel);
   } else {
     error("unsupported %d kind in codegen", ast->kind);
   }
@@ -398,6 +432,8 @@ void codegen(astree* ast) {
 
 void codegen_funcdecl(funcdecl fdecl) {
   if (fdecl.body == NULL) return;
+  breaklabel = NULL;
+  contlabel = NULL;
 
   emit_global(fdecl.fdecl->name);
   emit_label(fdecl.fdecl->name);

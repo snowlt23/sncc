@@ -102,6 +102,9 @@ typedef enum {
   AST_RETURN,
   AST_IF,
   AST_WHILE,
+  AST_FOR,
+  AST_BREAK,
+  AST_CONTINUE,
   AST_SIZEOF_EXPR,
   AST_SIZEOF_TYPE
 } astkind;
@@ -197,6 +200,12 @@ typedef struct _astree {
     struct {
       struct _astree* whilecond;
       struct _astree* whilebody;
+    };
+    struct {
+      struct _astree* forinit;
+      struct _astree* forcond;
+      struct _astree* fornext;
+      struct _astree* forbody;
     };
     vector* stmt;
   };

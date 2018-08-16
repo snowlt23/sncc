@@ -120,6 +120,8 @@ stmttest "while (c != EOF) {1;}" "1 AST_WHILE"
 stmttest "int a;" "1 AST_VARDECL"
 stmttest "return 1;" "1 AST_RETURN"
 stmttest "int a = 1;" "1 AST_VARDECL"
+stmttest "break" "1 AST_BREAK"
+stmttest "continue" "1 AST_CONTINUE"
 
 funcdecltest "int* malloc(int size);" "malloc size"
 funcdecltest "int main() {}" "main"

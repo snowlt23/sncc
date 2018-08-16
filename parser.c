@@ -112,6 +112,12 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_IF";
   } else if (ast->kind == AST_WHILE) {
     return "AST_WHILE";
+  } else if (ast->kind == AST_FOR) {
+    return "AST_FOR";
+  } else if (ast->kind == AST_BREAK) {
+    return "AST_BREAK";
+  } else if (ast->kind == AST_CONTINUE) {
+    return "AST_CONTINUE";
   } else {
     assert(0);
   }
@@ -568,28 +574,14 @@ astree* parse_for(tokenstream* ts) {
   if (!eq_ident(get_token(ts), "for")) return NULL;
   next_token(ts);
 
+  astree* ast = new_ast(AST_FOR);
+
   expect_token(get_token(ts), TOKEN_LPAREN); next_token(ts);
-
-  astree* forinit = parse_statement(ts);
-  astree* forcond = parse_statement(ts);
-  astree* fornext = parse_statement(ts);
-
+  ast->forinit = parse_statement(ts);
+  ast->forcond = parse_statement(ts);
+  ast->fornext = parse_statement(ts);
   expect_token(get_token(ts), TOKEN_RPAREN); next_token(ts);
-
-  astree* forbody = parse_compound(ts);
-  astree* bodyast = new_ast(AST_STATEMENT);
-  bodyast->stmt = new_vector();
-  vector_push(bodyast->stmt, (void*)forbody);
-  vector_push(bodyast->stmt, (void*)fornext);
-
-  astree* whileast = new_ast(AST_WHILE);
-  whileast->whilecond = forcond;
-  whileast->whilebody = bodyast;
-
-  astree* ast = new_ast(AST_STATEMENT);
-  ast->stmt = new_vector();
-  vector_push(ast->stmt, (void*)forinit);
-  vector_push(ast->stmt, (void*)whileast);
+  ast->forbody = parse_compound(ts);
 
   return ast;
 }
@@ -622,6 +614,15 @@ astree* parse_statement(tokenstream* ts) {
   astree* whileast = parse_while(ts);
   if (whileast != NULL) {
     return whileast;
+  }
+  
+  if (eq_ident(get_token(ts), "break")) {
+    next_token(ts);
+    return new_ast(AST_BREAK);
+  }
+  if (eq_ident(get_token(ts), "continue")) {
+    next_token(ts);
+    return new_ast(AST_CONTINUE);
   }
 
   astree* forast = parse_for(ts);
