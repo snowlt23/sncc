@@ -184,7 +184,7 @@ char* token_to_str(token* token) {
 }
 
 void skip_spaces() {
-  for (;;) {
+  while (true) {
     char nc = getc(input);
     if (nc != ' ') {
       ungetc(nc, input);
@@ -195,12 +195,13 @@ void skip_spaces() {
 
 char* read_ident() {
   skip_spaces();
-  char identbuf[256] = {};
+  char identbuf[256];
   for (int i=0; ; i++) {
     if (i >= 256) assert(false);
     char nc = getc(input);
     if (!isidenttail(nc)) {
       ungetc(nc, input);
+      identbuf[i] = 0;
       break;
     }
     identbuf[i] = nc;
@@ -210,7 +211,7 @@ char* read_ident() {
 
 char* read_strlit() {
   skip_spaces();
-  char strbuf[1024] = {};
+  char strbuf[1024];
   bool inesc = false;
   for (int i=0; ; i++) {
     assert(i < 1024);
@@ -239,6 +240,7 @@ char* read_strlit() {
       inesc = true;
       i--;
     } else if (nc == '"') {
+      strbuf[i] = 0;
       break;
     } else if (nc == EOF) {
       error("expect end of string literal.");
@@ -251,11 +253,14 @@ char* read_strlit() {
 
 char* read_strlit_angled() {
   skip_spaces();
-  char strbuf[1024] = {};
+  char strbuf[1024];
   for (int i=0; ; i++) {
     assert(i < 1024);
     char nc = getc(input);
-    if (nc == '>') break;
+    if (nc == '>') {
+      strbuf[i] = 0;
+      break;
+    }
     if (nc == EOF) error("expect end of string literal.");
     strbuf[i] = nc;
   }
@@ -287,7 +292,7 @@ void preprocessor(vector* tokenss, char* prename) {
   } else if (strcmp(prename, "define") == 0) {
     char* definename = read_ident();
     vector* definetokens = new_vector();
-    for (;;) {
+    while (true) {
       skip_spaces();
       char c = getc(input);
       if (c == '\n') break;
@@ -306,12 +311,13 @@ bool single_token_lexer(vector* tokenss) {
   if (c == EOF) {
     return false;
   } else if (isdigit(c)) { // int literal
-    char digitbuf[256] = {};
+    char digitbuf[256];
     digitbuf[0] = c;
     for (int i=1; ; i++) {
       assert(i < 256);
       char nc = getc(input);
       if (!isdigit(nc)) {
+        digitbuf[i] = 0;
         ungetc(nc, input);
         vector_push(tokenss, new_intlit(atoi(digitbuf)));
         break;
@@ -352,7 +358,7 @@ bool single_token_lexer(vector* tokenss) {
   } else if (c == '/') {
     char nc = getc(input);
     if (nc == '/') {
-      for (;;) {
+      while (true) {
         nc = getc(input);
         if (nc == EOF || nc == '\n') break;
       }
@@ -449,7 +455,7 @@ bool single_token_lexer(vector* tokenss) {
 vector* lexer() {
   vector* tokenss = new_vector();
 
-  for (;;) {
+  while (true) {
     bool cont = single_token_lexer(tokenss);
     if (!cont) break;
   }
