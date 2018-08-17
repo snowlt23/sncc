@@ -117,7 +117,6 @@ int lsh_execute(char **args)
     // An empty command was entered.
     return 1;
   }
-  printf("%s\n", args[0]);
 
   if (strcmp(args[0], "cd") == 0) {
     return lsh_cd(args);
