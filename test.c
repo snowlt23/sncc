@@ -3,9 +3,14 @@
 
 // test
 
+/*
+ * C compiler test
+ */
+
 void printf(char* fmt);
 void exit(int x);
 int strcmp(char* a, char* b);
+char* strtok(char* s1, char* s2);
 
 void test_impl(int x, int expect, char* s, int line) {
   if (!(x == expect)) {
@@ -32,6 +37,8 @@ void infix_test() {
   test(!10, 0);
   test(2 <= 5-2, 1);
   test(10 <= 5-2, 0);
+
+  test(10 & 7, 2);
 
   test(1 && 1, 1);
   test(1 && 0, 0);
@@ -521,6 +528,23 @@ void charlit_test() {
   test(' ', 32);
 }
 
+void strtok_test() {
+  char* s = malloc(sizeof(char)*10);
+  s[0] = 'y';
+  s[1] = 'u';
+  s[2] = 'k';
+  s[3] = 'a';
+  s[4] = 'r';
+  s[5] = 'i';
+  s[6] = ' ';
+  s[7] = 'i';
+  s[8] = 'a';
+  s[9] = '\0';
+  char* deli = " ";
+  test(strcmp(strtok(s, " "), "yukari"), 0);
+  test(strcmp(strtok(0, " "), "ia"), 0);
+}
+
 int main() {
   infix_test();
   op_test();
@@ -550,6 +574,7 @@ int main() {
   typedef_bool_test();
   exfn_test();
   charlit_test();
+  strtok_test();
 
   printf("[OK]\n");
   return 0;

@@ -240,6 +240,13 @@ void codegen(astree* ast) {
     emit_label(falsel);
     emit_push("$0");
     emit_label(endl);
+  } else if (ast->kind == AST_BAND) {
+    codegen(ast->left);
+    codegen(ast->right);
+    emit_pop("%rcx");
+    emit_pop("%rax");
+    emit_asm("andq %rcx, %rax");
+    emit_push("%rax");
   } else if (ast->kind == AST_LOR) {
     char* truel = gen_label();
     char* endl = gen_label();

@@ -159,7 +159,7 @@ void semantic_analysis(astree* ast) {
     ast->left = new_ast_prefix(AST_PREINC, ast->value);
     ast->right = new_ast_intlit(1);
     semantic_analysis(ast);
-  } else if (ast->kind == AST_EQ || ast->kind == AST_LAND || ast->kind == AST_LOR) {
+  } else if (ast->kind == AST_EQ || ast->kind == AST_LAND || ast->kind == AST_LOR || ast->kind == AST_BAND) {
     semantic_analysis(ast->left);
     semantic_analysis(ast->right);
   } else if (ast->kind == AST_DOT) {

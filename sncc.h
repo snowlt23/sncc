@@ -85,6 +85,7 @@ typedef enum _astkind {
   AST_EQ,
   AST_LAND,
   AST_LOR,
+  AST_BAND,
   AST_DOT,
   AST_ADDR,
   AST_DEREF,

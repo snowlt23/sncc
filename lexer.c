@@ -5,9 +5,6 @@
 #include <ctype.h>
 #include "sncc.h"
 
-// #define error(...) {fprintf(stderr, __VA_ARGS__); exit(1);}
-// #define warning(...) {fprintf(stderr, "warning: "); fprintf(stderr, __VA_ARGS__);}
-
 FILE* input;
 map* definemap;
 
@@ -212,24 +209,13 @@ char* read_ident() {
 }
 
 char* read_strlit() {
-  skip_spaces();
   char strbuf[1024];
   bool inesc = false;
   int i = 0;
   while (true) {
     assert(i < 1024);
     char nc = getc(input);
-    if (inesc && nc == '"') {
-      strbuf[i] = '\\';
-      strbuf[i+1] = '"';
-      inesc = false;
-      i++;
-    } else if (inesc && nc == 'n') {
-      strbuf[i] = '\\';
-      strbuf[i+1] = 'n';
-      inesc = false;
-      i++;
-    } else if (inesc && nc == '\\') {
+    if (inesc && nc == '\\') {
       strbuf[i] = '\\';
       strbuf[i+1] = '\\';
       inesc = false;
@@ -345,6 +331,9 @@ bool single_token_lexer(vector* tokenss) {
     char nc = getc(input);
     if (nc == '\\') {
       nc = getc(input);
+      if (nc == '0') {
+        nc = '\0';
+      }
       if (nc == 'n') {
         nc = '\n';
       }
@@ -385,6 +374,20 @@ bool single_token_lexer(vector* tokenss) {
       while (true) {
         nc = getc(input);
         if (nc == EOF || nc == '\n') break;
+      }
+    } else if (nc == '*') {
+      bool inasterisk = false;
+      while (true) {
+        nc = getc(input);
+        if (inasterisk && nc == '/') {
+          break;
+        }
+        if (nc == '*') {
+          inasterisk = true;
+          continue;
+        }
+        if (nc == EOF) break;
+        inasterisk = false;
       }
     } else {
       ungetc(nc, input);

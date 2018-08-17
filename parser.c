@@ -481,8 +481,24 @@ astree* infix_lge(tokenstream* ts) {
   return left;
 }
 
-astree* infix_logic_and(tokenstream* ts) {
+astree* infix_bit_and(tokenstream* ts) {
   astree* left = infix_lge(ts);
+  while (true) {
+    token* t = get_token(ts);
+    if (t == NULL) break;
+    if (t->kind == TOKEN_AND) {
+      next_token(ts);
+      astree* right = infix_lge(ts);
+      left = new_ast_infix(AST_BAND, left, right);
+    } else {
+      break;
+    }
+  }
+  return left;
+}
+
+astree* infix_logic_and(tokenstream* ts) {
+  astree* left = infix_bit_and(ts);
   while (true) {
     token* t = get_token(ts);
     if (t == NULL) break;

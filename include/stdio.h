@@ -1,5 +1,6 @@
 typedef void FILE;
 
+#define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
 
 extern FILE* stdin;
@@ -12,6 +13,7 @@ char getc(FILE* fp);
 void ungetc(char c, FILE* fp);
 char fgetc(FILE* fp);
 void putchar(char c);
+char getchar();
 void printf(char* fmt);
 void fprintf(FILE* f, char* fmt);
 void sprintf(char* s, char* fmt);
