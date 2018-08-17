@@ -1,0 +1,2 @@
+#!/bin/sh
+./sncc.out < $1 > test.s && ./sncc.out < selflib.c > selflib.s && gcc -oa test.s selflib.s
