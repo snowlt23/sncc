@@ -1,7 +1,7 @@
 
 # sncc (snow c compiler)
 
-Self hosted C compiler at seccamp2018.
+Self hosted C compiler at seccamp2018. (has many unimplemented features)
 
 # Build
 
@@ -21,9 +21,3 @@ $ make test
 ./sncc filename.c
 ./a
 ```
-
-# Unimplemented Features
-
-- value passing struct
-- scope variable shadowing
-
