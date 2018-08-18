@@ -73,6 +73,14 @@ void variable_test() {
   int a = 9;
   int b = 8;
   test(a + b, 17);
+  int c, d;
+  c = 4;
+  d = 5;
+  test(c, 4);
+  test(d, 5);
+  int e, f = 1, 2;
+  test(e, 1);
+  test(f, 2);
 }
 
 int return_test_impl() {
@@ -545,6 +553,12 @@ void strtok_test() {
   test(strcmp(strtok(0, " "), "ia"), 0);
 }
 
+void unsigned_test() {
+  unsigned int x = 2147483646;
+  test(x, 2147483646);
+  test(x+1, 2147483647);
+}
+
 int main() {
   infix_test();
   op_test();
@@ -575,6 +589,7 @@ int main() {
   exfn_test();
   charlit_test();
   strtok_test();
+  unsigned_test();
 
   printf("[OK]\n");
   return 0;

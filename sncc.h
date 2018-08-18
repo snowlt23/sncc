@@ -95,7 +95,7 @@ typedef enum _astkind {
   AST_IDENT,
   AST_GLOBALREF,
   AST_CALL,
-  AST_STATEMENT,
+  AST_STATEMENTS,
   AST_FUNCDEF,
   AST_RETURN,
   AST_IF,
@@ -109,6 +109,7 @@ typedef enum _astkind {
 
 typedef enum _typekind {
   TYPE_INT,
+  TYPE_UINT,
   TYPE_CHAR,
   TYPE_VOID,
   TYPE_PTR,
@@ -181,7 +182,7 @@ typedef struct _astree {
   struct _astree* forcond;
   struct _astree* fornext;
   struct _astree* forbody;
-  vector* stmt;
+  vector* stmts;
 } astree;
 
 typedef struct _tokenstream {

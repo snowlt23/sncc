@@ -47,8 +47,6 @@ void emit_push(char* s) {
 }
 void emit_pop(char* s) {
   emit_asm1("popq %s", s);
-} void emit_add(char* left, char* right) {
-  emit_asm2("addq %s, %s", left, right);
 }
 void emit_sub(char* left, char* right) {
   emit_asm2("subq %s, %s", left, right);
@@ -111,7 +109,7 @@ void codegen_movevalue(typenode* typ) {
     emit_pop("%rax");
     emit_asm("movsbl (%%rax), %%eax");
     emit_push("%rax");
-  } else if (typ->kind == TYPE_INT) {
+  } else if (typ->kind == TYPE_INT || typ->kind == TYPE_UINT) {
     emit_pop("%rax");
     emit_asm("movl (%%rax), %%eax");
     emit_push("%rax");
@@ -127,7 +125,7 @@ void codegen_movevalue(typenode* typ) {
 void codegen_movereg(typenode* typ, char* reg8, char* reg32, char* reg64) {
   if (typ->kind == TYPE_CHAR) {
     emit_asm1("movb %s, (%%rax)", reg8);
-  } else if (typ->kind == TYPE_INT) {
+  } else if (typ->kind == TYPE_INT || typ->kind == TYPE_UINT) {
     emit_asm1("movl %s, (%%rax)", reg32);
   } else if (typ->kind == TYPE_PTR) {
     emit_asm1("movq %s, (%%rax)", reg64);
@@ -143,9 +141,10 @@ void codegen_add(typenode* typ, typenode* right) {
     emit_asm("imulq %%rcx");
     emit_push("%rax");
   }
+
   emit_pop("%rcx");
   emit_pop("%rax");
-  emit_add("%rcx", "%rax");
+  emit_asm("addq %rcx, %rax");
   emit_push("%rax");
 }
 
@@ -384,9 +383,9 @@ void codegen(astree* ast) {
     emit_pop("%rdi");
     
     emit_push("%rax");
-  } else if (ast->kind == AST_STATEMENT) {
-    for (int i=0; i<ast->stmt->len; i++) {
-      astree* e = vector_get(ast->stmt, i);
+  } else if (ast->kind == AST_STATEMENTS) {
+    for (int i=0; i<ast->stmts->len; i++) {
+      astree* e = vector_get(ast->stmts, i);
       codegen(e);
     }
   } else if (ast->kind == AST_RETURN) {

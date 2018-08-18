@@ -50,6 +50,8 @@ int getalign(typenode* typ) {
 
   if (typ->kind == TYPE_INT) {
     return 4;
+  } else if (typ->kind == TYPE_UINT) {
+    return 4;
   } else if (typ->kind == TYPE_CHAR) {
     return 1;
   } else if (typ->kind == TYPE_VOID) {
@@ -74,6 +76,8 @@ int typesize(typenode* typ) {
   if (typ->kind == TYPE_INCOMPLETE_STRUCT) error_s("%s type is incomplete type.", typ->tname);
 
   if (typ->kind == TYPE_INT) {
+    return 4;
+  } else if (typ->kind == TYPE_UINT) {
     return 4;
   } else if (typ->kind == TYPE_CHAR) {
     return 1;
@@ -102,7 +106,7 @@ paramtype* get_field(typenode* typ, char* fieldname) {
 }
 
 bool is_implicit_int(typenode* typ) {
-  return typ->kind == TYPE_INT || typ->kind == TYPE_CHAR || typ->kind == TYPE_PTR;
+  return  typ->kind == TYPE_INT || typ->kind == TYPE_UINT ||typ->kind == TYPE_CHAR || typ->kind == TYPE_PTR;
 }
 
 void semantic_analysis(astree* ast) {
@@ -130,6 +134,8 @@ void semantic_analysis(astree* ast) {
     semantic_analysis(ast->left);
     semantic_analysis(ast->right);
     if (ast->left->typ->kind == TYPE_PTR && ast->right->typ->kind == TYPE_INT) {
+      ast->typ = ast->left->typ;
+    } else if (ast->left->typ->kind == TYPE_UINT && is_implicit_int(ast->right->typ)) {
       ast->typ = ast->left->typ;
     } else if (is_implicit_int(ast->left->typ) && is_implicit_int(ast->right->typ)) {
       ast->typ = new_typenode(TYPE_INT);;
@@ -194,9 +200,9 @@ void semantic_analysis(astree* ast) {
     } else {
       ast->typ = rettyp;
     }
-  } else if (ast->kind == AST_STATEMENT) {
-    for (int i=0; i<ast->stmt->len; i++) {
-      astree* e = vector_get(ast->stmt, i);
+  } else if (ast->kind == AST_STATEMENTS) {
+    for (int i=0; i<ast->stmts->len; i++) {
+      astree* e = vector_get(ast->stmts, i);
       semantic_analysis(e);
     }
   } else if (ast->kind == AST_RETURN) {

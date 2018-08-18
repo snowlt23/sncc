@@ -102,8 +102,8 @@ char* ast_to_kindstr(astree* ast) {
     return "AST_VARDECL";
   } else if (ast->kind == AST_CALL) {
     return "AST_CALL";
-  } else if (ast->kind == AST_STATEMENT) {
-    return "AST_STATEMENT";
+  } else if (ast->kind == AST_STATEMENTS) {
+    return "AST_STATEMENTS";
   } else if (ast->kind == AST_INTLIT) {
     return "AST_INTLIT";
   } else if (ast->kind == AST_STRLIT) {
@@ -178,11 +178,55 @@ void next_token(tokenstream* ts) {
 // parser
 //
 
-typenode* parse_type(tokenstream* ts) {
+typenode* parse_pointer(tokenstream* ts, typenode* basetype) {
+  typenode* tn = basetype;
+  while (true) {
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_MUL) {
+      next_token(ts);
+      tn = new_ptrnode(tn);
+    } else {
+      break;
+    }
+  }
+  return tn;
+}
+
+typenode* parse_arraydecl(tokenstream* ts, typenode* basetype) {
+  typenode* tn = basetype;
+  while (true) {
+    if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_LBRACKET) break;
+    next_token(ts);
+    expect_token(get_token(ts), TOKEN_INTLIT);
+    int arraysize = get_token(ts)->intval; next_token(ts);
+    tn = new_arraynode(tn, arraysize); // FIXME:
+    expect_token(get_token(ts), TOKEN_RBRACKET); next_token(ts);
+  }
+  return tn;
+}
+
+vector* parse_struct_body(tokenstream* ts) {
+  if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_LBRACE) return NULL;
+  next_token(ts);
+  vector* fields = new_vector();
+  while (true) {
+    paramtype* field = parse_paramtype(ts);
+    if (field == NULL) break;
+    vector_push(fields, field);
+    expect_token(get_token(ts), TOKEN_SEMICOLON); next_token(ts);
+  }
+  expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
+  return fields;
+}
+
+typenode* parse_typespec(tokenstream* ts) {
   typenode* tn;
   if (eq_ident(get_token(ts), "int")) {
     next_token(ts);
     tn = new_typenode(TYPE_INT);
+  } else if (eq_ident(get_token(ts), "unsigned")) {
+    next_token(ts);
+    if (eq_ident(get_token(ts), "int")) next_token(ts);
+    tn = new_typenode(TYPE_UINT);
   } else if (eq_ident(get_token(ts), "char")) {
     next_token(ts);
     tn = new_typenode(TYPE_CHAR);
@@ -192,26 +236,20 @@ typenode* parse_type(tokenstream* ts) {
   } else if (eq_ident(get_token(ts), "struct")) {
     next_token(ts);
     tn = new_typenode(TYPE_STRUCT);
-    expect_token(get_token(ts), TOKEN_IDENT);
-    char* tname = get_token(ts)->ident; next_token(ts);
-    tn->tname = tname;
-    if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_LBRACE) {
+    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_IDENT) {
+      tn->tname = get_token(ts)->ident; next_token(ts);
+    } else {
+      tn->tname = NULL;
+    }
+    char* tname = tn->tname;
+    tn->fields = parse_struct_body(ts);
+    if (tn->fields == NULL) {
       tn = map_get(structmap, tn->tname);
       if (tn == NULL) {
         tn = new_typenode(TYPE_INCOMPLETE_STRUCT);
         tn->tname = tname;
         map_insert(structmap, tname, tn);
       }
-    } else {
-      expect_token(get_token(ts), TOKEN_LBRACE); next_token(ts);
-      tn->fields = new_vector();
-      while (true) {
-        paramtype* field = parse_paramtype(ts);
-        if (field == NULL) break;
-        vector_push(tn->fields, field);
-        expect_token(get_token(ts), TOKEN_SEMICOLON); next_token(ts);
-      }
-      expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
     }
   } else if (eq_ident(get_token(ts), "enum")) {
     next_token(ts);
@@ -243,15 +281,11 @@ typenode* parse_type(tokenstream* ts) {
     next_token(ts);
     tn = searched;
   }
-  while (true) {
-    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_MUL) {
-      next_token(ts);
-      tn = new_ptrnode(tn);
-    } else {
-      break;
-    }
-  }
   return tn;
+}
+
+typenode* parse_typeexpr(tokenstream* ts) {
+  return parse_pointer(ts, parse_typespec(ts));
 }
 
 astree* gen_ptrderef(astree* value, astree* index) {
@@ -353,7 +387,7 @@ astree* prefix_op(tokenstream* ts) {
     next_token(ts);
     if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_LPAREN) next_token(ts);
     astree* ast;
-    typenode* typ = parse_type(ts);
+    typenode* typ = parse_typeexpr(ts);
     if (typ == NULL) {
       ast = new_ast(AST_SIZEOF_EXPR);
       ast->value = expression(ts);
@@ -634,16 +668,43 @@ astree* parse_for(tokenstream* ts) {
   return ast;
 }
 
+vector* parse_declarator(tokenstream* ts) {
+  vector* v = new_vector();
+  typenode* typ = parse_typespec(ts);
+  if (typ == NULL) return v;
+  while (true) {
+    typenode* decltyp = parse_pointer(ts, typ);
+    paramtype* pt = malloc(sizeof(paramtype));
+    expect_token(get_token(ts), TOKEN_IDENT);
+    pt->name = get_token(ts)->ident; next_token(ts);
+    // pt->typ = decltyp;
+    pt->typ = parse_arraydecl(ts, decltyp);
+    vector_push(v, pt);
+    if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_COMMA) break;
+    next_token(ts);
+  }
+  return v;
+}
+
 astree* parse_vardecl(tokenstream* ts) {
-  paramtype* pt = parse_paramtype(ts);
-  if (pt == NULL) return NULL;
-  astree* ast = new_ast(AST_VARDECL);
-  ast->vardecl = pt;
+  vector* decls = parse_declarator(ts);
+  if (decls->len == 0) return NULL;
+  astree* ast = new_ast(AST_STATEMENTS);
+  ast->stmts = new_vector();
+  for (int i=0; i<decls->len; i++) {
+    astree* varast = new_ast(AST_VARDECL);
+    varast->vardecl = vector_get(decls, i);
+    varast->varinit = NULL;
+    vector_push(ast->stmts, varast);
+  }
   if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_ASSIGN) {
     next_token(ts);
-    ast->varinit = expression(ts);
-  } else {
-    ast->varinit = NULL;
+    for (int i=0; i<ast->stmts->len; i++) {
+      astree* vast = vector_get(ast->stmts, i);
+      vast->varinit = expression(ts);
+      if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_COMMA) break;
+      next_token(ts);
+    }
   }
   return ast;
 }
@@ -706,8 +767,8 @@ astree* parse_compound(tokenstream* ts) {
   if (get_token(ts) == NULL) return NULL;
   if (get_token(ts)->kind == TOKEN_LBRACE) {
     next_token(ts);
-    astree* ast = new_ast(AST_STATEMENT);
-    ast->stmt = parse_statements(ts);
+    astree* ast = new_ast(AST_STATEMENTS);
+    ast->stmts = parse_statements(ts);
     expect_token(get_token(ts), TOKEN_RBRACE); next_token(ts);
     return ast;
   } else {
@@ -721,7 +782,7 @@ astree* parse_compound(tokenstream* ts) {
 //
 
 paramtype* parse_paramtype(tokenstream* ts) {
-  typenode* tn = parse_type(ts);
+  typenode* tn = parse_typeexpr(ts);
   if (tn == NULL) return NULL;
   if (get_token(ts) == NULL || get_token(ts)->kind != TOKEN_IDENT) {
     paramtype* pt = malloc(sizeof(paramtype));
@@ -731,22 +792,7 @@ paramtype* parse_paramtype(tokenstream* ts) {
   }
   token* t = get_token(ts); next_token(ts);
   if (t->kind != TOKEN_IDENT) error("expected identifier in parameter.");
-  while (true) { // array declaration
-    if (get_token(ts) != NULL && get_token(ts)->kind == TOKEN_LBRACKET) {
-      next_token(ts);
-      expect_token(get_token(ts), TOKEN_INTLIT);
-      int arraysize = get_token(ts)->intval;
-      next_token(ts);
-      if (tn->kind == TYPE_ARRAY) {
-        tn->ptrof = new_arraynode(tn->ptrof, arraysize);
-      } else {
-        tn = new_arraynode(tn, arraysize);
-      }
-      expect_token(get_token(ts), TOKEN_RBRACKET); next_token(ts);
-    } else {
-      break;
-    }
-  }
+  tn = parse_arraydecl(ts, tn);
   paramtype* pt = malloc(sizeof(paramtype));
   pt->typ = tn;
   pt->name = t->ident;
@@ -777,7 +823,7 @@ toplevel* parse_toplevel(tokenstream* ts) {
 
   if (eq_ident(get_token(ts), "typedef")) {
     next_token(ts);
-    typenode* typ = parse_type(ts);
+    typenode* typ = parse_typeexpr(ts);
     if (typ->kind == TYPE_STRUCT) {
       top->kind = TOP_STRUCT;
       top->structtype = typ;
